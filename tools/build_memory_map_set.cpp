@@ -54,6 +54,15 @@ int main(int argc, char** argv)
 
         // open rom file
         FILE* fp = fopen(romname, "rw");
+        if (fp == NULL)
+        {
+            // could not find rom file
+            fprintf(stderr, "Could not find rom: %s\n", romname);
+            fprintf(stderr, "run 'make fetch_roms'\n");
+            exit(1);
+        }
+
+
         long sz = getSize(fp);
 
         uint32_t map_addr = (65536 * index) + address;

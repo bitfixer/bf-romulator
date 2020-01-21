@@ -38,7 +38,7 @@ assign cs_bus = phi2 & enable_table[enable_addr][0];
 
 initial
 begin
-    $readmemh("enable_table.txt", enable_table);
+    $readmemh("../bin/enable_table.txt", enable_table);
 end
 
 endmodule
