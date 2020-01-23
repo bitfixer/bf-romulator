@@ -31,7 +31,7 @@ module spi_flash_reader(
 
     input clk,
     output reg read_complete,
-    input wire [1:0] flash_read_addr
+    input wire [3:0] flash_read_addr
 );
 
 reg spi_clk_input;
