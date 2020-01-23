@@ -1,3 +1,19 @@
+// ROMulator - RAM/ROM replacement and diagnostic for 8-bit CPUs
+// Copyright (C) 2019  Michael Hill
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 module enable_logic(
   inout spi_clk, 
   input wire spi_miso, 
@@ -218,7 +234,7 @@ assign led_blue = read_complete;
 assign led_green = 1;
 assign led_red = 1;
 
-reg [1:0] configuration;
+reg [3:0] configuration;
 
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
 ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, configuration, clk);
@@ -269,7 +285,7 @@ diagnostics diag(
 
 initial
 begin
-  configuration <= ~wdatain[1:0];
+  configuration <= ~wdatain[3:0];
 end
 
 endmodule
