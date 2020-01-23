@@ -1,3 +1,19 @@
+// ROMulator - RAM/ROM replacement and diagnostic for 8-bit CPUs
+// Copyright (C) 2019  Michael Hill
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 module spi_flash_reader(
     output spi_clk, 
     input wire spi_miso, 
@@ -81,7 +97,7 @@ wire [7:0] ram_dataout;
 assign spi_cs = spi_cs_reg;
 assign ram_datain = spi_recv_byte;
 
-SPI_Master #(0, 4)
+SPI_Master #(0, 3)
 SPIMaster
   (
    // Control/Data Signals,
@@ -103,12 +119,11 @@ SPIMaster
    .o_SPI_MOSI(spi_mosi)
    );
 
-
 // generate clock input for SPI
 always @(posedge clk)
 begin
     counter <= counter + 1;
-    if (counter == 2)
+    if (counter == 1)
     begin
         counter <= 0;
         if (spi_clk_input == 0) 
