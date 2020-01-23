@@ -18,10 +18,6 @@ $(BIN_DIR)/console: $(PROGRAMMER_DIR)/console.cc
 
 # Tools
 
-$(BIN_DIR)/build_memory_map: $(TOOLS_DIR)/build_memory_map.cpp
-	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/build_memory_map $(TOOLS_DIR)/build_memory_map.cpp
-
 $(BIN_DIR)/build_memory_map_set: $(TOOLS_DIR)/build_memory_map_set.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/build_memory_map_set $(TOOLS_DIR)/build_memory_map_set.cpp
@@ -64,6 +60,7 @@ $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/
 
 # General
 
+.PHONY: program
 program: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -f < $(BIN_DIR)/romulator.bin
 
