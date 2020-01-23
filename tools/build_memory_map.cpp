@@ -54,5 +54,6 @@ int main(int argc, char** argv)
         fclose(fp);
     }
 
-    fwrite(&memory_map[32768], 1, 32768, stdout);
+    //fwrite(&memory_map[32768], 1, 32768, stdout);
+    fwrite(memory_map, 1, 65536, stdout);
 }

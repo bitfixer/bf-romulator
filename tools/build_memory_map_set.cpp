@@ -75,7 +75,10 @@ int main(int argc, char** argv)
 
     for (int i = 0; i < NUMMAPS; i++)
     {
-        uint32_t addr = (65536 * i) + 32768;
-        fwrite(&memorymaps[addr], 1, 32768, stdout);
+        //uint32_t addr = (65536 * i) + 32768;
+        //fwrite(&memorymaps[addr], 1, 32768, stdout);
+
+        uint32_t addr = 65536*i;
+        fwrite(&memorymaps[addr], 1, 65536, stdout);
     }
 }

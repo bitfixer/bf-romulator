@@ -88,7 +88,7 @@ reg [8:0] xfer_flash_blocks_to_read;
 
 // memory addresses and signals
 reg [23:0] flash_address = 0;
-reg [15:0] ram_address = 16'h8000;
+reg [15:0] ram_address = 16'h0000;
 reg ram_cs = 0;
 reg ram_we = 0;
 wire [7:0] ram_datain;
@@ -199,8 +199,8 @@ begin
             spi_cs_reg <= 1;
 
             // reading 4096 bytes
-            xfer_flash_blocks_to_read <= 128;
-            flash_address <= 24'h20000 + (flash_read_addr << 15);
+            xfer_flash_blocks_to_read <= 256;
+            flash_address <= 24'h20000 + (flash_read_addr << 16);
 
             xfer_state = XFER_FLASHREAD_BLOCK;
         end
