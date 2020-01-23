@@ -32,7 +32,7 @@ module diagnostics(
      output reg we,
      output reg cs,
 
-     input      [1:0] configuration
+     input      [3:0] configuration
 );
 
 // module states
@@ -57,7 +57,7 @@ reg [7:0] tx_byte = 8'h00;
 
 reg read_done = 0;
 reg write_started = 0;
-reg [1:0] config_byte;
+reg [3:0] config_byte;
 
 localparam HALT_CPU = 8'haa;
 localparam RESUME_CPU = 8'h55;

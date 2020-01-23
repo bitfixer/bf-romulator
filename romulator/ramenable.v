@@ -5,14 +5,14 @@ module ramenable(
     output cs_ram,
     output cs_bus,
     output we,
-    input [1:0] configuration,
+    input [3:0] configuration,
     input fpga_clk);
 
 // table of ram and bus enable signals, 64 entries per table
 // this is selected by the configuration byte
-reg [1:0] enable_table[0:255];
-wire[7:0] enable_addr;
-reg [1:0] config_byte;
+reg [1:0] enable_table[0:1023];
+wire[9:0] enable_addr;
+reg [3:0] config_byte;
 
 // module states
 localparam READ_CONFIG = 0;
