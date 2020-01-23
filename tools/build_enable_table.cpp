@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define NUMMAPS 4
+#define NUMMAPS 16
 
 typedef enum _region
 {
