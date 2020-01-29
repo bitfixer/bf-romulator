@@ -7,6 +7,24 @@ programmer - programmer and console application for updating ROMulator, and debu
 
 tools - C++ tools for building firmware images for ROMulator
 
+## About
+
+The ROMulator is a RAM/ROM replacement device for 6502 systems, which 
+
+
+## Default Switch Settings
+
+The ROMulator supports up to 16 memory maps. Only 4 are populated by default, but you can add any maps you want via the programming interface.
+The default switch settings are as follows:
+
+|Setting            |Switch 1   |Switch 2   |Switch 3   |Switch 4   |
+|-------------------|-----------|-----------|-----------|-----------|
+|BASIC 2, NON-CRTC  |Off        |Off        |Off        |Off        |
+|BASIC 4, CRTC      |On         |Off        |Off        |Off        |
+|BASIC 4, CRTC, 80C |Off        |On         |Off        |Off        |
+|BASIC 4, CRTC, 40C |On         |On         |Off        |Off        |
+
+
 ## Program / Debug
 
 Programming or Debug functionality of the ROMulator uses a Raspberry Pi using a soft SPI implementation. 
