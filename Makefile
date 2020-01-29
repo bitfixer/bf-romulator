@@ -82,5 +82,9 @@ $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/
 program: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -f < $(BIN_DIR)/romulator.bin
 
+.PHONY: reset
+reset: $(BIN_DIR)/programmer
+	$(BIN_DIR)/programmer -b
+
 clean:
 	rm $(BIN_DIR)/*
