@@ -9,7 +9,7 @@ tools - C++ tools for building firmware images for ROMulator
 
 ## About
 
-The ROMulator is a RAM/ROM replacement device for 6502 systems, which 
+The ROMulator is a RAM/ROM replacement device for 6502 systems, with programmable memory maps and debug functionality which allows you to halt a running CPU and read from or write to memory.
 
 
 ## Default Switch Settings
@@ -20,7 +20,7 @@ The default switch settings are as follows:
 |Setting            |Switch 1   |Switch 2   |Switch 3   |Switch 4   |
 |-------------------|-----------|-----------|-----------|-----------|
 |BASIC 2, NON-CRTC  |Off        |Off        |Off        |Off        |
-|BASIC 4, CRTC      |On         |Off        |Off        |Off        |
+|BASIC 4, NON-CRTC      |On         |Off        |Off        |Off        |
 |BASIC 4, CRTC, 80C |Off        |On         |Off        |Off        |
 |BASIC 4, CRTC, 40C |On         |On         |Off        |Off        |
 
