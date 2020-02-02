@@ -1,10 +1,10 @@
-#bf-romulator : Tools
+# bf-romulator : Tools
 
 This directory contains code which is used to build memory maps for the ROMulator.
 
-##Memory Maps
+## Memory Maps
 
-###default_memory_set.csv:
+### default_memory_set.csv:
 
 This file contains a list of which ROM images should be placed at specified memory addresses in memory maps for the ROMulator.
 The format is:
