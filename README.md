@@ -32,13 +32,13 @@ Programming or Debug functionality of the ROMulator uses a Raspberry Pi using a 
 You can use the optional RPI ROMulator programming board, or directly connect the following RPI physical pins to the corresponding pins on the 10-pin header on the ROMulator FPGA board:
 
 
-|RPI     |FPGA Hdr|        |RPI |
+|RPI     |FPGA Hdr|FPGA Hdr|RPI |
 |--------|--------|--------|----|
-|35      |1       |2       |1   |
-|37      |3       |4       |18  |
-|40      |5       |6       |NC  |
-|36      |7       |8       |NC  |
-|35      |9       |10      |34  |
+|38      |1 (MOSI)|2 (3.3v)|1   |
+|37      |3 (CS)  |4 (DBG) |18  |
+|40      |5 (RST) |6       |NC  |
+|36      |7 (SCK) |8       |NC  |
+|35      |9 (MISO)|10 (GND)|34  |
 
 ### Installation
 
