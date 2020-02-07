@@ -39,3 +39,14 @@ You can use the optional RPI ROMulator programming board, or directly connect th
 |40      |5       |6       |NC  |
 |36      |7       |8       |NC  |
 |35      |9       |10      |34  |
+
+### Installation
+
+To install the ROMulator software on a Raspberry PI for programming or debug, download the script [setup.sh](https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup.sh) onto your Pi and execute from your home directory.
+This will install the prequisites and fetch the latest version of the code in this repo.
+
+### Programming
+
+To program a new firmware onto the ROMulator, run
+```make program```
+from the ~/bf-romulator directory.
