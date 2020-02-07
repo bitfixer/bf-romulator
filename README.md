@@ -17,13 +17,14 @@ The ROMulator is a RAM/ROM replacement device for 6502 systems, with programmabl
 The ROMulator supports up to 16 memory maps. Only 4 are populated by default, but you can add any maps you want via the programming interface.
 The default switch settings are as follows:
 
-|Setting            |Switch 1   |Switch 2   |Switch 3   |Switch 4   |
-|-------------------|-----------|-----------|-----------|-----------|
-|BASIC 2, NON-CRTC  |Off        |Off        |Off        |Off        |
-|BASIC 4, NON-CRTC      |On         |Off        |Off        |Off        |
-|BASIC 4, CRTC, 80C |Off        |On         |Off        |Off        |
-|BASIC 4, CRTC, 40C |On         |On         |Off        |Off        |
+|Set Index  |Setting            |Switch 1   |Switch 2   |Switch 3   |Switch 4   |
+|-----------|-------------------|-----------|-----------|-----------|-----------|
+|0          |BASIC 2, NON-CRTC  |Off        |Off        |Off        |Off        |
+|1          |BASIC 4, NON-CRTC  |On         |Off        |Off        |Off        |
+|2          |BASIC 4, CRTC, 80C |Off        |On         |Off        |Off        |
+|3          |BASIC 4, CRTC, 40C |On         |On         |Off        |Off        |
 
+The memory maps are defined in [tools/default_memory_set.csv](tools/default_memory_set.csv).
 
 ## Program / Debug
 
