@@ -51,5 +51,7 @@ The one-liner for this on the command line is:
 ### Programming
 
 To program a new firmware onto the ROMulator, run
-```make program```
+```
+make program
+```
 from the ~/bf-romulator directory.
