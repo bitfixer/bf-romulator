@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define NUMMAPS 16
 
@@ -34,10 +35,25 @@ int main(int argc, char** argv)
     // parse input csv
     FILE* fp = stdin;
     char line[256];
+    char rom_prefix[256];
+    sprintf(rom_prefix, "");
+
+    int opt;
+
+    while ((opt = getopt(argc, argv, "d:")) != -1)
+    {
+        switch (opt)
+        {
+            case 'd':   // specify rom directory
+                sprintf(rom_prefix, "%s", optarg);
+                break;
+        }
+    }
 
     // full set of memory maps
     uint8_t memorymaps[65536 * NUMMAPS];
     memset(memorymaps, 0, 65536 * NUMMAPS);
+    char romname[1024];
 
     while (fgets(line, sizeof(line), fp)) 
     {
@@ -45,7 +61,7 @@ int main(int argc, char** argv)
         
         // first field is set index
         int index = atoi(token);
-        char* romname = strtok(NULL, ",");
+        sprintf(romname, "%s%s", rom_prefix, strtok(NULL, ","));
 
         token = strtok(NULL, ",");
         uint32_t address;

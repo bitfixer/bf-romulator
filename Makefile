@@ -58,7 +58,8 @@ fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 
 $(BIN_DIR)/memorymap.bin: $(MEMORY_SET) $(BIN_DIR)/build_memory_map_set
 	mkdir -p $(BIN_DIR)
-	cd $(BIN_DIR); ./build_memory_map_set < $(MEMORY_SET) > memorymap.bin
+	#cd $(BIN_DIR); ./build_memory_map_set -d ../$(ROMS_DIR) < $(MEMORY_SET) > memorymap.bin
+	$(BIN_DIR)/build_memory_map_set -d $(TOOLS_DIR)/ < $(MEMORY_SET) > $(BIN_DIR)/memorymap.bin
 
 $(BIN_DIR)/enable_table.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE)
 	mkdir -p $(BIN_DIR)
