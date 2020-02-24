@@ -76,9 +76,7 @@ int main(int argc, char** argv)
         int start_map_index = -1;
         int end_map_index = -1;
         if (strstr(token, "-")) {
-            fprintf(stderr, "range\n");
             sscanf(token, "%d-%d", &start_map_index, &end_map_index);
-            fprintf(stderr, "end range %d %d\n", start_map_index, end_map_index);
         } else {
             start_map_index = atoi(token);
             end_map_index = start_map_index;
@@ -113,7 +111,6 @@ int main(int argc, char** argv)
             {
                 for (int rw = 1; rw >= 0; rw--)
                 {
-                    fprintf(stderr, "index %d, address %d, rw %d\n", map_index, address, rw);
                     int table_addr = 64 * map_index;
                     // create table address
                     // addr 15:12 are thebottom 4 bits
