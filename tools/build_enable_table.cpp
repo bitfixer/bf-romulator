@@ -69,7 +69,22 @@ int main(int argc, char** argv)
 
         char* token = strtok(line, ",");
         // get map index
-        int map_index = atoi(token);
+
+        // parse the map index from the first field
+        // if in the format %d-%d, this is an inclusive range of indices
+        // if just %d, it's just a single index
+        int start_map_index = -1;
+        int end_map_index = -1;
+        if (strstr(token, "-")) {
+            fprintf(stderr, "range\n");
+            sscanf(token, "%d-%d", &start_map_index, &end_map_index);
+            fprintf(stderr, "end range %d %d\n", start_map_index, end_map_index);
+        } else {
+            start_map_index = atoi(token);
+            end_map_index = start_map_index;
+        }
+
+        //int map_index = atoi(token);
 
         token = strtok(NULL, ",");
         // start address
@@ -90,30 +105,34 @@ int main(int argc, char** argv)
         token = strtok(0, ",");
         //printf("region type: %s addr %X end_addr %X\n", token, addr, end_addr);
         
-        int table_addr = 64 * map_index;
         // generate enable bytes for each chunk of this region
         region region_type = get_region_type(token);
-        for (int address = addr; address <= end_addr; address += granularity)
+        for (int map_index = start_map_index; map_index <= end_map_index; map_index++)
         {
-            for (int rw = 1; rw >= 0; rw--)
+            for (int address = addr; address <= end_addr; address += granularity)
             {
-                // create table address
-                // addr 15:12 are thebottom 4 bits
-                uint16_t addr_high = (address & 0xF000) >> 12;
-                // addr 11 is the high bit
-                addr_high |= (address & 0x0800) >> 7;
-                addr_high |= (uint16_t)rw << 5;
+                for (int rw = 1; rw >= 0; rw--)
+                {
+                    fprintf(stderr, "index %d, address %d, rw %d\n", map_index, address, rw);
+                    int table_addr = 64 * map_index;
+                    // create table address
+                    // addr 15:12 are thebottom 4 bits
+                    uint16_t addr_high = (address & 0xF000) >> 12;
+                    // addr 11 is the high bit
+                    addr_high |= (address & 0x0800) >> 7;
+                    addr_high |= (uint16_t)rw << 5;
 
-                // read
-                uint8_t byteval = 0;
-                if (rw == 1) {
-                    byteval = (region_type & 0b1100) >> 2;
-                } else {
-                    byteval = (region_type & 0b0011);
+                    // read
+                    uint8_t byteval = 0;
+                    if (rw == 1) {
+                        byteval = (region_type & 0b1100) >> 2;
+                    } else {
+                        byteval = (region_type & 0b0011);
+                    }
+
+                    //printf("address %X addr_high %d %X r %d %X bv %X\n", address, addr_high, addr_high, region_type, region_type, byteval);
+                    table[table_addr + addr_high] = byteval;
                 }
-
-                //printf("address %X addr_high %d %X r %d %X bv %X\n", address, addr_high, addr_high, region_type, region_type, byteval);
-                table[table_addr + addr_high] = byteval;
             }
         }
     }
