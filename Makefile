@@ -50,9 +50,9 @@ $(BIN_DIR)/makerom: $(TOOLS_DIR)/makerom.cpp
 	g++ -o $(BIN_DIR)/makerom $(TOOLS_DIR)/makerom.cpp
 
 fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
-	mkdir -p $(BIN_DIR)
-	cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
-
+	mkdir -p $(ROMS_DIR)
+	#cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
+	cd $(ROMS_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
 
 # FPGA
 
