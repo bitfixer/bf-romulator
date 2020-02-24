@@ -19,8 +19,13 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define NUMMAPS 16
+
+// define size of minimum memory region which can have its own 
+// enable setting.
+#define ADDR_GRANULARITY_SIZE 256
 
 typedef enum _region
 {
@@ -54,15 +59,33 @@ region get_region_type(char* region_str) {
 
 int main(int argc, char** argv)
 {
-    int granularity = 2048;
+    //int granularity = 2048;
 
+    // determine number of necessary entries to 
+    // address enable table
+    int granularity = ADDR_GRANULARITY_SIZE;
+
+    int num_address_entries = (int)pow(2, 16) / granularity;
+    int addr_entry_bits = (int)log2((double)num_address_entries);
+
+    // get number of bits needed to represent the number of maps
+    int config_bits = (int)log2((double)NUMMAPS);
+
+    // total bits needed for every entry in address enable table
+    int num_entry_bits = addr_entry_bits + config_bits + 1;
+    int num_entries = (int)pow(2, num_entry_bits);
+
+    //printf("g %d nae %d aeb %d cb %d neb %d ne %d\n", granularity, num_address_entries, 
+    //    addr_entry_bits, config_bits, num_entry_bits, num_entries);
+
+    // open memory enable configuration file
     char* infile = argv[1];
     FILE* fp = fopen(infile, "rb");
     char line[256];
 
     // create table for all memory maps
-    uint8_t table[64 * NUMMAPS];
-    memset(table, 0, 64 * NUMMAPS);
+    uint8_t* table = new uint8_t[num_entries];
+    memset(table, 0, num_entries);
     
     while (fgets(line, sizeof(line), fp)) {
         //printf("%s", line);
@@ -90,21 +113,30 @@ int main(int argc, char** argv)
         token = strtok(0, ",");
         //printf("region type: %s addr %X end_addr %X\n", token, addr, end_addr);
         
-        int table_addr = 64 * map_index;
+        //int table_addr = 64 * map_index;
         // generate enable bytes for each chunk of this region
         region region_type = get_region_type(token);
-        for (int address = addr; address <= end_addr; address += granularity)
+        for (uint32_t address = addr; address <= end_addr; address += (uint32_t)granularity)
         {
-            for (int rw = 1; rw >= 0; rw--)
+            for (uint16_t rw = 0; rw < 2; rw++)
             {
-                // create table address
-                // addr 15:12 are thebottom 4 bits
-                uint16_t addr_high = (address & 0xF000) >> 12;
-                // addr 11 is the high bit
-                addr_high |= (address & 0x0800) >> 7;
-                addr_high |= (uint16_t)rw << 5;
+                // get table address
+                // address has the following bit pattern:
+                // config(config_bits), rw, addr(addr_entry_bits)
+                uint16_t config_index = (uint16_t)map_index;
+                uint16_t table_addr = config_index;
+                table_addr <<= 1;
+                table_addr += rw;
+                table_addr <<= addr_entry_bits;
 
-                // read
+                // get high bits of address to get the index of the address entry
+                int addr_shift = 16 - addr_entry_bits;
+                uint16_t entry_addr = (uint16_t)address >> addr_shift;
+                table_addr += entry_addr;
+
+                // get bit pattern for this entry
+                // 2 higher bits are the read (high) value
+                // 2 lower bits are the write value
                 uint8_t byteval = 0;
                 if (rw == 1) {
                     byteval = (region_type & 0b1100) >> 2;
@@ -112,16 +144,18 @@ int main(int argc, char** argv)
                     byteval = (region_type & 0b0011);
                 }
 
-                //printf("address %X addr_high %d %X r %d %X bv %X\n", address, addr_high, addr_high, region_type, region_type, byteval);
-                table[table_addr + addr_high] = byteval;
+                //fprintf(stderr, "address %X, rw %d, ci %d, as %d, table_addr %d %X, r %d %X bv %X\n", address, rw, config_index, addr_shift, table_addr, table_addr, region_type, region_type, byteval);
+                table[table_addr] = byteval;
             }
         }
     }
 
     // print table
-    for (int aa = 0; aa < 64 * NUMMAPS; aa++)
+    for (int aa = 0; aa < num_entries; aa++)
     {
         //printf("table %d %X => %X\n", aa, aa, table[aa]);
         printf("%X\n", table[aa]);
     }
+
+    delete[] table;
 }
