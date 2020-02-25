@@ -157,6 +157,28 @@ uint32_t spi_xfer(uint32_t data, int nbits = 8)
     return rdata;
 }
 
+uint32_t spi_xfer_slow(uint32_t data, int nbits = 8)
+{
+    uint32_t rdata = 0;
+    
+    for (int i = nbits-1; i >= 0; i--)
+    {
+        digitalWrite(PI_ICE_MOSI, (data & (1 << i)) ? HIGH : LOW);
+        
+        delayMicroseconds(1);   
+        if (digitalRead(PI_ICE_MISO) == HIGH)
+            rdata |= 1 << i;
+        
+        delayMicroseconds(1);
+        digitalWrite(PI_ICE_CLK, HIGH);
+        delayMicroseconds(1);
+        digitalWrite(PI_ICE_CLK, LOW);
+        delayMicroseconds(1);
+    }
+    
+    return rdata;
+}
+
 void flash_write_enable()
 {
     spi_begin();
@@ -202,6 +224,18 @@ void flash_read(int addr, uint8_t *data, int n)
     spi_xfer(addr);
     while (n--)
         *(data++) = spi_xfer(0);
+    spi_end();
+}
+
+void flash_read_slow(int addr, uint8_t *data, int n)
+{
+    spi_begin();
+    spi_xfer_slow(0x03);
+    spi_xfer_slow(addr >> 16);
+    spi_xfer_slow(addr >> 8);
+    spi_xfer_slow(addr);
+    while (n--)
+        *(data++) = spi_xfer_slow(0);
     spi_end();
 }
 
@@ -371,7 +405,7 @@ void read_flashmem(int n)
     fprintf(stderr, "reading %.2fkB..\n", double(n) / 1024);
     for (int addr = 0; addr < n; addr += 256) {
         uint8_t buffer[256];
-        flash_read(addr, buffer, std::min(256, n - addr));
+        flash_read_slow(addr, buffer, std::min(256, n - addr));
         fwrite(buffer, std::min(256, n - addr), 1, stdout);
     }
     
