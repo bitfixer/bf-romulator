@@ -405,6 +405,7 @@ void read_flashmem(int n)
     fprintf(stderr, "reading %.2fkB..\n", double(n) / 1024);
     for (int addr = 0; addr < n; addr += 256) {
         uint8_t buffer[256];
+        fprintf(stderr, "%d\t%X\n", addr, addr);
         flash_read_slow(addr, buffer, std::min(256, n - addr));
         fwrite(buffer, std::min(256, n - addr), 1, stdout);
     }
