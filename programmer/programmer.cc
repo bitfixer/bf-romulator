@@ -26,13 +26,13 @@
 #include <assert.h>
 #include <vector>
 
-#  define PI_ICE_MISO       24
-#  define PI_ICE_CLK        27
-#  define PI_ICE_CDONE      3
+#define PI_ICE_MISO       13
+#define PI_ICE_CLK        14
+#define PI_ICE_CDONE      0
 
-#  define PI_ICE_CRESET     29
-#  define PI_ICE_MOSI       28
-#  define PI_ICE_CS         25
+#define PI_ICE_CRESET     6
+#define PI_ICE_MOSI       12
+#define PI_ICE_CS         10
 
 using namespace std;
 #include <wiringPi.h>
