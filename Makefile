@@ -30,6 +30,10 @@ $(BIN_DIR)/programmer: $(PROGRAMMER_DIR)/programmer.cc
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/programmer -lwiringPi $(PROGRAMMER_DIR)/programmer.cc
 
+$(BIN_DIR)/programmer_spi: $(PROGRAMMER_DIR)/programmer_spi.cpp
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/programmer_spi -lwiringPi $(PROGRAMMER_DIR)/programmer_spi.cpp
+
 $(BIN_DIR)/console: $(PROGRAMMER_DIR)/console.cc
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/console -lwiringPi $(PROGRAMMER_DIR)/console.cc
@@ -82,6 +86,13 @@ $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/
 .PHONY: program
 program: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -f < $(BIN_DIR)/romulator.bin
+
+program_spi: $(BIN_DIR)/programmer_spi
+	gpio mode 12 alt0
+	gpio mode 13 alt0
+	gpio mode 14 alt0
+	gpio mode 10 out
+	$(BIN_DIR)/programmer_spi < $(BIN_DIR)/romulator.bin
 
 .PHONY: reset
 reset: $(BIN_DIR)/programmer
