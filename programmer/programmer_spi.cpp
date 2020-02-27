@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
@@ -145,6 +146,28 @@ void read_flash_id()
     fprintf(stderr, "\n");
 }
 
+void read_flashmem(int n)
+{
+    // connect flash to Raspi
+    delayMicroseconds(100);
+    
+    // power_up
+    power_up();
+
+    // read flash id
+    read_flash_id();
+    
+    fprintf(stderr, "reading %.2fkB..\n", double(n) / 1024);
+    for (int addr = 0; addr < n; addr += 256) {
+        uint8_t buffer[256];
+        flash_read(addr, buffer, std::min(256, n - addr));
+        fwrite(buffer, std::min(256, n - addr), 1, stdout);
+    }
+    
+    // power_down
+    power_down();
+}
+
 void prog_flashmem(int pageoffset)
 {
     delayMicroseconds(100);
@@ -186,6 +209,7 @@ void prog_flashmem(int pageoffset)
         int n = std::min(256, int(prog_data.size()) - addr);
         uint8_t buffer[256];
         
+        bool write_success = false;
         for (int retry_count = 0; retry_count < 100; retry_count++)
         {
             flash_write_enable();
@@ -196,33 +220,69 @@ void prog_flashmem(int pageoffset)
 
             if (!memcmp(buffer, &prog_data[addr], n)) {
                 fprintf(stderr, "o");
-                goto written_ok;
+                //goto written_ok;
+                write_success = true;
+                break;
             }
             
             fprintf(stderr, "X");
         }
         
-        // restart erasing and writing this 64kB sector
-        addr -= addr % (64*1024);
-        addr -= 256;
-        
-    written_ok:;
+        if (!write_success) {
+            // restart erasing and writing this 64kB sector
+            addr -= addr % (64*1024);
+            addr -= 256;
+        }
     }
     
     fprintf(stderr, "\n100%% total wait time: %d ms\n", ms_timer);
     power_down();
 }
 
+void init_spi()
+{
+    // make sure spi pins are using the spi function
+    system("gpio mode 12 alt0");
+    system("gpio mode 13 alt0");
+    system("gpio mode 14 alt0");
+    system("gpio mode 10 out");
+}
+
 int main(int argc, char** argv) {
 
+    int opt;
+    bool program = true;
+    int size = 0;
+    while ((opt = getopt(argc, argv, "pr:")) != -1)
+    {
+        switch (opt)
+        {
+            case 'p':
+                program = true;
+                break;
+            case 'r':
+                size = atoi(optarg);
+                program = false;
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    init_spi(); // set mode of SPI pins
     // setup wiring pi SPI
     int r = wiringPiSetup();
-    printf("setup: %d\n", r);
-
     int fd = wiringPiSPISetup(0, 16000000);
-    printf("spi: %d\n", fd);
-
     ice_reset();
-    prog_flashmem(0);
+
+    if (program)
+    {
+        prog_flashmem(0);
+    }
+    else
+    {
+        read_flashmem(size);
+    }
     reset_inout();
 }

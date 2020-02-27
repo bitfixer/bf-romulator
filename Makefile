@@ -88,11 +88,10 @@ program: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -f < $(BIN_DIR)/romulator.bin
 
 program_spi: $(BIN_DIR)/programmer_spi
-	gpio mode 12 alt0
-	gpio mode 13 alt0
-	gpio mode 14 alt0
-	gpio mode 10 out
 	$(BIN_DIR)/programmer_spi < $(BIN_DIR)/romulator.bin
+
+readback: $(BIN_DIR)/programmer_spi
+	$(BIN_DIR)/programmer_spi > readback.bin
 
 .PHONY: reset
 reset: $(BIN_DIR)/programmer
