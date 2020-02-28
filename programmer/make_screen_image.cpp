@@ -128,12 +128,7 @@ int main(int argc, char** argv) {
     fclose(fp);
 
     // read memory map
-    //fread(memory, 1, memory_size, stdin);
-    // test
-    for (int ii = 0; ii < columns*rows; ii++)
-    {
-        memory[screen_offset+ii] = uint8_t(ii % 256);
-    }
+    fread(memory, 1, memory_size, stdin);
 
     int char_width = 8;
     int char_height = 8;
