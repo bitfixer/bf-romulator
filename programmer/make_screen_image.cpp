@@ -93,8 +93,9 @@ int main(int argc, char** argv) {
     int memory_size = 65536;
     int columns = 80;
     int rows = 25;
+    bool testonly = false;
 
-    while ((opt = getopt(argc, argv, "r:o:m:c:")) != -1)
+    while ((opt = getopt(argc, argv, "r:o:m:c:t")) != -1)
     {
         switch (opt)
         {
@@ -109,6 +110,9 @@ int main(int argc, char** argv) {
                 break;
             case 'c':
                 columns = atoi(optarg);
+                break;
+            case 't':
+                testonly = true;
                 break;
             default:
                 break;
@@ -128,7 +132,17 @@ int main(int argc, char** argv) {
     fclose(fp);
 
     // read memory map
-    fread(memory, 1, memory_size, stdin);
+    if (testonly)
+    {
+        for (int i = 0; i < rows * columns; i++)
+        {
+            memory[screen_offset + i] = (uint8_t)(i % 256);
+        }
+    }
+    else
+    {
+        fread(memory, 1, memory_size, stdin);
+    }
 
     int char_width = 8;
     int char_height = 8;
