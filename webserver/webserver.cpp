@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <fcntl.h>
 
-#define CONNMAX 1
+#define CONNMAX 1000
 #define BYTES 1024
 
 char *ROOT;
@@ -30,11 +30,11 @@ long getSize(FILE* fp)
     return sz;
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
     struct sockaddr_in clientaddr;
     socklen_t addrlen;
-    char c;    
+    int c;    
     
     //Default Values PATH = ~/ and PORT=10000
     char PORT[6];
@@ -43,8 +43,11 @@ int main(int argc, char* argv[])
 
     int slot=0;
 
+    fprintf(stderr, "here\n");
+
     //Parsing the command line arguments
-    while ((c = getopt (argc, argv, "p:r:")) != -1)
+    while ((c = getopt(argc, argv, "p:r:")) != -1)
+    {
         switch (c)
         {
             case 'r':
@@ -58,9 +61,11 @@ int main(int argc, char* argv[])
                 fprintf(stderr,"Wrong arguments given!!!\n");
                 exit(1);
             default:
+                fprintf(stderr, "default\n");
                 exit(1);
         }
-    
+    }
+
     fprintf(stderr, "Server started at port no. %s with root directory as %s\n",PORT,ROOT);
     // Setting all elements to -1: signifies there is no client connected
     int i;
@@ -69,6 +74,8 @@ int main(int argc, char* argv[])
         clients[i]=-1;
     }
     startServer(PORT);
+
+    fprintf(stderr, "server started\n");
 
     // ACCEPT connections
     while (1)
@@ -138,7 +145,7 @@ int get_screen_image()
 
     // use console to get memory dump
     system("../bin/console -r > memory.bin");
-    system("../bin/make_screen_image -r /Users/gubbish/Downloads/characters-2.901447-10.bin -c 40 < memory.bin > out.ppm");
+    system("../bin/make_screen_image -r ../roms/characters-2.901447-10.bin -c 40 < memory.bin > out.ppm");
     system("convert out.ppm out.png");
     return open("out.png", O_RDONLY);
 }
