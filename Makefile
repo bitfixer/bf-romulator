@@ -98,6 +98,14 @@ readback: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 $(ROMS_DIR)/random_test.bin:
 	dd if=/dev/urandom of=$(ROMS_DIR)/random_test.bin bs=1 count=65536
 
+$(BIN_DIR)/random_test.txt: $(ROMS_DIR)/random_test.bin
+	xxd $(ROMS_DIR)/random_test.bin > $(BIN_DIR)/random_test.txt
+
+console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt
+	$(BIN_DIR)/console -r > $(BIN_DIR)/console_readback.bin
+	xxd $(BIN_DIR)/console_readback.bin > $(BIN_DIR)/console_readback.txt
+	diff $(BIN_DIR)/console_readback.bin $(BIN_DIR)/random_test.txt
+
 .PHONY: reset
 reset: $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -b
