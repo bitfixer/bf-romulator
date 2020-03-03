@@ -77,7 +77,7 @@ $(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt
 .PHONY: romulator
 romulator: $(BIN_DIR)/romulator.bin
 
-$(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin
+$(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin $(ROMS_DIR)/random_test.bin
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin > $(BIN_DIR)/romulator.bin
 
@@ -93,6 +93,10 @@ program_spi: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 readback: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi -r $(shell stat --printf="%s" $(BIN_DIR)/romulator.bin) > readback.bin
 	diff readback.bin $(BIN_DIR)/romulator.bin
+
+# testing
+$(ROMS_DIR)/random_test.bin:
+	dd if=/dev/urandom of=$(ROMS_DIR)/random_test.bin bs=1 count=65536
 
 .PHONY: reset
 reset: $(BIN_DIR)/programmer
