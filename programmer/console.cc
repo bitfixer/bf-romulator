@@ -20,12 +20,14 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#define PI_ICE_MOSI       24
-#define PI_ICE_CLK        27
+// hardware SPI pins
+#define PI_ICE_MISO       12
+#define PI_ICE_CLK        14
+#define PI_ICE_CDONE      0
 
-#define PI_ICE_CRESET     29
-#define PI_ICE_MISO       28
-#define PI_ICE_CS          5
+#define PI_ICE_CRESET     6
+#define PI_ICE_MOSI       13
+#define PI_ICE_CS         27
 
 #include <wiringPi.h>
 
@@ -78,10 +80,26 @@ uint8_t xfer(uint32_t data)
     uint32_t res = spi_xfer(data, 8);
     spi_end();
 
-    fprintf(stderr, "SPI send %X got: %X\n", data, res);
+    //fprintf(stderr, "SPI send %X got: %X\n", data, res);
 
     uint8_t d = res;
     return res;
+}
+
+void xfer_buffer(uint8_t* buffer, int size)
+{
+    spi_begin();
+    delayMicroseconds(5);
+
+    for (int i = 0; i < size; i++)
+    {
+        uint32_t byte = spi_xfer(buffer[i], 8);
+        buffer[i] = (uint8_t)byte;
+        delayMicroseconds(1);
+    }
+    spi_end();
+
+    fprintf(stderr, "end transfer of %d bytes\n", size);
 }
 
 typedef enum _action
@@ -97,8 +115,9 @@ int main(int argc, char** argv)
     int opt;
     Action a = READ;
     FILE* fp = NULL;
+    bool xfer_whole_buffer = false;
 
-    while ((opt = getopt(argc, argv, "rcw:")) != -1)
+    while ((opt = getopt(argc, argv, "rcw:b")) != -1)
     {
         switch (opt)
         {
@@ -113,11 +132,16 @@ int main(int argc, char** argv)
             case 'c':
                 a = CONFIG;
                 break;
+            case 'b':
+                xfer_whole_buffer = true;
+                break;
         }
     }
 
     wiringPiSetup();
     reset_inout();
+
+    int start = millis();
 
     pinMode(PI_ICE_CS,      OUTPUT);
     digitalWrite(PI_ICE_CS, HIGH);
@@ -133,11 +157,21 @@ int main(int argc, char** argv)
         // send command to read memory map
         xfer(0x66);
         delay(1);
-        for (uint32_t i = 0; i < 65536; i++)
+
+        if (xfer_whole_buffer)
         {
-            uint8_t byte = xfer(i);
+            uint8_t buffer[65536];
+            xfer_buffer(buffer, 65536);
+            fwrite(buffer, 1, 65536, stdout);
+        } 
+        else 
+        {
+            for (uint32_t i = 0; i < 65536; i++)
             {
-                fwrite(&byte, 1, 1, stdout);
+                uint8_t byte = xfer(i);
+                {
+                    fwrite(&byte, 1, 1, stdout);
+                }
             }
         }
 
@@ -175,4 +209,7 @@ int main(int argc, char** argv)
     }
 
     reset_inout();
+    int end = millis();
+    float elapsed = (float)(end - start) / 1000.0;
+    fprintf(stderr, "transfer took %f seconds.\n", elapsed);
 }
