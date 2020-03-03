@@ -230,7 +230,7 @@ wire echo_cs;
 assign rdy = !halt;
 
 
-assign led_blue = read_complete;
+assign led_blue = read_complete && rdy;
 assign led_green = 1;
 assign led_red = 1;
 
