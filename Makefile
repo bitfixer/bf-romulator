@@ -104,7 +104,7 @@ $(BIN_DIR)/random_test.txt: $(ROMS_DIR)/random_test.bin
 console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt
 	$(BIN_DIR)/console -r > $(BIN_DIR)/console_readback.bin
 	xxd $(BIN_DIR)/console_readback.bin > $(BIN_DIR)/console_readback.txt
-	diff $(BIN_DIR)/console_readback.bin $(BIN_DIR)/random_test.txt
+	diff $(BIN_DIR)/console_readback.txt $(BIN_DIR)/random_test.txt
 
 .PHONY: reset
 reset: $(BIN_DIR)/programmer
