@@ -48,7 +48,7 @@ You can use the optional RPI ROMulator programming board, or directly connect th
 
 |RPI     |FPGA Hdr|FPGA Hdr |RPI |
 |--------|--------|---------|----|
-|19      |1 (MOSI)|2 (3.3v) |1   |
+|19      |1 (MOSI)|2 (3.3v) |17  |
 |24      |3 (CS)  |4 (DBG)  |36  |
 |22      |5 (RST) |6 (CDONE)|11  |
 |23      |7 (SCK) |8        |NC  |
