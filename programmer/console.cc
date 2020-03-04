@@ -21,24 +21,24 @@
 #include <unistd.h>
 
 // hardware SPI pins
-#define PI_ICE_MISO       12
-#define PI_ICE_CLK        14
-#define PI_ICE_CDONE      0
+#define PI_ICE_MISO       19
+#define PI_ICE_CLK        23
+#define PI_ICE_CDONE      11
 
-#define PI_ICE_CRESET     6
-#define PI_ICE_MOSI       13
-#define PI_ICE_CS         27
+#define PI_ICE_CRESET     22
+#define PI_ICE_MOSI       21
+#define PI_DEBUG_CS         36
 
 #include <wiringPi.h>
 
 void spi_begin()
 {
-    digitalWrite(PI_ICE_CS, LOW);
+    digitalWrite(PI_DEBUG_CS, LOW);
 }
 
 void spi_end()
 {
-    digitalWrite(PI_ICE_CS, HIGH);
+    digitalWrite(PI_DEBUG_CS, HIGH);
 }
 
 uint32_t spi_xfer(uint32_t data, int nbits = 8)
@@ -66,12 +66,12 @@ void reset_inout()
     pinMode(PI_ICE_CLK,     INPUT);
     pinMode(PI_ICE_MOSI,    INPUT);
     pinMode(PI_ICE_MISO,    INPUT);
-    pinMode(PI_ICE_CS,      OUTPUT);
+    pinMode(PI_DEBUG_CS,      OUTPUT);
 }
 
 uint8_t xfer(uint32_t data)
 {
-    pinMode(PI_ICE_CS,      OUTPUT);
+    pinMode(PI_DEBUG_CS,      OUTPUT);
     pinMode(PI_ICE_MOSI,    OUTPUT);
     pinMode(PI_ICE_CLK,     OUTPUT);
 
@@ -138,13 +138,13 @@ int main(int argc, char** argv)
         }
     }
 
-    wiringPiSetup();
+    wiringPiSetupPhys();
     reset_inout();
 
     int start = millis();
 
-    pinMode(PI_ICE_CS,      OUTPUT);
-    digitalWrite(PI_ICE_CS, HIGH);
+    pinMode(PI_DEBUG_CS,      OUTPUT);
+    digitalWrite(PI_DEBUG_CS, HIGH);
     pinMode(PI_ICE_CLK,     OUTPUT);
     digitalWrite(PI_ICE_CLK, LOW);
 

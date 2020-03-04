@@ -26,13 +26,14 @@
 #include <wiringPiSPI.h>
 #include <vector>
 
-#define PI_ICE_MISO       13
-#define PI_ICE_CLK        14
-#define PI_ICE_CDONE      0
+#define PI_ICE_MISO       21
+#define PI_ICE_CLK        23
+#define PI_ICE_CDONE      11
 
-#define PI_ICE_CRESET     6
-#define PI_ICE_MOSI       12
-#define PI_ICE_CS         10
+#define PI_ICE_CRESET     22
+#define PI_ICE_MOSI       19
+#define PI_ICE_CS         24
+
 
 void ice_reset()
 {
@@ -252,8 +253,9 @@ int main(int argc, char** argv) {
 
     int opt;
     bool program = true;
+    bool reset = false;
     int size = 0;
-    while ((opt = getopt(argc, argv, "pr:")) != -1)
+    while ((opt = getopt(argc, argv, "pr:b")) != -1)
     {
         switch (opt)
         {
@@ -264,6 +266,10 @@ int main(int argc, char** argv) {
                 size = atoi(optarg);
                 program = false;
                 break;
+            case 'b':
+                reset = true;
+                program = false;
+                break;
             default:
                 break;
         }
@@ -272,13 +278,18 @@ int main(int argc, char** argv) {
 
     init_spi(); // set mode of SPI pins
     // setup wiring pi SPI
-    int r = wiringPiSetup();
+    int r = wiringPiSetupPhys();
     int fd = wiringPiSPISetup(0, 16000000);
     ice_reset();
 
     if (program)
     {
         prog_flashmem(0);
+    }
+    else if (reset)
+    {
+        // reset fpga
+        delay(100);
     }
     else
     {
