@@ -199,15 +199,15 @@ int main(int argc, char** argv)
             fprintf(stderr, "reading crc32\n");
             delay(1);
             // crc32
-            uint32_t crc32 = 0;
+            uint32_t crc = 0;
             for (uint32_t i = 0; i < 4; i++)
             {
-                crc32 <<= 0;
+                crc <<= 0;
                 uint8_t byte = xfer(i);
-                crc32 += (uint32_t)byte;
+                crc += (uint32_t)byte;
             }
 
-            fprintf(stderr, "crc32: %X\n", crc32);
+            fprintf(stderr, "crc32: %X\n", crc);
 
             // calculate crc32 of received buffer
             uint32_t calc_crc = 0;
