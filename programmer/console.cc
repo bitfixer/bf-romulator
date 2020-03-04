@@ -53,9 +53,9 @@ uint32_t spi_xfer(uint32_t data, int nbits = 8)
             rdata |= 1 << i;
         
         digitalWrite(PI_ICE_CLK, HIGH);
-        delayMicroseconds(3);
+        delayMicroseconds(2);
         digitalWrite(PI_ICE_CLK, LOW);
-        delayMicroseconds(3);
+        //delayMicroseconds(1);
     }
     
     return rdata;
@@ -76,7 +76,7 @@ uint8_t xfer(uint32_t data)
     pinMode(PI_ICE_CLK,     OUTPUT);
 
     spi_begin();
-    delayMicroseconds(5);
+    //delayMicroseconds(10);
     uint32_t res = spi_xfer(data, 8);
     spi_end();
 
@@ -152,11 +152,11 @@ int main(int argc, char** argv)
     {
         // send command to halt CPU
         xfer(0xAA);
-        delay(1);
+        delay(10);
 
         // send command to read memory map
         xfer(0x66);
-        delay(1);
+        delay(10);
 
         if (xfer_whole_buffer)
         {
