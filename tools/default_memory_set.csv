@@ -32,4 +32,4 @@
 6,basic-4-d000.901465-21.bin,0xd000
 6,sjg-edit-80-b-ntsc (2017-09-21).bin,0xe000
 6,kernal-4.901465-22.bin,0xf000
-15,random_test.bin,0x0000
+15,../bin/random_test.bin,0x0000
