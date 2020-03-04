@@ -189,6 +189,10 @@ int main(int argc, char** argv)
         } 
         else 
         {
+            // read dummy byte
+            uint8_t b = xfer(i);
+            fprintf(stderr, "dummy byte: %X\n", b);
+
             uint8_t buffer[65536];
             for (uint32_t i = 0; i < 65536; i++)
             {
@@ -202,8 +206,9 @@ int main(int argc, char** argv)
             uint32_t crc = 0;
             for (uint32_t i = 0; i < 4; i++)
             {
-                crc <<= 0;
+                crc <<= 8;
                 uint8_t byte = xfer(i);
+                fprintf(stderr, "r %d %X\n", i, byte);
                 crc += (uint32_t)byte;
             }
 
