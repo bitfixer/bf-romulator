@@ -135,7 +135,7 @@ begin
             we <= 0;
             read_done <= 0;
             address <= 0;
-            crc32 <= 32'habcdefab
+            crc32 <= 32'habcdefab;
             crc32_byte_index <= 0;
           end
           else if (rx_byte == WRITE_MEMORY) // write a memory map, retrieved from spi
