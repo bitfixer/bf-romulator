@@ -46,13 +46,15 @@ Programming or Debug functionality of the ROMulator uses a Raspberry Pi using a 
 You can use the optional RPI ROMulator programming board, or directly connect the following RPI physical pins to the corresponding pins on the 10-pin header on the ROMulator FPGA board:
 
 
-|RPI     |FPGA Hdr|FPGA Hdr|RPI |
-|--------|--------|--------|----|
-|38      |1 (MOSI)|2 (3.3v)|1   |
-|37      |3 (CS)  |4 (DBG) |18  |
-|40      |5 (RST) |6       |NC  |
-|36      |7 (SCK) |8       |NC  |
-|35      |9 (MISO)|10 (GND)|34  |
+|RPI     |FPGA Hdr|FPGA Hdr |RPI |
+|--------|--------|---------|----|
+|19      |1 (MOSI)|2 (3.3v) |1   |
+|24      |3 (CS)  |4 (DBG)  |36  |
+|22      |5 (RST) |6 (CDONE)|11  |
+|23      |7 (SCK) |8        |NC  |
+|21      |9 (MISO)|10 (GND) |34  |
+
+If you are only programming and not running the debug client, DBG and CDONE are optional.
 
 ### Installation
 
