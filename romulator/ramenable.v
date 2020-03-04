@@ -10,9 +10,28 @@ module ramenable(
 
 // table of ram and bus enable signals, 64 entries per table
 // this is selected by the configuration byte
-reg [1:0] enable_table[0:1023];
-wire[9:0] enable_addr;
-reg [3:0] config_byte;
+
+// specify minimum size of region which can have its own enable setting
+localparam ADDR_GRANULARITY_SIZE = 256;
+
+// calculate number of entries based on granularity size
+localparam ADDR_NUM_ENTRIES = 2**16 / ADDR_GRANULARITY_SIZE;
+
+// number of bits needed for the number of address entries
+localparam ADDR_ENTRY_BITS = $clog2(ADDR_NUM_ENTRIES); // number of bits to use for address granularity.
+
+// number of bits in configuration
+localparam CONFIG_BITS = 4;
+
+// enable address is composed of:
+// number of bits for address entry
+// number of bits for configuration
+// 1 bit for read/write
+localparam ENABLE_ADDR_BITS = ADDR_ENTRY_BITS + CONFIG_BITS + 1;
+
+reg [1:0] enable_table[0:(2**ENABLE_ADDR_BITS) - 1];
+wire[ENABLE_ADDR_BITS-1:0] enable_addr;
+reg [CONFIG_BITS-1:0] config_byte;
 
 // module states
 localparam READ_CONFIG = 0;
@@ -31,7 +50,7 @@ begin
 end
 
 assign we = phi2 & (!rwbar);
-assign enable_addr = {config_byte, rwbar, address[11], address[15:12]};
+assign enable_addr = {config_byte, rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
 
 assign cs_ram = phi2 & enable_table[enable_addr][1];
 assign cs_bus = phi2 & enable_table[enable_addr][0];

@@ -111,4 +111,5 @@ reset: $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -b
 
 clean:
-	rm $(BIN_DIR)/*
+	rm -f $(BIN_DIR)/*
+	rm -f $(ROMS_DIR)/random_test.bin
