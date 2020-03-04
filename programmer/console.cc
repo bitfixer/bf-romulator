@@ -21,12 +21,12 @@
 #include <unistd.h>
 
 // hardware SPI pins
-#define PI_ICE_MISO       19
-#define PI_ICE_CLK        23
-#define PI_ICE_CDONE      11
+#define PI_ICE_MISO         19
+#define PI_ICE_CLK          23
+#define PI_ICE_CDONE        11
 
-#define PI_ICE_CRESET     22
-#define PI_ICE_MOSI       21
+#define PI_ICE_CRESET       22
+#define PI_ICE_MOSI         21
 #define PI_DEBUG_CS         36
 
 #include <wiringPi.h>
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
         } 
         else 
         {
-            for (uint32_t i = 0; i < 65536; i++)
+            for (uint32_t i = 0; i < 65536 + 4; i++)
             {
                 uint8_t byte = xfer(i);
                 {

@@ -59,6 +59,9 @@ reg read_done = 0;
 reg write_started = 0;
 reg [3:0] config_byte;
 
+reg [3:0] crc32;
+reg crc32_byte_index;
+
 localparam HALT_CPU = 8'haa;
 localparam RESUME_CPU = 8'h55;
 localparam READ_MEMORY = 8'h66;
@@ -132,6 +135,8 @@ begin
             we <= 0;
             read_done <= 0;
             address <= 0;
+            crc32 <= 32'habcdefab
+            crc32_byte_index <= 0;
           end
           else if (rx_byte == WRITE_MEMORY) // write a memory map, retrieved from spi
           begin
@@ -216,11 +221,40 @@ begin
           address <= 0;
           cs <= 0;
           we <= 0;
-          state <= HALTED;
+          //state <= HALTED;
+          state <= WRITE_CRC32_BYTE;
         end
         else 
         begin
           state <= WRITE_MEMORY_BYTE;
+        end
+      end
+    end
+    WRITE_CRC32_BYTE:
+    begin
+      tx_dv <= 1;
+      tx_byte <= crc32[3 - crc32_byte_index];
+      state <= WRITE_CRC32_BYTE_WAIT;
+    end
+    WRITE_CRC32_BYTE_WAIT:
+    begin
+      tx_dv <= 0;
+      crc32_byte_index <= crc32_byte_index + 1;
+      state <= WRITE_CRC32_BYTE_NEXT;
+    end
+    WRITE_CRC32_BYTE_NEXT:
+    begin
+      if (rx_dv == 1'b1)
+      begin
+        if (crc32_byte_index == 4)
+        begin
+          // done reading
+          crc32_byte_index <= 0;
+          state <= HALTED;
+        end
+        else 
+        begin
+          state <= WRITE_CRC32_BYTE;
         end
       end
     end
