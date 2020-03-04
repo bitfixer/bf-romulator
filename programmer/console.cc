@@ -214,7 +214,7 @@ int main(int argc, char** argv)
             crc32(buffer, 65536, &calc_crc);
             fprintf(stderr, "calc crc: %X\n", calc_crc);
 
-            fwrite(buffer, 1, 1, stdout);
+            fwrite(buffer, 1, 65536, stdout);
         }
 
         xfer(0x55);
