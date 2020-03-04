@@ -86,6 +86,29 @@ uint8_t xfer(uint32_t data)
     return res;
 }
 
+uint32_t crc32_for_byte(uint32_t r) {
+  for(int j = 0; j < 8; ++j)
+    r = (r & 1? 0: (uint32_t)0xEDB88320L) ^ r >> 1;
+  return r ^ (uint32_t)0xFF000000L;
+}
+
+void crc32(const void *data, int n_bytes, uint32_t* crc) {
+    static uint32_t table[0x100];
+    if(!*table)
+    {
+        fprintf(stderr, "generating table\n");
+        for(size_t i = 0; i < 0x100; ++i) 
+        {
+            table[i] = crc32_for_byte(i);
+        }
+    }
+
+    for(size_t i = 0; i < n_bytes; ++i)
+    {
+        *crc = table[(uint8_t)*crc ^ ((uint8_t*)data)[i]] ^ *crc >> 8;
+    }
+}
+
 void xfer_buffer(uint8_t* buffer, int size)
 {
     spi_begin();
@@ -166,13 +189,32 @@ int main(int argc, char** argv)
         } 
         else 
         {
-            for (uint32_t i = 0; i < 65536 + 4; i++)
+            uint8_t buffer[65536];
+            for (uint32_t i = 0; i < 65536; i++)
             {
                 uint8_t byte = xfer(i);
-                {
-                    fwrite(&byte, 1, 1, stdout);
-                }
+                buffer[i] = byte;
             }
+
+            fprintf(stderr, "reading crc32\n");
+            delay(1);
+            // crc32
+            uint32_t crc32 = 0;
+            for (uint32_t i = 0; i < 4; i++)
+            {
+                crc32 <<= 0;
+                uint8_t byte = xfer(i);
+                crc32 += (uint32_t)byte;
+            }
+
+            fprintf(stderr, "crc32: %X\n", crc32);
+
+            // calculate crc32 of received buffer
+            uint32_t calc_crc = 0;
+            crc32(buffer, 65536, &calc_crc);
+            fprintf(stderr, "calc crc: %X\n", calc_crc);
+
+            fwrite(buffer, 1, 1, stdout);
         }
 
         xfer(0x55);

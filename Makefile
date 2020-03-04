@@ -53,6 +53,10 @@ $(BIN_DIR)/makerom: $(TOOLS_DIR)/makerom.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/makerom $(TOOLS_DIR)/makerom.cpp
 
+$(BIN_DIR)/crc32: $(PROGRAMMER_DIR)/crc32.cpp
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/crc32 $(PROGRAMMER_DIR)/crc32.cpp
+
 fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 	mkdir -p $(ROMS_DIR)
 	#cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
@@ -67,6 +71,9 @@ $(BIN_DIR)/memorymap.bin: $(MEMORY_SET) $(BIN_DIR)/build_memory_map_set $(BIN_DI
 $(BIN_DIR)/enable_table.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE)
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/build_enable_table $(ENABLE_TABLE) > $(BIN_DIR)/enable_table.txt
+
+$(BIN_DIR)/crc32_table.txt: $(BIN_DIR)/crc32
+	$(BIN_DIR)/crc32 -t > $(BIN_DIR)/crc32_table.txt
 
 $(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt
 	mkdir -p $(BIN_DIR)

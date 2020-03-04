@@ -47,6 +47,9 @@ localparam OUTPUT_MEMORY_BYTE_WRITEDONE = 7;
 localparam OUTPUT_MEMORY_BYTE_WAIT = 8;
 localparam OUTPUT_MEMORY_BYTE_NEXT = 9;
 localparam STARTUP = 10;
+localparam WRITE_CRC32_BYTE = 11;
+localparam WRITE_CRC32_BYTE_WAIT = 12;
+localparam WRITE_CRC32_BYTE_NEXT = 13;
 reg [7:0] state = RUNNING;
 
 // spi slave setup
@@ -55,12 +58,13 @@ wire [7:0] rx_byte;
 reg tx_dv = 0;
 reg [7:0] tx_byte = 8'h00;
 
-reg read_done = 0;
 reg write_started = 0;
 reg [3:0] config_byte;
 
-reg [3:0] crc32;
-reg crc32_byte_index;
+reg [31:0] crc32;
+reg [7:0] crc32_byte_index;
+
+reg [31:0] crc32_table [0:255];
 
 localparam HALT_CPU = 8'haa;
 localparam RESUME_CPU = 8'h55;
@@ -133,9 +137,9 @@ begin
             state <= WRITE_MEMORY_BYTE;
             cs <= 1;
             we <= 0;
-            read_done <= 0;
             address <= 0;
-            crc32 <= 32'habcdefab;
+            //crc32 <= 32'habcdefab;
+            crc32 <= 32'h00000000;
             crc32_byte_index <= 0;
           end
           else if (rx_byte == WRITE_MEMORY) // write a memory map, retrieved from spi
@@ -143,7 +147,6 @@ begin
             state <= OUTPUT_MEMORY_BYTE_NEXT;
             cs <= 1;
             we <= 0;
-            read_done <= 0;
             write_started <= 0;
             address <= 0;
           end
@@ -182,7 +185,6 @@ begin
         begin
           // done writing memory map
           // back to halt state
-          read_done <= 0;
           address <= 0;
           cs <= 0;
           we <= 0;
@@ -202,6 +204,9 @@ begin
       // present memory byte
       tx_dv <= 1;
       tx_byte <= data; // read from data bus
+
+      // update crc32
+      crc32 <= crc32_table[crc32[7:0] ^ data] ^ (crc32 >> 8);
       state <= WRITE_MEMORY_BYTE_WAIT;
     end
     WRITE_MEMORY_BYTE_WAIT:
@@ -217,7 +222,6 @@ begin
         if (address == 0)
         begin
           // done reading
-          read_done <= 0;
           address <= 0;
           cs <= 0;
           we <= 0;
@@ -233,20 +237,20 @@ begin
     WRITE_CRC32_BYTE:
     begin
       tx_dv <= 1;
-      tx_byte <= crc32[3 - crc32_byte_index];
+      tx_byte <= crc32[31 - crc32_byte_index:24 - crc32_byte_index];
       state <= WRITE_CRC32_BYTE_WAIT;
     end
     WRITE_CRC32_BYTE_WAIT:
     begin
       tx_dv <= 0;
-      crc32_byte_index <= crc32_byte_index + 1;
+      crc32_byte_index <= crc32_byte_index + 8;
       state <= WRITE_CRC32_BYTE_NEXT;
     end
     WRITE_CRC32_BYTE_NEXT:
     begin
       if (rx_dv == 1'b1)
       begin
-        if (crc32_byte_index == 4)
+        if (crc32_byte_index == 32)
         begin
           // done reading
           crc32_byte_index <= 0;
@@ -267,6 +271,8 @@ begin
     address <= 0;
     we <= 0;
     cs <= 0;
+
+    $readmemh("../bin/crc32_table.txt", crc32_table);
 end
 
 endmodule
