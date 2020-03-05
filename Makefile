@@ -108,7 +108,8 @@ $(BIN_DIR)/random_test.bin:
 $(BIN_DIR)/random_test.txt: $(BIN_DIR)/random_test.bin
 	xxd $(BIN_DIR)/random_test.bin > $(BIN_DIR)/random_test.txt
 
-console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt
+console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt $(BIN_DIR)/crc32
+	$(BIN_DIR)/crc32 < $(BIN_DIR)/random_test.bin
 	$(BIN_DIR)/console -r > $(BIN_DIR)/console_readback.bin
 	xxd $(BIN_DIR)/console_readback.bin > $(BIN_DIR)/console_readback.txt
 	diff $(BIN_DIR)/console_readback.txt $(BIN_DIR)/random_test.txt
