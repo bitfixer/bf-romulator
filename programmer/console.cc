@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <string.h>
+#include <time.h>
 
 // hardware SPI pins
 #define PI_ICE_MISO         19
@@ -39,6 +41,17 @@ void spi_begin()
 void spi_end()
 {
     digitalWrite(PI_DEBUG_CS, HIGH);
+}
+
+void delay_nanos(long nanos)
+{
+    timespec ts1, ts2;
+    long diff_ns;
+    clock_gettime(CLOCK_REALTIME, &ts1);
+    do {
+        clock_gettime(CLOCK_REALTIME, &ts2);
+        diff_ns = (ts2.tv_sec - ts1.tv_sec)*1000000000l + (ts2.tv_nsec - ts1.tv_nsec);
+    } while (diff_ns < nanos);
 }
 
 uint32_t spi_xfer(uint32_t data, int nbits = 8)
@@ -75,11 +88,8 @@ uint8_t xfer(uint32_t data)
     pinMode(PI_ICE_CLK,     OUTPUT);
 
     spi_begin();
-    //delayMicroseconds(10);
     uint32_t res = spi_xfer(data, 8);
     spi_end();
-
-    //fprintf(stderr, "SPI send %X got: %X\n", data, res);
 
     uint8_t d = res;
     return res;
@@ -131,6 +141,61 @@ typedef enum _action
     CONFIG
 } Action;
 
+void halt_cpu()
+{
+    // send command to halt CPU
+    xfer(0xAA);
+}
+
+void start_cpu()
+{
+    xfer(0x55);
+}
+
+bool read_memory(uint8_t* buffer, int retries)
+{
+    for (int attempt = 0; attempt < retries; attempt++)
+    {
+        // send command to read memory map
+        xfer(0x66);
+
+        // read dummy byte
+        uint8_t b = xfer(0);
+        fprintf(stderr, "dummy byte: %X\n", b);
+
+        for (uint32_t i = 0; i < 65536; i++)
+        {
+            uint8_t byte = xfer(i);
+            buffer[i] = byte;
+        }
+
+        // crc32
+        uint32_t crc = 0;
+        for (uint32_t i = 0; i < 4; i++)
+        {
+            crc <<= 8;
+            uint8_t byte = xfer(i);
+            fprintf(stderr, "r %d %X\n", i, byte);
+            crc += (uint32_t)byte;
+        }
+
+        fprintf(stderr, "crc32: %X\n", crc);
+
+        // calculate crc32 of received buffer
+        uint32_t calc_crc = 0;
+        crc32(buffer, 65536, &calc_crc);
+        fprintf(stderr, "calc crc: %X\n", calc_crc);
+
+        if (crc == calc_crc)
+        {
+            return true;
+        }
+
+        fprintf(stderr, "attempt %d read failure, crc mismatch\n", attempt);
+    }
+    return false;
+}
+
 int main(int argc, char** argv)
 {
 
@@ -138,8 +203,9 @@ int main(int argc, char** argv)
     Action a = READ;
     FILE* fp = NULL;
     bool xfer_whole_buffer = false;
+    bool verify = false;
 
-    while ((opt = getopt(argc, argv, "rcw:b")) != -1)
+    while ((opt = getopt(argc, argv, "rcw:bv")) != -1)
     {
         switch (opt)
         {
@@ -157,6 +223,9 @@ int main(int argc, char** argv)
             case 'b':
                 xfer_whole_buffer = true;
                 break;
+            case 'v':
+                verify = true;
+                break;
         }
     }
 
@@ -172,84 +241,56 @@ int main(int argc, char** argv)
 
     if (a == READ)
     {
-        // send command to halt CPU
-        xfer(0xAA);
-        delay(10);
+        uint8_t buffer[65536];
+        halt_cpu();
+        bool read_success = read_memory(buffer, 5);
+        start_cpu();
 
-        // send command to read memory map
-        xfer(0x66);
-        delay(10);
-
-        if (xfer_whole_buffer)
+        if (!read_success)
         {
-            uint8_t buffer[65536];
-            xfer_buffer(buffer, 65536);
-            fwrite(buffer, 1, 65536, stdout);
-        } 
-        else 
-        {
-            // read dummy byte
-            uint8_t b = xfer(0);
-            fprintf(stderr, "dummy byte: %X\n", b);
-
-            uint8_t buffer[65536];
-            for (uint32_t i = 0; i < 65536; i++)
-            {
-                uint8_t byte = xfer(i);
-                buffer[i] = byte;
-            }
-
-            fprintf(stderr, "reading crc32\n");
-            delay(1);
-            // crc32
-            uint32_t crc = 0;
-            for (uint32_t i = 0; i < 4; i++)
-            {
-                crc <<= 8;
-                uint8_t byte = xfer(i);
-                fprintf(stderr, "r %d %X\n", i, byte);
-                crc += (uint32_t)byte;
-            }
-
-            fprintf(stderr, "crc32: %X\n", crc);
-
-            // calculate crc32 of received buffer
-            uint32_t calc_crc = 0;
-            crc32(buffer, 65536, &calc_crc);
-            fprintf(stderr, "calc crc: %X\n", calc_crc);
-
-            if (crc != calc_crc)
-            {
-                fprintf(stderr, "read failure, crc mismatch\n");
-                return 1;
-            }
-
-            fwrite(buffer, 1, 65536, stdout);
+            fprintf(stderr, "read error\n");
         }
 
-        xfer(0x55);
-        delay(1);
+        fwrite(buffer, 1, 65536, stdout);
     }
     else if (a == WRITE)
     {
+        uint8_t send_buffer[65536];
+        fread(send_buffer, 1, 65536, fp);
+
+        uint32_t calc_crc = 0;
+        crc32(send_buffer, 65536, &calc_crc);
+        fprintf(stderr, "send calc crc: %X\n", calc_crc);
+
         // send command to halt CPU
-        xfer(0xAA);
-        delay(1);
+        halt_cpu();
 
         // write memory map
         xfer(0x99);
-        delay(1);
+        
         uint8_t send_byte;
         for (uint32_t i = 0; i < 65536; i++)
         {
-            fread(&send_byte, 1, 1, fp);
+            send_byte = send_buffer[i];
             uint8_t byte = xfer(send_byte);
-            fprintf(stderr, "wrote: %X ", i);
         }
 
         xfer(0x55);
-        xfer(0x55);
-        delay(1);
+        if (verify)
+        {
+            uint8_t buffer[65536];
+            if (!read_memory(buffer, 5))
+            {
+                fprintf(stderr, "read error during verify.\n");
+            }
+
+            if (memcmp(send_buffer, buffer, 65536) != 0)
+            {
+                fprintf(stderr, "write error, mismatch.\n");
+            }
+        }
+
+        start_cpu();
     }
     else if (a == CONFIG) 
     {
