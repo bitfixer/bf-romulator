@@ -112,11 +112,6 @@ int main(int argc, char** argv)
         table = make_crc32_table();
     }
 
-    for (int j = 0; j < 10; j++)
-    {
-        fprintf(stderr, "entry %d: %X\n", j, table[j]);
-    }
-
     if (write_table)
     {
         for (int i = 0; i < 256; i++)
@@ -160,21 +155,5 @@ int main(int argc, char** argv)
 
     fprintf(stderr, "%08x\n", crc);
     delete table;
-
-/*
-  FILE *fp;
-  char buf[1L << 15];
-  for(int i = ac > 1; i < ac; ++i)
-    if((fp = i? fopen(av[i], "rb"): stdin)) { 
-      uint32_t crc = 0;
-      while(!feof(fp) && !ferror(fp))
-        crc32(buf, fread(buf, 1, sizeof(buf), fp), &crc);
-      if(!ferror(fp))
-        printf("%08x%s%s\n", crc, ac > 2? "\t": "", ac > 2? av[i]: "");
-      if(i)
-        fclose(fp);
-    }
-    */
-    
-  return 0;
+    return 0;
 }
