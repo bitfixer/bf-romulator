@@ -53,6 +53,10 @@ $(BIN_DIR)/makerom: $(TOOLS_DIR)/makerom.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/makerom $(TOOLS_DIR)/makerom.cpp
 
+$(BIN_DIR)/crc32: $(PROGRAMMER_DIR)/crc32.cpp
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/crc32 $(PROGRAMMER_DIR)/crc32.cpp
+
 fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 	mkdir -p $(ROMS_DIR)
 	#cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
@@ -68,7 +72,10 @@ $(BIN_DIR)/enable_table.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE)
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/build_enable_table $(ENABLE_TABLE) > $(BIN_DIR)/enable_table.txt
 
-$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt
+$(BIN_DIR)/crc32_table.txt: $(BIN_DIR)/crc32
+	$(BIN_DIR)/crc32 -t -x > $(BIN_DIR)/crc32_table.txt
+
+$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt
 	mkdir -p $(BIN_DIR)
 	cd $(ROMULATOR_DIR); rm hardware.*; apio build
 	cp $(ROMULATOR_DIR)/hardware.bin $(BIN_DIR)/hardware.bin
@@ -101,7 +108,8 @@ $(BIN_DIR)/random_test.bin:
 $(BIN_DIR)/random_test.txt: $(BIN_DIR)/random_test.bin
 	xxd $(BIN_DIR)/random_test.bin > $(BIN_DIR)/random_test.txt
 
-console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt
+console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt $(BIN_DIR)/crc32
+	$(BIN_DIR)/crc32 < $(BIN_DIR)/random_test.bin
 	$(BIN_DIR)/console -r > $(BIN_DIR)/console_readback.bin
 	xxd $(BIN_DIR)/console_readback.bin > $(BIN_DIR)/console_readback.txt
 	diff $(BIN_DIR)/console_readback.txt $(BIN_DIR)/random_test.txt

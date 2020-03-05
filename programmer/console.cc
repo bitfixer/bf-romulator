@@ -21,12 +21,12 @@
 #include <unistd.h>
 
 // hardware SPI pins
-#define PI_ICE_MISO       19
-#define PI_ICE_CLK        23
-#define PI_ICE_CDONE      11
+#define PI_ICE_MISO         19
+#define PI_ICE_CLK          23
+#define PI_ICE_CDONE        11
 
-#define PI_ICE_CRESET     22
-#define PI_ICE_MOSI       21
+#define PI_ICE_CRESET       22
+#define PI_ICE_MOSI         21
 #define PI_DEBUG_CS         36
 
 #include <wiringPi.h>
@@ -53,9 +53,8 @@ uint32_t spi_xfer(uint32_t data, int nbits = 8)
             rdata |= 1 << i;
         
         digitalWrite(PI_ICE_CLK, HIGH);
-        delayMicroseconds(2);
+        delayMicroseconds(1);
         digitalWrite(PI_ICE_CLK, LOW);
-        //delayMicroseconds(1);
     }
     
     return rdata;
@@ -84,6 +83,29 @@ uint8_t xfer(uint32_t data)
 
     uint8_t d = res;
     return res;
+}
+
+uint32_t crc32_for_byte(uint32_t r) {
+  for(int j = 0; j < 8; ++j)
+    r = (r & 1? 0: (uint32_t)0xEDB88320L) ^ r >> 1;
+  return r ^ (uint32_t)0xFF000000L;
+}
+
+void crc32(const void *data, int n_bytes, uint32_t* crc) {
+    static uint32_t table[0x100];
+    if(!*table)
+    {
+        fprintf(stderr, "generating table\n");
+        for(size_t i = 0; i < 0x100; ++i) 
+        {
+            table[i] = crc32_for_byte(i);
+        }
+    }
+
+    for(size_t i = 0; i < n_bytes; ++i)
+    {
+        *crc = table[(uint8_t)*crc ^ ((uint8_t*)data)[i]] ^ *crc >> 8;
+    }
 }
 
 void xfer_buffer(uint8_t* buffer, int size)
@@ -166,13 +188,43 @@ int main(int argc, char** argv)
         } 
         else 
         {
+            // read dummy byte
+            uint8_t b = xfer(0);
+            fprintf(stderr, "dummy byte: %X\n", b);
+
+            uint8_t buffer[65536];
             for (uint32_t i = 0; i < 65536; i++)
             {
                 uint8_t byte = xfer(i);
-                {
-                    fwrite(&byte, 1, 1, stdout);
-                }
+                buffer[i] = byte;
             }
+
+            fprintf(stderr, "reading crc32\n");
+            delay(1);
+            // crc32
+            uint32_t crc = 0;
+            for (uint32_t i = 0; i < 4; i++)
+            {
+                crc <<= 8;
+                uint8_t byte = xfer(i);
+                fprintf(stderr, "r %d %X\n", i, byte);
+                crc += (uint32_t)byte;
+            }
+
+            fprintf(stderr, "crc32: %X\n", crc);
+
+            // calculate crc32 of received buffer
+            uint32_t calc_crc = 0;
+            crc32(buffer, 65536, &calc_crc);
+            fprintf(stderr, "calc crc: %X\n", calc_crc);
+
+            if (crc != calc_crc)
+            {
+                fprintf(stderr, "read failure, crc mismatch\n");
+                return 1;
+            }
+
+            fwrite(buffer, 1, 65536, stdout);
         }
 
         xfer(0x55);
