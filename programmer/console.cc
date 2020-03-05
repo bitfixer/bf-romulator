@@ -190,7 +190,7 @@ int main(int argc, char** argv)
         else 
         {
             // read dummy byte
-            uint8_t b = xfer(i);
+            uint8_t b = xfer(0);
             fprintf(stderr, "dummy byte: %X\n", b);
 
             uint8_t buffer[65536];
