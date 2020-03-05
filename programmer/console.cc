@@ -218,6 +218,12 @@ int main(int argc, char** argv)
             crc32(buffer, 65536, &calc_crc);
             fprintf(stderr, "calc crc: %X\n", calc_crc);
 
+            if (crc != calc_crc)
+            {
+                fprintf(stderr, "read failure, crc mismatch\n");
+                return 1;
+            }
+
             fwrite(buffer, 1, 65536, stdout);
         }
 
