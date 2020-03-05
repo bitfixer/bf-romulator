@@ -52,6 +52,7 @@ localparam WRITE_CRC32_BYTE_WAIT = 12;
 localparam WRITE_CRC32_BYTE_NEXT = 13;
 localparam WRITE_DUMMY_BYTE = 14;
 localparam WRITE_DUMMY_BYTE_WAIT = 15;
+localparam WRITE_DUMMY_BYTE_NEXT = 16;
 reg [7:0] state = RUNNING;
 
 // spi slave setup
@@ -136,8 +137,7 @@ begin
           end
           else if (rx_byte == READ_MEMORY) // read out a full memory map
           begin
-            //state <= WRITE_MEMORY_BYTE;
-            state <= WRITE_DUMMY_BYTE
+            state <= WRITE_DUMMY_BYTE;
             cs <= 1;
             we <= 0;
             address <= 0;
