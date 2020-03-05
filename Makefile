@@ -73,9 +73,9 @@ $(BIN_DIR)/enable_table.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE)
 	$(BIN_DIR)/build_enable_table $(ENABLE_TABLE) > $(BIN_DIR)/enable_table.txt
 
 $(BIN_DIR)/crc32_table.txt: $(BIN_DIR)/crc32
-	$(BIN_DIR)/crc32 -t > $(BIN_DIR)/crc32_table.txt
+	$(BIN_DIR)/crc32 -t -x > $(BIN_DIR)/crc32_table.txt
 
-$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt
+$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt
 	mkdir -p $(BIN_DIR)
 	cd $(ROMULATOR_DIR); rm hardware.*; apio build
 	cp $(ROMULATOR_DIR)/hardware.bin $(BIN_DIR)/hardware.bin
