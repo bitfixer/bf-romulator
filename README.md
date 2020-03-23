@@ -69,3 +69,10 @@ The one-liner for this on the command line is:\
 To program a new firmware onto the ROMulator, run\
 ```make program```\
 from the ~/bf-romulator directory.
+
+Note that you will need all of the roms present in order to complete the build.\
+This means that every unique rom specified in [tools/default_memory_set.csv](tools/default_memory_set.csv) to be present in the bf-romulator/roms directory.\
+For convenience if you are downloading ROM images from a single source, there is a script which will do this for you.\
+If you were downloading every rom with the base url of http://bitfixer.com, you would run the command:\
+```BASEURL=http://bitfixer.com make fetch_roms```\
+This downloads every unique rom specified in [tools/default_memory_set.csv](tools/default_memory_set.csv) to the roms directory.

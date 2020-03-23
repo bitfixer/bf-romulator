@@ -91,10 +91,10 @@ $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/
 # General
 
 .PHONY: program
-program: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
+program_old: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -f < $(BIN_DIR)/romulator.bin
 
-program_spi: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
+program: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi < $(BIN_DIR)/romulator.bin
 
 readback: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
