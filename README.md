@@ -62,7 +62,7 @@ To install the ROMulator software on a Raspberry PI for programming or debug, do
 This will install the prequisites and fetch the latest version of the code in this repo.
 
 The one-liner for this on the command line is:\
-```wget -O - https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup.sh | bash```
+```wget -O - https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup.sh | sudo bash```
 
 ### Programming
 
