@@ -1,3 +1,4 @@
+sudo echo 'dtparam=spi=on' >> /boot/config.txt
 sudo apt-get -y update
 sudo apt-get -y install python3-pip
 sudo apt-get -y install git
