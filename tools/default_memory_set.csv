@@ -22,4 +22,8 @@
 4,basic-4-d000.901465-21.bin,0xd000
 4,edit-4-n.901447-29.bin,0xe000
 4,kernal-4.901465-22.bin,0xf000
+5,basic-2-c000.901465-01.bin,0xc000
+5,basic-2-d000.901465-02.bin,0xd000
+5,edit-2-b.901447-24.bin,0xe000
+5,kernal-2.901465-03.bin,0xf000
 15,../bin/random_test.bin,0x0000
