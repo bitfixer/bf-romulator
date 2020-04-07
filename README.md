@@ -30,12 +30,14 @@ Just make sure to double check:
 The ROMulator supports up to 16 memory maps. Only 4 are populated by default, but you can add any maps you want via the programming interface.
 The default switch settings are as follows:
 
-|Set Index  |Setting                            |Switch 1   |Switch 2   |Switch 3   |Switch 4   |
-|-----------|-----------------------------------|-----------|-----------|-----------|-----------|
-|0          |BASIC 2, NON-CRTC  (i.e. 2001)     |Off        |Off        |Off        |Off        |
-|1          |BASIC 4, NON-CRTC  (i.e. 2001)     |On         |Off        |Off        |Off        |
-|2          |BASIC 4, CRTC, 80C (i.e. 8032)     |Off        |On         |Off        |Off        |
-|3          |BASIC 4, CRTC, 40C (i.e. 4032,4016)|On         |On         |Off        |Off        |
+|Set Index  |Setting                                        |Switch 1   |Switch 2   |Switch 3   |Switch 4   |
+|-----------|-----------------------------------------------|-----------|-----------|-----------|-----------|
+|0          |BASIC 2, NON-CRTC, Business Kbd  (i.e. 2001)   |Off        |Off        |Off        |Off        |
+|1          |BASIC 4, NON-CRTC  (i.e. 2001)                 |On         |Off        |Off        |Off        |
+|2          |BASIC 4, CRTC, 80C (i.e. 8032)                 |Off        |On         |Off        |Off        |
+|3          |BASIC 4, CRTC, 40C (i.e. 4032,4016)            |On         |On         |Off        |Off        |
+|4          |Reserved                                       |Off        |Off        |On         |Off        |
+|5          |BASIC 2, NON-CRTC, Normal Kbd (i.e. 2001)      |On         |Off        |On         |Off        |
 
 The memory maps are defined in [tools/default_memory_set.csv](tools/default_memory_set.csv).
 This file indicates which ROMs are located at which memory address.
