@@ -94,10 +94,17 @@ $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/
 program_old: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -f < $(BIN_DIR)/romulator.bin
 
-program: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
+# initialize pi
+# set logic high on debug pin so romulator can start
+.PHONY: init
+init:
+	gpio mode 27 out
+	gpio write 27 1
+
+program: init reset $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi < $(BIN_DIR)/romulator.bin
 
-readback: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
+readback: init $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi -r $(shell stat --printf="%s" $(BIN_DIR)/romulator.bin) > readback.bin
 	diff readback.bin $(BIN_DIR)/romulator.bin
 
