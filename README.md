@@ -9,7 +9,7 @@ tools - C++ tools for building firmware images for ROMulator
 
 ## About
 
-The ROMulator is a RAM/ROM replacement device for 6502 systems, with programmable memory maps and debug functionality which allows you to halt a running CPU and read from or write to memory.
+The ROMulator is a RAM/ROM replacement device for 6502 systems, with programmable memory maps and debug functionality which allows you to halt a running CPU and read from or write to memory. See https://bitfixer.com/romulator for more information.
 
 ## Installation
 
