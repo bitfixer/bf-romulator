@@ -28,6 +28,7 @@ module enable_logic(
   output busenable,
   input diag_spi_cs,
   output rdy,
+  input rst,
 
   output wire led_blue,
   output wire led_green,
@@ -227,7 +228,7 @@ wire diag_spi_out;
 assign spi_out = (spi_master_active) ? flash_spi_out : diag_spi_out;
 
 wire echo_cs;
-assign rdy = !halt;
+assign rdy = !halt && read_complete;
 
 
 assign led_blue = read_complete && rdy;
