@@ -94,7 +94,7 @@ $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/
 program_old: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -f < $(BIN_DIR)/romulator.bin
 
-# initialize pi
+# initialize pigpio 
 # set logic high on debug pin so romulator can start
 .PHONY: init
 init:
