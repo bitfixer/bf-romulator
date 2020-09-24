@@ -53,6 +53,8 @@ localparam WRITE_CRC32_BYTE_NEXT = 13;
 localparam WRITE_DUMMY_BYTE = 14;
 localparam WRITE_DUMMY_BYTE_WAIT = 15;
 localparam WRITE_DUMMY_BYTE_NEXT = 16;
+
+localparam WRITE_MEMORY_BYTE_NEXT2 = 17;
 reg [7:0] state = RUNNING;
 
 // spi slave setup
@@ -225,7 +227,7 @@ begin
       // present memory byte
       tx_dv <= 1;
       tx_byte <= data; // read from data bus
-
+      
       // update crc32
       crc32 <= crc32_table[crc32[7:0] ^ data] ^ (crc32 >> 8);
       state <= WRITE_MEMORY_BYTE_WAIT;
@@ -234,7 +236,14 @@ begin
     begin
       tx_dv <= 0;
       address <= address + 1; // increment address
-      state <= WRITE_MEMORY_BYTE_NEXT;
+      state <= WRITE_MEMORY_BYTE_NEXT2;
+    end
+    WRITE_MEMORY_BYTE_NEXT2: // wait for deassert of rx signal, current byte done
+    begin
+      if (rx_dv == 1'b0)
+      begin
+        state <= WRITE_MEMORY_BYTE_NEXT;
+      end
     end
     WRITE_MEMORY_BYTE_NEXT:
     begin
