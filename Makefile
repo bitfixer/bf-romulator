@@ -38,6 +38,10 @@ $(BIN_DIR)/console: $(PROGRAMMER_DIR)/console.cc
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/console -lwiringPi $(PROGRAMMER_DIR)/console.cc
 
+$(BIN_DIR)/make_screen_image: $(PROGRAMMER_DIR)/make_screen_image.cpp
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/make_screen_image $(PROGRAMMER_DIR)/make_screen_image.cpp
+
 
 # Tools
 
@@ -100,6 +104,15 @@ program_old: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
 init:
 	gpio mode 27 out
 	gpio write 27 1
+
+# enter debug mode
+# set the chip select line high to allow romulator to start
+# set the reset line to an input to prevent holding romulator in reset
+.PHONY: debug
+debug:
+	gpio mode 27 out
+	gpio write 27 1
+	gpio mode 6 in
 
 program: init reset $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi < $(BIN_DIR)/romulator.bin
