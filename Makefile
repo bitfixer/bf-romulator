@@ -57,6 +57,10 @@ $(BIN_DIR)/makerom: $(TOOLS_DIR)/makerom.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/makerom $(TOOLS_DIR)/makerom.cpp
 
+$(BIN_DIR)/verify_map_setting: $(TOOLS_DIR)/verify_map_setting.cpp
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/verify_map_setting $(TOOLS_DIR)/verify_map_setting.cpp
+
 $(BIN_DIR)/crc32: $(PROGRAMMER_DIR)/crc32.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/crc32 $(PROGRAMMER_DIR)/crc32.cpp
