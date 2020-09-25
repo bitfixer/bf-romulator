@@ -58,6 +58,12 @@ You can use the optional RPI ROMulator programming board, or directly connect th
 
 If you are only programming and not running the debug client, DBG and CDONE are optional.
 
+Please follow this procedure to enter debug mode on the romulator and read the contents of a running CPU.
+1. run ```make bin/console``` from bf-romulator directory
+2. run ```make debug``` to set appropriate pin directions on the pi. Specifically, this sets the DBG line to 1 to allow the ROMulator to start and not be stuck in a halt state, and sets the RST line to an input to avoid holding the fpga in reset.
+3. If you are using the optional RPI programming board, remove the programming jumper.
+4. run ```bin/console -r > output.bin``` to halt the cpu and read the full memory map into a file called output.bin.
+
 ### Installation
 
 To install the ROMulator software on a Raspberry PI for programming or debug, download the script [setup.sh](https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup.sh) onto your Pi and execute from your home directory.
