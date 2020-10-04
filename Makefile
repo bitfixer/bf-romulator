@@ -138,6 +138,13 @@ console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt $(BIN_DIR)/crc32
 	xxd $(BIN_DIR)/console_readback.bin > $(BIN_DIR)/console_readback.txt
 	diff $(BIN_DIR)/console_readback.txt $(BIN_DIR)/random_test.txt
 
+$(BIN_DIR)/testrom.out:
+	cd testrom; make testrom.out; cp testrom.out ../$(BIN_DIR)/testrom.out; rm testrom.out
+
+$(BIN_DIR)test_pet: $(BIN_DIR)/test_pet
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/test_pet $(TOOLS_DIR)/test_pet
+
 .PHONY: reset
 reset: $(BIN_DIR)/programmer
 	$(BIN_DIR)/programmer -b
