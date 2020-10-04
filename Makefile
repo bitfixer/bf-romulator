@@ -143,7 +143,7 @@ $(BIN_DIR)/testrom.out:
 
 $(BIN_DIR)/test_pet: $(TOOLS_DIR)/test_pet.cpp
 	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/test_pet $(TOOLS_DIR)/test_pet.cpp
+	g++ -o $(BIN_DIR)/test_pet -lwiringPi $(TOOLS_DIR)/test_pet.cpp
 
 .PHONY: reset
 reset: $(BIN_DIR)/programmer
