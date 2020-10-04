@@ -138,7 +138,7 @@ console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt $(BIN_DIR)/crc32
 	xxd $(BIN_DIR)/console_readback.bin > $(BIN_DIR)/console_readback.txt
 	diff $(BIN_DIR)/console_readback.txt $(BIN_DIR)/random_test.txt
 
-$(BIN_DIR)/testrom.out:
+$(BIN_DIR)/testrom.out: testrom/testrom.s testrom/testrom.cfg
 	cd testrom; make testrom.out; cp testrom.out ../$(BIN_DIR)/testrom.out; rm testrom.out
 
 $(BIN_DIR)/test_pet: $(TOOLS_DIR)/test_pet.cpp

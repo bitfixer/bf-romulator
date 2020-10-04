@@ -125,6 +125,9 @@ loop:
     jmp     loop
 
 done:
+    lda     #$DD
+    sta     $E809
+doneloop:
     nop
-    jmp     done    ; wait here
+    jmp     doneloop    ; wait here
 

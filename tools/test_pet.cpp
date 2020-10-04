@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <wiringPi.h>
-#include <iostream.h>
+#include <stdint.h>
+#include <iostream>
 
 int main(int argc, char** argv)
 {
@@ -11,18 +12,35 @@ int main(int argc, char** argv)
     printf("Press enter to continue...");
     getchar();
 
-    int start = millis();
+    
     int interval = 5000;
-    printf("starting time %d\n", start);
-
-    int now = millis();
-    while (now < start + interval)
+    uint8_t memory[65536];
+    bool rundone = false;
+    while (!rundone)
     {
-        delay(1000);
-        now = millis();
+        int start = millis();
+        printf("starting time %d\n", start);
+        int now = start;
+        while (now < start + interval)
+        {
+            delay(1000);
+            now = millis();
+        }
+
+        system("bin/console -r > out.bin");
+
+        // check the memory dump
+        FILE* fp = fopen("out.bin", "rb");
+        fread(memory, 1, 65536, fp);
+        fclose(fp);
+
+        // check status
+        if (memory[0xE809] == 0xDD)
+        {
+            rundone = true;
+        }
     }
 
-    system("bin/console -r > out.bin");
     printf("Done.\n");
 
     return 0;
