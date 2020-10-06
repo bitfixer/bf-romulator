@@ -16,6 +16,15 @@ test_address_count                      =   test_address_end - test_address_star
 read_address_low_byte                   =   $FB
 read_address_high_byte                  =   $FC
 
+ram_space_start                         =   $01
+ram_space_end                           =   $80
+
+rom_space_start                         =   $90
+rom_space_end                           =   $FF
+
+ram_test_mismatch_marker                =   $BB
+ram_test_complete_marker                =   $CC
+done_marker                             =   $DD
 
 .segment    "CODE"
 
@@ -59,7 +68,7 @@ zeropagesuccess:
     sta     read_address_low_byte   ; low byte of ram address
     sta     ram_test_compare_value   ; store current test byte, starting at 0
 
-    lda     #$01
+    lda     #ram_space_start
     sta     read_address_high_byte   ; store address for start of ram check
     sta     ram_test_address_page   ; store copy of ram address
 
@@ -96,7 +105,7 @@ rampagesuccess:
 
     ldx     read_address_high_byte
     inx
-    cpx     #$80
+    cpx     #ram_space_end
     beq     ramtestdone
     stx     read_address_high_byte   ; write incremented address
     stx     ram_test_address_page   ; write copy of address
@@ -105,20 +114,19 @@ rampagesuccess:
 rammismatch:
     ; record the value read
     sta     ram_test_mismatch_value
-    lda     #$BB
+    lda     #ram_test_mismatch_marker
     sta     ram_test_mismatch_indicator_address
     jmp     romtest
     
 ramtestdone:
-    lda     #$CC
+    lda     #ram_test_complete_marker
     sta     ram_test_complete_indicator_address
 
 romtest:
     lda     #$00    ; start of rom space
     sta     read_address_low_byte
-    lda     #$90
+    lda     #rom_space_start
     sta     read_address_high_byte
-    ;sta     $00FD
     ldy     #$00
 
 loop:
@@ -131,12 +139,12 @@ increment_rom_page:
     ldx     read_address_high_byte
     inx
     stx     read_address_high_byte
-    cpx     #$FF
+    cpx     #rom_space_end
     beq     done
     jmp     loop
 
 done:
-    lda     #$DD
+    lda     #done_marker
     sta     done_indicator_address
 doneloop:
     nop

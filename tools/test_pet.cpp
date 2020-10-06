@@ -16,10 +16,32 @@ int main(int argc, char** argv)
     int interval = 5000;
     uint8_t memory[65536];
     bool rundone = false;
+
+    uint16_t test_address_start                      =   0xE800;
+    uint16_t zero_page_compare_value                 =   test_address_start;
+    uint16_t zero_page_address                       =   test_address_start + 1;
+    uint16_t zero_page_mismatch_value                =   test_address_start + 2;
+    uint16_t ram_test_address                        =   test_address_start + 3;
+    uint16_t ram_test_address_page                   =   test_address_start + 4;
+    uint16_t ram_test_compare_value                  =   test_address_start + 5;
+    uint16_t ram_test_mismatch_value                 =   test_address_start + 6;
+    uint16_t ram_test_mismatch_indicator_address     =   test_address_start + 7;
+    uint16_t ram_test_complete_indicator_address     =   test_address_start + 8;
+    uint16_t done_indicator_address                  =   test_address_start + 9;
+
+    uint16_t ram_space_start                         =   0x01;
+    uint16_t ram_space_end                           =   0x80;
+
+    uint16_t rom_space_start                         =   0x90;
+    uint16_t rom_space_end                           =   0xFF;
+
+    uint16_t ram_test_mismatch_marker                =   0xBB;
+    uint16_t ram_test_complete_marker                =   0xCC;
+    uint16_t done_marker                             =   0xDD;
+
     while (!rundone)
     {
         int start = millis();
-        //printf("starting time %d\n", start);
         printf("Running..\n");
         int now = start;
         while (now < start + interval)
@@ -36,11 +58,41 @@ int main(int argc, char** argv)
         fclose(fp);
 
         // check status
-        if (memory[0xE809] == 0xDD)
+        if (memory[done_indicator_address] == done_marker)
         {
             // byte set indicating the test is complete
             rundone = true;
         }
+    }
+
+    // check zero page status
+    printf("zero page (0x00 - 0xFF): ");
+    if (zero_page_address == 0xFF && zero_page_compare_value == zero_page_mismatch_value)
+    {
+        // zero page success
+        printf("SUCCESS\n");
+    }
+    else
+    {
+        printf("FAILED: Address %X expected %X, read %X\n", zero_page_address, zero_page_compare_value, zero_page_mismatch_value);
+        printf("Zero page failed, exiting.\n");
+        exit(1);
+    }
+
+    printf("ram test (0x%X00 - 0x%X00):", ram_space_start, ram_space_end);
+    if (memory[ram_test_complete_indicator_address] == ram_test_complete_marker)
+    {
+        printf("SUCCESS\n");
+    }
+    else
+    {
+        uint8_t last_good_address_page = memory[ram_test_address_page];
+        uint8_t last_good_address = memory[ram_test_address];
+
+        uint16_t numbytes = ((uint16_t)last_good_address_page << 8) + (uint16_t)last_good_address;
+
+        printf("%d (%X) bytes succeeded. Failed at byte %d (%X) expected %X, read %X\n", 
+            numbytes-1, numbytes-1, numbytes, numbytes, memory[ram_test_compare_value], memory[ram_test_mismatch_value]);
     }
 
     printf("Done.\n");
