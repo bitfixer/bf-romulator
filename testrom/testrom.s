@@ -17,7 +17,7 @@ read_address_low_byte                   =   $FB
 read_address_high_byte                  =   $FC
 
 ram_space_start                         =   $01
-ram_space_end                           =   $80
+ram_space_end                           =   $D0
 
 rom_space_start                         =   $90
 rom_space_end                           =   $FF

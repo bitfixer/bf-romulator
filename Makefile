@@ -72,7 +72,7 @@ fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 
 # FPGA
 
-$(BIN_DIR)/memorymap.bin: $(MEMORY_SET) $(BIN_DIR)/build_memory_map_set $(BIN_DIR)/random_test.bin $(BIN_DIR)/testrom.out
+$(BIN_DIR)/memorymap.bin: $(MEMORY_SET) $(BIN_DIR)/build_memory_map_set $(BIN_DIR)/random_test.bin $(BIN_DIR)/testrom.out $(BIN_DIR)/testrom_appleii.out
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/build_memory_map_set -d $(ROMS_DIR)/ < $(MEMORY_SET) > $(BIN_DIR)/memorymap.bin
 
@@ -141,9 +141,16 @@ console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt $(BIN_DIR)/crc32
 $(BIN_DIR)/testrom.out: testrom/testrom.s testrom/testrom.cfg
 	cd testrom; make testrom.out; cp testrom.out ../$(BIN_DIR)/testrom.out; rm testrom.out
 
+$(BIN_DIR)/testrom_appleii.out: testrom/testrom_appleii.s testrom/testrom_appleii.cfg
+	cd testrom; make testrom_appleii.out; cp testrom_appleii.out ../$(BIN_DIR)/testrom_appleii.out; rm testrom_appleii.out
+
 $(BIN_DIR)/test_pet: $(TOOLS_DIR)/test_pet.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/test_pet -lwiringPi $(TOOLS_DIR)/test_pet.cpp
+
+$(BIN_DIR)/test_appleii: $(TOOLS_DIR)/test_appleii.cpp
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/test_pet -lwiringPi $(TOOLS_DIR)/test_appleii.cpp
 
 .PHONY: reset
 reset: $(BIN_DIR)/programmer
