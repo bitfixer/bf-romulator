@@ -67,14 +67,15 @@ int main(int argc, char** argv)
 
     // check zero page status
     printf("zero page (0x00 - 0xFF): ");
-    if (zero_page_address == 0xFF && zero_page_compare_value == zero_page_mismatch_value)
+    if (memory[zero_page_address] == 0xFF && memory[zero_page_compare_value] == memory[zero_page_mismatch_value])
     {
         // zero page success
         printf("SUCCESS\n");
     }
     else
     {
-        printf("FAILED: Address %X expected %X, read %X\n", zero_page_address, zero_page_compare_value, zero_page_mismatch_value);
+        printf("FAILED: Address %X expected %X, read %X\n", 
+            memory[zero_page_address], memory[zero_page_compare_value], memory[zero_page_mismatch_value]);
         printf("Zero page failed, exiting.\n");
         exit(1);
     }
