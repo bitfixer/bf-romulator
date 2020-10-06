@@ -19,7 +19,8 @@ int main(int argc, char** argv)
     while (!rundone)
     {
         int start = millis();
-        printf("starting time %d\n", start);
+        //printf("starting time %d\n", start);
+        printf("Running..\n");
         int now = start;
         while (now < start + interval)
         {
@@ -37,6 +38,7 @@ int main(int argc, char** argv)
         // check status
         if (memory[0xE809] == 0xDD)
         {
+            // byte set indicating the test is complete
             rundone = true;
         }
     }

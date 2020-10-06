@@ -1,20 +1,30 @@
-.segment    "CODE"
+test_address_start = $E800
+zero_page_compare_value                 =   test_address_start
+zero_page_address                       =   test_address_start + 1
+zero_page_mismatch_value                =   test_address_start + 2
+ram_test_address                        =   test_address_start + 3
+ram_test_address_page                   =   test_address_start + 4
+ram_test_compare_value                  =   test_address_start + 5
+ram_test_mismatch_value                 =   test_address_start + 6
+ram_test_mismatch_indicator_address     =   test_address_start + 7
+ram_test_complete_indicator_address     =   test_address_start + 8
+done_indicator_address                  =   test_address_start + 9
+test_address_end                        =   test_address_start + 9
 
-    lda     #$AA
-    sta     $E800
-    sta     $E801
-    sta     $E802
-    sta     $E803
-    sta     $E804
-    sta     $E805
-    sta     $E806
+test_address_count                      =   test_address_end - test_address_start + 1
+
+read_address_low_byte                   =   $FB
+read_address_high_byte                  =   $FC
+
+
+.segment    "CODE"
 
 ; check the zero page first, will be used for later tests
 
 zeropagecheck:
     ldx     #$00
     txa
-    sta     $E800   ; use overridden io space as scratch memory
+    sta     zero_page_compare_value   ; use overridden io space as scratch memory
 
 zeropagewrite:
     sta     $00,X   ; fill zero page with accumulator value
@@ -22,23 +32,23 @@ zeropagewrite:
     bne     zeropagewrite
 
 zeropageverify:
-    stx     $E801
+    stx     zero_page_address
     lda     $00,X   ; load value from zero page address
-    cmp     $E800
+    cmp     zero_page_compare_value
     bne     zeropagemismatch
     inx
     bne     zeropageverify
 
 zeropageincrement:
-    ldy     $E800   ; load and increment current test value
+    ldy     zero_page_compare_value   ; load and increment current test value
     iny
     beq     zeropagesuccess
-    sty     $E800
+    sty     zero_page_compare_value
     tya
     jmp     zeropagewrite
 
 zeropagemismatch:
-    sta     $E802
+    sta     zero_page_mismatch_value
     jmp     done
 
 zeropagesuccess:
@@ -46,37 +56,37 @@ zeropagesuccess:
 ; now do ram check
     
     lda     #$00
-    sta     $00FB   ; low byte of ram address
-    sta     $E803   ; store current test byte, starting at 0
+    sta     read_address_low_byte   ; low byte of ram address
+    sta     ram_test_compare_value   ; store current test byte, starting at 0
 
     lda     #$01
-    sta     $00FC   ; store address for start of ram check
-    sta     $E802   ; store copy of ram address
+    sta     read_address_high_byte   ; store address for start of ram check
+    sta     ram_test_address_page   ; store copy of ram address
 
     ldy     #$00    ; load offset into y
     tya
 
 ; check each block of 256 bytes
 ramwrite:
-    sta     ($FB),y ; write byte to RAM
+    sta     (read_address_low_byte),y ; write byte to RAM
     iny
     bne     ramwrite
 
 ; read back the ram
 
 ramread:
-    sty     $E804   ; store the current address offset
-    lda     ($FB),y ; read byte from RAM
-    cmp     $E803   ; compare with test byte
+    sty     ram_test_address   ; store the current address offset
+    lda     (read_address_low_byte),y ; read byte from RAM
+    cmp     ram_test_compare_value   ; compare with test byte
     bne     rammismatch
     iny
     bne     ramread
 
 ramincrement:
 ; increment test value
-    lda     $E803   ; load test byte
+    lda     ram_test_compare_value   ; load test byte
     eor     #$FF    ; flip all bits
-    sta     $E803   ; save new test byte
+    sta     ram_test_compare_value   ; save new test byte
     beq     rampagesuccess  ; done if we have tested all bits
     jmp     ramwrite
 
@@ -84,49 +94,50 @@ rampagesuccess:
     ; current 256 byte page success
     ; increment address
 
-    ldx     $00FC
+    ldx     read_address_high_byte
     inx
     cpx     #$80
     beq     ramtestdone
-    stx     $00FC   ; write incremented address
-    stx     $E802   ; write copy of address
+    stx     read_address_high_byte   ; write incremented address
+    stx     ram_test_address_page   ; write copy of address
     jmp     ramwrite    ; test the next ram page
 
 rammismatch:
     ; record the value read
-    sta     $E805
+    sta     ram_test_mismatch_value
     lda     #$BB
-    sta     $E808
+    sta     ram_test_mismatch_indicator_address
     jmp     romtest
     
 ramtestdone:
     lda     #$CC
-    sta     $E808
+    sta     ram_test_complete_indicator_address
 
 romtest:
     lda     #$00    ; start of rom space
-    sta     $00FB
+    sta     read_address_low_byte
     lda     #$90
-    sta     $00FC
-    sta     $00FD
+    sta     read_address_high_byte
+    ;sta     $00FD
     ldy     #$00
 
 loop:
-    lda     ($FB),y  ; read byte from ROM
-    sta     ($FB),y  ; write byte back to ROM
+    lda     (read_address_low_byte),y  ; read byte from ROM
+    sta     (read_address_low_byte),y  ; write byte back to ROM
     iny
     bne     loop
 
-    ldx     $00FC
+increment_rom_page:
+    ldx     read_address_high_byte
     inx
-    stx     $00FC
+    stx     read_address_high_byte
     cpx     #$FF
     beq     done
     jmp     loop
 
 done:
     lda     #$DD
-    sta     $E809
+    sta     done_indicator_address
 doneloop:
     nop
     jmp     doneloop    ; wait here
