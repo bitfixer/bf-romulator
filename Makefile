@@ -150,7 +150,7 @@ $(BIN_DIR)/test_pet: $(TOOLS_DIR)/test_pet.cpp
 
 $(BIN_DIR)/test_appleii: $(TOOLS_DIR)/test_appleii.cpp
 	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/test_pet -lwiringPi $(TOOLS_DIR)/test_appleii.cpp
+	g++ -o $(BIN_DIR)/test_appleii -lwiringPi $(TOOLS_DIR)/test_appleii.cpp
 
 .PHONY: reset
 reset: $(BIN_DIR)/programmer
