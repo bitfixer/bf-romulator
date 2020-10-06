@@ -61,6 +61,7 @@ zeropagemismatch:
     jmp     done
 
 zeropagesuccess:
+    sta     zero_page_mismatch_value
 
 ; now do ram check
     

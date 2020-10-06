@@ -50,7 +50,7 @@ int main(int argc, char** argv)
             now = millis();
         }
 
-        system("bin/console -r > out.bin");
+        system("bin/console -r > out.bin 2> /dev/null");
 
         // check the memory dump
         FILE* fp = fopen("out.bin", "rb");
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
     {
         printf("FAILED: Address %X expected %X, read %X\n", 
             memory[zero_page_address], memory[zero_page_compare_value], memory[zero_page_mismatch_value]);
-        printf("Zero page failed, exiting.\n");
+        printf("Zero page failed, exiting. You can switch off the PET now.\n");
         exit(1);
     }
 
@@ -93,8 +93,16 @@ int main(int argc, char** argv)
         uint16_t numbytes = ((uint16_t)last_good_address_page << 8) + (uint16_t)last_good_address;
 
         printf("%d (%X) bytes succeeded. Failed at byte %d (%X) expected %X, read %X\n", 
-            numbytes-1, numbytes-1, numbytes, numbytes, memory[ram_test_compare_value], memory[ram_test_mismatch_value]);
+            numbytes, numbytes-1, numbytes+1, numbytes, memory[ram_test_compare_value], memory[ram_test_mismatch_value]);
     }
+
+    printf("You can switch off the PET now.\n");
+    printf("Verify ROMs: Please enter the number of the ROM setting you would like to test.\n> ");
+    int rom_setting;
+    scanf("%d", &rom_setting);
+    char cmd[256];
+    sprintf(cmd, "bin/verify_map_setting -s %d -b out.bin", rom_setting);
+    system(cmd);
 
     printf("Done.\n");
 
