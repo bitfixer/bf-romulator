@@ -8,6 +8,6 @@ apt-get -y install imagemagick
 pip3 install -U apio==0.5.4
 sudo -u pi apio install -a
 sudo -u pi git clone https://github.com/bitfixer/bf-romulator.git
-cd bf-romulator; git submodule init; git submodule update
+cd bf-romulator; git submodule init; git submodule update; cd ..
 cd bf-romulator/cc65; make
 reboot
