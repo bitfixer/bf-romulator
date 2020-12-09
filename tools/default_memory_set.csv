@@ -32,7 +32,38 @@
 6,edit-4-40-n-50Hz.901498-01.bin,0xe000
 6,kernal-4.901465-22.bin,0xf000
 7,../bin/testrom.out,0xff00
-11,../bin/testrom_appleii.out,0xff00
+
+# ----- 8 AIM-65 FORTH B000-CFFF, Math ROM at D000
+8,4thz-25_ROM1.bin,0xb000
+8,4thz-26_ROM2.bin,0xc000
+8,4thz-25_MathPack.bin,0xd000
+8,R3223-11.BIN,0xe000
+8,R3222.BIN,0xf000
+
+# ----- 9 AIM-65 Pascal
+9,R32P2.bin,0x4000
+9,R32P3.bin,0x5000
+9,R32P4.bin,0x6000
+9,R32P5.bin,0x7000
+9,R32P6.bin,0xb000
+9,R3224.BIN,0xd000
+9,R3223-11.BIN,0xe000
+9,R3222.BIN,0xf000
+
+# ----- 10 AIM-65 PL/65
+10,pl65z25_ROM1.bin,0xb000
+10,pl65z26_ROM2.bin,0xc000
+10,R3224.BIN,0xd000
+10,R3223-11.BIN,0xe000
+10,R3222.BIN,0xf000
+
+# ----- 11 AIM-65 Basic
+11,R3225-11.BIN,0xb000
+11,R3226-11.BIN,0xc000
+11,R3224.BIN,0xd000
+11,R3223-11.BIN,0xe000
+11,R3222.BIN,0xf000
+
 12,D0_G10_v2.0.bin,0xd000
 12,D8_G8_v2.0_1331405.bin,0xd800
 12,E0_G7_v2.0_1331404.bin,0xe000

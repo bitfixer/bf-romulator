@@ -87,7 +87,20 @@ int main(int argc, char** argv)
     uint8_t* table = new uint8_t[num_entries];
     memset(table, 0, num_entries);
     
-    while (fgets(line, sizeof(line), fp)) {
+    while (fgets(line, sizeof(line), fp))
+    {
+        // skip empty lines
+        if (strlen(line) < 2)
+        {
+            continue;
+        }
+
+        if (line[0] == '#' ||
+            (line[1] == '/' && line[2] == '/'))
+        {
+            continue;
+        }
+
         //printf("%s", line);
 
         char* token = strtok(line, ",");

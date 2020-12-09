@@ -57,6 +57,18 @@ int main(int argc, char** argv)
 
     while (fgets(line, sizeof(line), fp)) 
     {
+        // skip empty lines
+        if (strlen(line) < 2)
+        {
+            continue;
+        }
+
+        if (line[0] == '#' ||
+            (line[1] == '/' && line[2] == '/'))
+        {
+            continue;
+        }
+
         char* token = strtok(line, ",");
         
         // first field is set index
