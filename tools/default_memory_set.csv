@@ -17,11 +17,14 @@
 3,basic-4-d000.901465-21.bin,0xd000
 3,edit-4-40-n-60Hz.901499-01.bin,0xe000
 3,kernal-4.901465-22.bin,0xf000
+
+# PET 4032
 4,basic-4-b000.901465-23.bin,0xb000
 4,basic-4-c000.901465-20.bin,0xc000
 4,basic-4-d000.901465-21.bin,0xd000
 4,edit-4-n.901447-29.bin,0xe000
 4,kernal-4.901465-22.bin,0xf000
+
 5,basic-2-c000.901465-01.bin,0xc000
 5,basic-2-d000.901465-02.bin,0xd000
 5,edit-2-n.901447-24.bin,0xe000
@@ -31,7 +34,16 @@
 6,basic-4-d000.901465-21.bin,0xd000
 6,edit-4-40-n-50Hz.901498-01.bin,0xe000
 6,kernal-4.901465-22.bin,0xf000
-7,../bin/testrom.out,0xff00
+
+# PET 4016
+7,basic-4-b000.901465-23.bin,0xb000
+7,basic-4-c000.901465-20.bin,0xc000
+7,basic-4-d000.901465-21.bin,0xd000
+7,edit-4-n.901447-29.bin,0xe000
+7,kernal-4.901465-22.bin,0xf000
+
+# rom tester
+# 7,../bin/testrom.out,0xff00
 
 # ----- 8 AIM-65 FORTH B000-CFFF, Math ROM at D000
 8,4thz-25_ROM1.bin,0xb000
@@ -82,4 +94,6 @@
 14,341-0014.bin,0xe800
 14,341-0015.bin,0xf000
 14,341-0020.bin,0xf800
+
+# ----- Readback Test
 15,../bin/random_test.bin,0x0000

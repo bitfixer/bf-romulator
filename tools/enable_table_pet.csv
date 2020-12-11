@@ -6,11 +6,17 @@
 0-14,0xF000,0xFFFF,"readonly"
 0,0xB000,0xBFFF,"passthrough"
 5,0xB000,0xBFFF,"passthrough"
-7,0x0000,0x8FFF,"passthrough"
-7,0x9000,0xE7FF,"writethrough"
-7,0xE800,0xEFFF,"readwrite"
-7,0xF000,0xFEFF,"writethrough"
-7,0xFF00,0xFFFF,"readonly"
+
+# only enable 16k ram for 4016
+7,0x0000,0x3FFF,"readwrite"
+7,0x4000,0x7FFF,"passthrough"
+
+# rom tester
+# 7,0x0000,0x8FFF,"passthrough"
+# 7,0x9000,0xE7FF,"writethrough"
+# 7,0xE800,0xEFFF,"readwrite"
+# 7,0xF000,0xFEFF,"writethrough"
+# 7,0xFF00,0xFFFF,"readonly"
 
 # ----- 8-11 AIM-65
 # AIM-65 RAM
@@ -39,4 +45,9 @@
 14,0x6000,0xBFFF,"readwrite"
 14,0xC000,0xCFFF,"passthrough"
 14,0xD000,0xFFFF,"readonly"
-15,0x0000,0xFFFF,"readonly"
+
+# setting 15, full passthrough
+15,0x0000,0xFFFF,"passthrough"
+
+# To run readback test, set 15 to readonly
+# 15,0x0000,0xFFFF,"readonly"
