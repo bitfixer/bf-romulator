@@ -24,6 +24,11 @@ MEMORY_SET := $(shell pwd)/$(TOOLS_DIR)/default_memory_set.csv
 ENABLE_TABLE := $(shell pwd)/$(TOOLS_DIR)/enable_table_pet.csv
 BIN_DIR := bin
 
+#pin definitions
+DBG := 27
+RST := 6
+CS := 10
+
 # Programmer
 
 $(BIN_DIR)/programmer: $(PROGRAMMER_DIR)/programmer.cc
@@ -106,17 +111,20 @@ program_old: $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer
 # set logic high on debug pin so romulator can start
 .PHONY: init
 init:
-	gpio mode 27 out
-	gpio write 27 1
+	gpio mode $(DBG) out
+	gpio write $(DBG) 1
+	gpio mode $(RST) out
+	gpio mode $(CS) out
 
 # enter debug mode
 # set the chip select line high to allow romulator to start
 # set the reset line to an input to prevent holding romulator in reset
 .PHONY: debug
 debug:
-	gpio mode 27 out
-	gpio write 27 1
-	gpio mode 6 in
+	gpio mode $(DBG) out
+	gpio write $(DBG) 1
+	gpio mode $(RST) in
+	gpio mode $(CS) in
 
 program: init reset $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi < $(BIN_DIR)/romulator.bin
