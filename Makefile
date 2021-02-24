@@ -19,7 +19,6 @@
 PROGRAMMER_DIR := programmer
 TOOLS_DIR := tools
 ROMULATOR_DIR := romulator
-WEBSERVER_DIR := webserver
 ROMS_DIR := roms
 MEMORY_SET := $(shell pwd)/$(TOOLS_DIR)/default_memory_set.csv
 ENABLE_TABLE := $(shell pwd)/$(TOOLS_DIR)/enable_table_pet.csv
@@ -48,8 +47,12 @@ $(BIN_DIR)/make_screen_image: $(PROGRAMMER_DIR)/make_screen_image.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/make_screen_image $(PROGRAMMER_DIR)/make_screen_image.cpp
 
-$(WEBSERVER_DIR)/webserver: $(WEBSERVER_DIR)/webserver.cpp $(BIN_DIR)/console $(BIN_DIR)/make_screen_image
-	g++ -o $(WEBSERVER_DIR)/webserver $(WEBSERVER_DIR)/webserver.cpp
+$(BIN_DIR)/webserver: $(BIN_DIR)/webserver.cpp $(BIN_DIR)/console $(BIN_DIR)/make_screen_image
+	g++ -o $(BIN_DIR)/webserver $(BIN_DIR)/webserver.cpp
+
+.PHONY: webserver
+webserver: $(BIN_DIR)/webserver
+	bin/webserver
 
 # Tools
 
