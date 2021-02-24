@@ -47,13 +47,6 @@ $(BIN_DIR)/make_screen_image: $(PROGRAMMER_DIR)/make_screen_image.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/make_screen_image $(PROGRAMMER_DIR)/make_screen_image.cpp
 
-$(BIN_DIR)/webserver: $(BIN_DIR)/webserver.cpp $(BIN_DIR)/console $(BIN_DIR)/make_screen_image
-	g++ -o $(BIN_DIR)/webserver $(BIN_DIR)/webserver.cpp
-
-.PHONY: webserver
-webserver: $(BIN_DIR)/webserver
-	bin/webserver
-
 # Tools
 
 $(BIN_DIR)/build_memory_map_set: $(TOOLS_DIR)/build_memory_map_set.cpp
@@ -80,6 +73,13 @@ fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 	mkdir -p $(ROMS_DIR)
 	#cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
 	cd $(ROMS_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
+
+$(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(BIN_DIR)/console $(BIN_DIR)/make_screen_image
+	g++ -o $(BIN_DIR)/webserver $(BIN_DIR)/webserver.cpp
+
+.PHONY: webserver
+webserver: $(BIN_DIR)/webserver
+	bin/webserver
 
 # FPGA
 
