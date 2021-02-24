@@ -48,9 +48,9 @@ $(BIN_DIR)/make_screen_image: $(PROGRAMMER_DIR)/make_screen_image.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/make_screen_image $(PROGRAMMER_DIR)/make_screen_image.cpp
 
-$(WEBSERVER_DIR)/webserver: $(WEBSERVER_DIR)/webserver.cpp $(BIN_DIR)/console $(BIN_DIR)/make_screen_image
+webserver: $(WEBSERVER_DIR)/webserver.cpp $(BIN_DIR)/console $(BIN_DIR)/make_screen_image
 	g++ -o $(WEBSERVER_DIR)/webserver $(WEBSERVER_DIR)/webserver.cpp
-	cd webserver; ./webserver
+	cd $(WEBSERVER_DIR); ./webserver
 
 # Tools
 
