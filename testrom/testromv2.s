@@ -4,6 +4,7 @@ test_address_start = $E800
 zero_page_compare_value                 =   test_address_start
 alternating_counter                     =   test_address_start + 1
 pass_count                              =   test_address_start + 2
+flag_position_count                     =   test_address_start + 3
 
 
 zero_page_address                       =   test_address_start + 1
@@ -41,34 +42,74 @@ start:
     ldx     #$00    ; load zero page address
     lda     #$FF    ; load flag value
     sta     zero_page_compare_value
+    ldy     #$03
+    sty     flag_position_count
+
+begintestiteration:
     ldy     #$01
     sty     pass_count
     sty     alternating_counter
-
-; first pass
-;zeropagewrite:
-;    sta     $00,X   ; fill zero page with accumulator value
-;    inx             ; increment counter
-;    bne     zeropagewrite   ; keep writing until zero page done
-
-;    ldy     #$03    ; set up counter for writing alternate values
-    ; invert value
-;    eor     zero_page_compare_value
-;    sta     zero_page_compare_value
 
 zeropagewrite:
     dey
     bne     zpcontinue  ; if not the right position, skip
     sta     $00,X   ; write the flag
     ldy     alternating_counter
+
 zpcontinue:
     inx
     bne     zeropagewrite
 
+    ldy     pass_count
+    beq     zeropagecomparestart
+    dey
+    sty     pass_count
+
+    ; set up the flag position
+    ldy     #$03
+    sty     alternating_counter
+    ldy     flag_position_count
+    eor     #$FF
+    jmp     zeropagewrite
+
+zeropagecomparestart:
+    lda     zero_page_compare_value     ; load the current value for comparison
+    ldy     flag_position_count
+
+zeropagecompare:
+    ; compare each value
+    dey
+    beq     checkflip
+    cmp     $00,X
+    bne     fault
+    jmp     nextzeropagecompare
+
+checkflip:
+    eor     #$FF
+    cmp     $00,X
+    bne     fault
+    eor     #$FF
+    ldy     flag_position_count
+
+nextzeropagecompare:
+    inx
+    bne     zeropagecompare
+
+shiftflagposition:
+    ldy     flag_position_count
+    dey
+    beq     done
+    sty     flag_position_count
+    jmp     begintestiteration
+
 done:
     lda     #done_marker
     sta     done_indicator_address
+
 doneloop:
     nop
     jmp     doneloop    ; wait here
 
+fault:
+    stx     ram_test_mismatch_indicator_address
+    jmp     done
