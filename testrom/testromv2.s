@@ -101,9 +101,22 @@ zeropagecompare:
     eor     #$FF                        ;flip the flag
     
 no_flip:
+    sta     temp_value
+    lda     page_counter
+    beq     zpcompare
+
+compare:
+    lda     temp_value
+    cmp     (read_address_low_byte),Y
+    bne     fault
+    jmp     donecompare
+
+zpcompare:
+    lda     temp_value
     cmp     $0000,Y
     bne     fault
-    
+
+donecompare:
     cpx     #$00
     bne     no_flip_2
     eor     #$FF
