@@ -25,7 +25,7 @@
 # 12  0011 - BASIC 4
 # 13  1011 - 
 # 14  0111 - 
-# 15  1111 - 
+# 15  1111 - PETTEST
 
 # BASIC 1
 0,rom-1-c000.901439-01.bin,0xc000
@@ -128,8 +128,5 @@
 14,edit-4-b.901474-02.bin,0xe000
 14,kernal-4.901465-22.bin,0xf000
 
-15,basic-4-b000.901465-23.bin,0xb000
-15,basic-4-c000.901465-20.bin,0xc000
-15,basic-4-d000.901465-21.bin,0xd000
-15,edit-4-b.901474-02.bin,0xe000
-15,kernal-4.901465-22.bin,0xf000
+# PETTEST
+15,PETTESTE2KV04.bin,0xe000

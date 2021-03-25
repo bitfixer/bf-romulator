@@ -152,13 +152,16 @@ console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt $(BIN_DIR)/crc32
 	xxd $(BIN_DIR)/console_readback.bin > $(BIN_DIR)/console_readback.txt
 	diff $(BIN_DIR)/console_readback.txt $(BIN_DIR)/random_test.txt
 
-$(BIN_DIR)/testrom_sim: $(BIN_DIR)/testrom.out $(TOOLS_DIR)/testrom_sim.c $(TOOLS_DIR)/fake6502.c
+$(BIN_DIR)/testrom_sim: $(BIN_DIR)/testromv2.out $(TOOLS_DIR)/testrom_sim.c $(TOOLS_DIR)/fake6502.c
 	mkdir -p $(BIN_DIR)
 	gcc -o $(BIN_DIR)/testrom_sim $(TOOLS_DIR)/testrom_sim.c $(TOOLS_DIR)/fake6502.c
 
 
 $(BIN_DIR)/testrom.out: testrom/testrom.s testrom/testrom.cfg
 	cd testrom; make testrom.out; cp testrom.out ../$(BIN_DIR)/testrom.out; rm testrom.out
+
+$(BIN_DIR)/testromv2.out: testrom/testromv2.s testrom/testromv2.cfg
+	cd testrom; make testromv2.out; cp testromv2.out ../$(BIN_DIR)/testromv2.out; rm testromv2.out
 
 $(BIN_DIR)/testrom_appleii.out: testrom/testrom_appleii.s testrom/testrom_appleii.cfg
 	cd testrom; make testrom_appleii.out; cp testrom_appleii.out ../$(BIN_DIR)/testrom_appleii.out; rm testrom_appleii.out

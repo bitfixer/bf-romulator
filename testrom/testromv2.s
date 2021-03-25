@@ -5,17 +5,12 @@ zero_page_compare_value                 =   test_address_start
 alternating_counter                     =   test_address_start + 1
 pass_count                              =   test_address_start + 2
 flag_position_count                     =   test_address_start + 3
+expected_value                          =   test_address_start + 4
+read_value                              =   test_address_start + 5
 
-
-zero_page_address                       =   test_address_start + 1
-zero_page_mismatch_value                =   test_address_start + 2
-ram_test_address                        =   test_address_start + 3
-ram_test_address_page                   =   test_address_start + 4
-ram_test_compare_value                  =   test_address_start + 5
-ram_test_mismatch_value                 =   test_address_start + 6
-
-ram_test_mismatch_indicator_address     =   test_address_start + 7
-ram_test_complete_indicator_address     =   test_address_start + 8
+page_counter                            =   test_address_start + 6
+byte_counter                            =   test_address_start + 7
+fault_indicator_address                 =   test_address_start + 8
 done_indicator_address                  =   test_address_start + 9
 test_address_end                        =   test_address_start + 9
 
@@ -25,7 +20,7 @@ read_address_low_byte                   =   $FB
 read_address_high_byte                  =   $FC
 
 ram_space_start                         =   $01
-ram_space_end                           =   $D0
+ram_space_end                           =   $80
 
 rom_space_start                         =   $90
 rom_space_end                           =   $FF
@@ -84,7 +79,6 @@ zeropagecomparestart:
 
 zeropagecompare:
     ; compare each value
-    sta     ram_test_mismatch_value
     dey
     beq     checkflip
     cmp     $00,X
@@ -125,6 +119,10 @@ doneloop:
     jmp     doneloop    ; wait here
 
 fault:
-    sty     ram_test_complete_indicator_address
-    stx     ram_test_mismatch_indicator_address
+    sta     expected_value
+    lda     $00,X
+    sta     read_value
+    lda     #ram_test_mismatch_marker
+    sta     fault_indicator_address
+    stx     byte_counter
     jmp     done
