@@ -36,85 +36,86 @@ done_marker                             =   $DD
 
 start:
     
-    ldx     #$00    ; load zero page address
-    stx     page_counter
+    ldy     #$00    ; load zero page address
+    sty     page_counter
     lda     #$FF    ; load flag value
     sta     zero_page_compare_value
 
 init_flag_position:
     ; initialize flag position
     ; iterate through 3 offsets
-    ldy     #$03
-    sty     flag_position_count
+    ldx     #$03
+    stx     flag_position_count
 
 begintestiteration:
-    ldy     #$01
-    sty     pass_count
-    sty     alternating_counter
+    ldx     #$01
+    stx     pass_count
+    stx     alternating_counter
 
 ; write one page of memory
 zeropagewrite:
-    dey
+    dex
     bne     zpcontinue  ; if not the right position, skip
 
     ; check what page we are on
     ; to determine addressing method
-    ldy     page_counter
+    ldx     page_counter
     bne     pagewriteflag
 
 zpwriteflag:
-    sta     $00,X   ; write the flag
+    sta     $0000,Y
     jmp     writeflagend
 
 pagewriteflag:
+    sta     (read_address_low_byte),Y
 
 writeflagend:
-    ldy     alternating_counter
+    ldx     alternating_counter
 
 zpcontinue:
-    inx
+    iny
     bne     zeropagewrite
 
-    ldy     pass_count
+    ldx     pass_count
     beq     zeropagecomparestart
-    dey
-    sty     pass_count
+    dex
+    stx     pass_count
 
     ; set up the flag position
-    ldy     #$03
-    sty     alternating_counter
-    ldy     flag_position_count
+    ldx     #$03
+    stx     alternating_counter
+    ldx     flag_position_count
     eor     #$FF
     jmp     zeropagewrite
 
 zeropagecomparestart:
     lda     zero_page_compare_value     ; load the current value for comparison
-    ldy     flag_position_count
+    ldx     flag_position_count
 
 zeropagecompare:
     ; compare each value
-    dey
+    dex                                 ; decrement alternating
     beq     checkflip
-    cmp     $00,X
+    cmp     $0000,Y
     bne     fault
     jmp     nextzeropagecompare
 
 checkflip:
     eor     #$FF
-    cmp     $00,X
+    cmp     $0000,Y
     bne     fault
     eor     #$FF
-    ldy     alternating_counter
+    ldx     alternating_counter
 
 nextzeropagecompare:
-    inx
+    iny
     bne     zeropagecompare
 
 shiftflagposition:
-    ldy     flag_position_count ; load current flag position
-    dey
+    ldx     flag_position_count ; load current flag position
+    dex
     beq     invert_flag
-    sty     flag_position_count
+    stx     flag_position_count
     jmp     begintestiteration
 
 invert_flag:
@@ -134,9 +135,9 @@ doneloop:
 
 fault:
     sta     expected_value
-    lda     $00,X
+    lda     $0000,Y
     sta     read_value
     lda     #ram_test_mismatch_marker
     sta     fault_indicator_address
-    stx     byte_counter
+    sty     byte_counter
     jmp     done
