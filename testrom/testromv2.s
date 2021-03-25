@@ -13,6 +13,7 @@ ram_test_address                        =   test_address_start + 3
 ram_test_address_page                   =   test_address_start + 4
 ram_test_compare_value                  =   test_address_start + 5
 ram_test_mismatch_value                 =   test_address_start + 6
+
 ram_test_mismatch_indicator_address     =   test_address_start + 7
 ram_test_complete_indicator_address     =   test_address_start + 8
 done_indicator_address                  =   test_address_start + 9
@@ -39,9 +40,14 @@ done_marker                             =   $DD
 ; standard RAM
 
 start:
+    
     ldx     #$00    ; load zero page address
     lda     #$FF    ; load flag value
     sta     zero_page_compare_value
+
+init_flag_position:
+    ; initialize flag position
+    ; iterate through 3 offsets
     ldy     #$03
     sty     flag_position_count
 
@@ -78,6 +84,7 @@ zeropagecomparestart:
 
 zeropagecompare:
     ; compare each value
+    sta     ram_test_mismatch_value
     dey
     beq     checkflip
     cmp     $00,X
@@ -89,18 +96,25 @@ checkflip:
     cmp     $00,X
     bne     fault
     eor     #$FF
-    ldy     flag_position_count
+    ldy     alternating_counter
 
 nextzeropagecompare:
     inx
     bne     zeropagecompare
 
 shiftflagposition:
-    ldy     flag_position_count
+    ldy     flag_position_count ; load current flag position
     dey
-    beq     done
+    beq     invert_flag
     sty     flag_position_count
     jmp     begintestiteration
+
+invert_flag:
+    lda     zero_page_compare_value
+    beq     done ; if flag value is 0, we are done
+    eor     #$FF
+    sta     zero_page_compare_value
+    jmp     init_flag_position
 
 done:
     lda     #done_marker
@@ -111,5 +125,6 @@ doneloop:
     jmp     doneloop    ; wait here
 
 fault:
+    sty     ram_test_complete_indicator_address
     stx     ram_test_mismatch_indicator_address
     jmp     done
