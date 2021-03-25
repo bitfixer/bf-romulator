@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     stuckHigh = 0;
     stuckLow = 0;
 
-    badAddress = 256;
+    badAddress = 0xFFFF;
     stuckLowOnAddress = 0x02;
 
     FILE* fp = fopen("bin/testromv2.out", "rb");

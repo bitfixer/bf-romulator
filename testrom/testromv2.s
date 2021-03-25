@@ -1,3 +1,18 @@
+; ROMULATOR_PET_RAMTEST v2
+; Tests full memory map using a memory test adapted from
+; Jim Butterfield's 1977 article:
+; http://archive.6502.org/publications/dr_dobbs_journal_selected_articles/high_speed_memory_test_for_6502.pdf
+; The basic method is:
+; 1. Value FF is stored in every location to be tested.
+; 2. Value 00 is stored in every third location, giving a pattern of FF FF 00 FF FF 00 ...
+; 3. Memory is checked for all values.
+; repeat 3 times, shifting the position of the 00 each time.
+; then repeat entire sequence, flipping FF and 00 values.
+; Do this process once per memory page (256 bytes)
+
+; this version uses ROMulator's memory mapped over the PET IO space
+; during the test to hold results.
+
 ; set up addresses to hold test results
 
 test_address_start = $E800
@@ -22,7 +37,7 @@ read_address_low_byte                   =   $FB
 read_address_high_byte                  =   $FC
 
 ram_space_start                         =   $01
-ram_space_end                           =   $01
+ram_space_end                           =   $80
 
 rom_space_start                         =   $90
 rom_space_end                           =   $FF
