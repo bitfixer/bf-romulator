@@ -3,6 +3,8 @@
 
 extern void reset6502();
 extern void step6502();
+
+extern uint32_t clockticks6502;
 uint8_t RAM[65536];
 uint16_t stuckHigh;
 uint16_t stuckLow;
@@ -41,8 +43,8 @@ int main(int argc, char** argv)
     stuckHigh = 0;
     stuckLow = 0;
 
-    badAddress = 123;
-    stuckLowOnAddress = 0x01;
+    badAddress = 256;
+    stuckLowOnAddress = 0x02;
 
     FILE* fp = fopen("bin/testromv2.out", "rb");
     fseek(fp, 0, SEEK_END);
@@ -65,7 +67,9 @@ int main(int argc, char** argv)
         instructions++;
     }
 
-    printf("done, %lld instructions\n", instructions);
+    printf("done, %lld instructions, %d ticks\n", instructions, clockticks6502);
+    float seconds = (float)clockticks6502 / 1000000.0;
+    printf("%f seconds @ 1MHz\n", seconds);
 
     uint8_t fault_indicator = RAM[0xE808];
     if (fault_indicator == 0xBB)
@@ -74,9 +78,12 @@ int main(int argc, char** argv)
         uint8_t fault_page = RAM[0xE806];
         uint8_t fault_byte = RAM[0xE807];
 
+        uint16_t fault_address = (uint16_t)fault_page * 256 + (uint16_t)fault_byte;
+
         uint8_t expected_value = RAM[0xE804];
         uint8_t read_value = RAM[0xE805];
-        printf("address %X %X (%d %d) exp %X read %X\n", fault_page, fault_byte, fault_page, fault_byte, expected_value, read_value);
+        printf("address bytes %X %X (%d %d), addr %d, exp %X read %X\n", 
+            fault_page, fault_byte, fault_page, fault_byte, fault_address, expected_value, read_value);
     }
 
 

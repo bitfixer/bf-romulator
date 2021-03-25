@@ -22,7 +22,7 @@ read_address_low_byte                   =   $FB
 read_address_high_byte                  =   $FC
 
 ram_space_start                         =   $01
-ram_space_end                           =   $80
+ram_space_end                           =   $01
 
 rom_space_start                         =   $90
 rom_space_end                           =   $FF
@@ -38,8 +38,10 @@ done_marker                             =   $DD
 
 start:
     
-    ldy     #$00    ; load zero page address
+    ldy     #$00    ; load index
     sty     page_counter
+
+startpage:
     lda     #$FF    ; load flag value
     sta     zero_page_compare_value
 
@@ -138,10 +140,20 @@ shiftflagposition:
 
 invert_flag:
     lda     zero_page_compare_value
-    beq     done ; if flag value is 0, we are done
+    beq     done_page ; if flag value is 0, we are done
     eor     #$FF
     sta     zero_page_compare_value
     jmp     init_flag_position
+
+done_page:
+    ldx     page_counter
+    cpx     #ram_space_end
+    beq     done                ; done testing ram
+    inx     ; increment page
+    stx     page_counter
+    stx     read_address_high_byte
+    jmp     startpage
+
 
 done:
     lda     #done_marker
@@ -153,7 +165,14 @@ doneloop:
 
 fault:
     sta     expected_value
+    lda     page_counter
+    beq     zpfault
+pagefault:
+    lda     (read_address_low_byte),Y
+    jmp     showfault
+zpfault:
     lda     $0000,Y
+showfault:
     sta     read_value
     lda     #ram_test_mismatch_marker
     sta     fault_indicator_address
