@@ -6,6 +6,8 @@ alternating_counter                     =   test_address_start + 1
 pass_count                              =   test_address_start + 2
 flag_position_count                     =   test_address_start + 3
 expected_value                          =   test_address_start + 4
+temp_value                              =   test_address_start + 4
+
 read_value                              =   test_address_start + 5
 
 page_counter                            =   test_address_start + 6
@@ -95,17 +97,20 @@ zeropagecomparestart:
 zeropagecompare:
     ; compare each value
     dex                                 ; decrement alternating
-    beq     checkflip
+    bne     no_flip
+    eor     #$FF                        ;flip the flag
+    
+no_flip:
     cmp     $0000,Y
     bne     fault
-    jmp     nextzeropagecompare
-
-checkflip:
-    eor     #$FF
-    cmp     $0000,Y
-    bne     fault
+    
+    cpx     #$00
+    bne     no_flip_2
     eor     #$FF
     ldx     alternating_counter
+
+no_flip_2:
+    jmp     nextzeropagecompare
 
 nextzeropagecompare:
     iny
