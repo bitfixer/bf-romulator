@@ -37,6 +37,7 @@ done_marker                             =   $DD
 start:
     
     ldx     #$00    ; load zero page address
+    stx     page_counter
     lda     #$FF    ; load flag value
     sta     zero_page_compare_value
 
@@ -51,10 +52,23 @@ begintestiteration:
     sty     pass_count
     sty     alternating_counter
 
+; write one page of memory
 zeropagewrite:
     dey
     bne     zpcontinue  ; if not the right position, skip
+
+    ; check what page we are on
+    ; to determine addressing method
+    ldy     page_counter
+    bne     pagewriteflag
+
+zpwriteflag:
     sta     $00,X   ; write the flag
+    jmp     writeflagend
+
+pagewriteflag:
+
+writeflagend:
     ldy     alternating_counter
 
 zpcontinue:
