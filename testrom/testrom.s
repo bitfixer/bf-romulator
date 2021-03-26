@@ -17,7 +17,7 @@ read_address_low_byte                   =   $FB
 read_address_high_byte                  =   $FC
 
 ram_space_start                         =   $01
-ram_space_end                           =   $D0
+ram_space_end                           =   $02
 
 rom_space_start                         =   $90
 rom_space_end                           =   $FF
@@ -62,6 +62,8 @@ zeropagemismatch:
 
 zeropagesuccess:
     sta     zero_page_mismatch_value
+
+    jmp     done
 
 ; now do ram check
     

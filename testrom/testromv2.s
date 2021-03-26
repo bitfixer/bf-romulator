@@ -16,32 +16,27 @@
 ; set up addresses to hold test results
 
 ;test_address_start = $E800
+;test_address_start = $8100
 test_address_start = $8100
 zero_page_compare_value                 =   test_address_start
 alternating_counter                     =   test_address_start + 1
 pass_count                              =   test_address_start + 2
 flag_position_count                     =   test_address_start + 3
 expected_value                          =   test_address_start + 4
-temp_value                              =   test_address_start + 4
-
 read_value                              =   test_address_start + 5
-
 page_counter                            =   test_address_start + 6
 byte_counter                            =   test_address_start + 7
 fault_indicator_address                 =   test_address_start + 8
 done_indicator_address                  =   test_address_start + 9
-test_address_end                        =   test_address_start + 9
-
-test_address_count                      =   test_address_end - test_address_start + 1
+temp_value                              =   test_address_start + 10
+temp_value_2                            =   test_address_start + 11
+text_table_start                        =   test_address_start + 12
 
 read_address_low_byte                   =   $FB
 read_address_high_byte                  =   $FC
 
 ram_space_start                         =   $01
-ram_space_end                           =   $80
-
-;rom_space_start                         =   $90
-;rom_space_end                           =   $FF
+ram_space_end                           =   $7F
 
 ram_test_mismatch_marker                =   $BB
 ram_test_complete_marker                =   $CC
@@ -52,12 +47,31 @@ done_marker                             =   $DD
 ; check from 0x0000 to 0x8000
 ; standard RAM
 
+createtexttable:
+    ldy     #0
+    lda     #$30    ; '0' character
+
+storedigit:
+    sta     text_table_start,Y
+    tax
+    inx
+    txa
+    iny
+    cpy     #10
+    beq     hexdigit
+    cpy     #16
+    beq     start
+    jmp     storedigit
+
+hexdigit:
+    lda     #$41
+    jmp     storedigit
+
 start:
-    
     ldy     #$00    ; load index
     sty     page_counter
 
-;clear_video_ram_page:
+clear_video_ram_page:
     lda     #$20
 video_loop:
     sta     $8000,Y
@@ -169,6 +183,11 @@ invert_flag:
     jmp     init_flag_position
 
 done_page:
+    lda     page_counter
+    cmp     #$02
+    bcs     display_page
+    
+ready_next_page:
     ldx     page_counter
     cpx     #ram_space_end
     beq     done                ; done testing ram
@@ -177,10 +196,19 @@ done_page:
     stx     read_address_high_byte
     jmp     startpage
 
+; printhex
+; store value in A
+; store offset in Y
+display_page:
+    ldy     #$00
+    jsr     printhex
+    ldy     #$00
+    jmp     ready_next_page
 
 done:
     lda     #done_marker
     sta     done_indicator_address
+    sta     $8010
 
 doneloop:
     nop
@@ -196,8 +224,38 @@ pagefault:
 zpfault:
     lda     $0000,Y
 showfault:
+    sty     temp_value_2
+    ldy     #4
+    jsr     printhex
+
     sta     read_value
     lda     #ram_test_mismatch_marker
     sta     fault_indicator_address
+
+    ldy     temp_value_2
     sty     byte_counter
+
+    tya
+    ldy     #8
+    jsr     printhex
     jmp     done
+
+printhex:
+    sty     temp_value
+    tax
+    lsr
+    lsr
+    lsr
+    lsr
+    tay
+    lda     text_table_start,Y
+    ldy     temp_value
+    sta     $8000,Y
+    inc     temp_value
+    txa
+    and     #$0F
+    tay
+    lda     text_table_start,Y
+    ldy     temp_value
+    sta     $8000,Y
+    rts

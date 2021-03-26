@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 
     stuckHigh = 0;
     stuckLow = 0;
-    uint16_t test_start_address = 0x8100;
+    uint16_t test_start_address = 0x7100;
 
     badAddress = 30000;
     stuckLowOnAddress = 0x08;
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     size_t sz = ftell(fp);
     printf("size: %d\n", sz);
     fseek(fp, 0, SEEK_SET);
-    fread(&RAM[0xFF00], 1, sz, fp);
+    fread(&RAM[0xFE00], 1, sz, fp);
     fclose(fp);
 
     fp = fopen("bin/testrom_4k.bin", "wb");

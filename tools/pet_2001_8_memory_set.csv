@@ -128,5 +128,5 @@
 14,edit-4-b.901474-02.bin,0xe000
 14,kernal-4.901465-22.bin,0xf000
 
-# PETTEST
-15,PETTESTE2KV04.bin,0xe000
+# RAM test
+15,../bin/testromv2.out,0xfe00
