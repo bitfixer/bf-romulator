@@ -15,7 +15,8 @@
 
 ; set up addresses to hold test results
 
-test_address_start = $E800
+;test_address_start = $E800
+test_address_start = $8100
 zero_page_compare_value                 =   test_address_start
 alternating_counter                     =   test_address_start + 1
 pass_count                              =   test_address_start + 2
@@ -39,8 +40,8 @@ read_address_high_byte                  =   $FC
 ram_space_start                         =   $01
 ram_space_end                           =   $80
 
-rom_space_start                         =   $90
-rom_space_end                           =   $FF
+;rom_space_start                         =   $90
+;rom_space_end                           =   $FF
 
 ram_test_mismatch_marker                =   $BB
 ram_test_complete_marker                =   $CC
@@ -55,6 +56,13 @@ start:
     
     ldy     #$00    ; load index
     sty     page_counter
+
+;clear_video_ram_page:
+    lda     #$20
+video_loop:
+    sta     $8000,Y
+    iny
+    bne     video_loop
 
 startpage:
     lda     #$FF    ; load flag value
