@@ -23,14 +23,22 @@ page_hex_high_position                  =   screen_memory
 page_hex_low_position                   =   screen_memory + 1
 
 test_address_start = $8100
+
+page_counter_offset     = 4
+byte_counter_offset     = 5
+expected_value_offset   = 6
+read_value_offset       = 7
+fault_offset_done       = 8
+
 zero_page_compare_value                 =   test_address_start
 alternating_counter                     =   test_address_start + 1
 pass_count                              =   test_address_start + 2
 flag_position_count                     =   test_address_start + 3
-expected_value                          =   test_address_start + 4
-read_value                              =   test_address_start + 5
-page_counter                            =   test_address_start + 6
-byte_counter                            =   test_address_start + 7
+page_counter                            =   test_address_start + page_counter_offset
+byte_counter                            =   test_address_start + byte_counter_offset
+expected_value                          =   test_address_start + expected_value_offset
+read_value                              =   test_address_start + read_value_offset
+
 fault_indicator_address                 =   test_address_start + 8
 done_indicator_address                  =   test_address_start + 9
 temp_value                              =   test_address_start + 10
@@ -210,6 +218,7 @@ doneloop:
 ; display the failed address 
 fault:
     sta     expected_value
+    sty     byte_counter
     lda     page_counter
     beq     zpfault
 pagefault:
@@ -218,20 +227,30 @@ pagefault:
 zpfault:
     lda     $0000,Y
 showfault:
-    sty     temp_value_2
-    ldy     #4
-    jsr     printhex
-
     sta     read_value
+    ldx     #page_counter_offset
+    ldy     #0
+display_fault_information:
+    lda     test_address_start,X
+    
+    stx     temp_value
+    sty     temp_value_2
+    jmp     printhex_nojsr
+printhex_nojsr_return:
+    ;jmp     display_fault_done
+    ldx     temp_value
+    inx
+    cpx     #fault_offset_done
+    bcs     display_fault_done
+    ; prepare next value to display
+    lda     temp_value_2
+    adc     #4
+    tay
+    jmp     display_fault_information
+
+display_fault_done:
     lda     #ram_test_mismatch_marker
     sta     fault_indicator_address
-
-    ldy     temp_value_2
-    sty     byte_counter
-
-    tya
-    ldy     #8
-    jsr     printhex
     jmp     done
 
 ; printhex
@@ -263,3 +282,33 @@ convert_to_hex_text:
 get_letter:
     adc     #$36
     rts
+
+printhex_nojsr:
+    tax
+    lsr
+    lsr
+    lsr
+    lsr
+
+    cmp     #$0A
+    bcs     get_letter_nojsr
+    adc     #$30
+    jmp     high_hex
+get_letter_nojsr:
+    adc     #$36
+high_hex:
+    sta     screen_memory,Y
+    iny
+    txa
+    and     #$0F
+    
+    cmp     #$0A
+    bcs     get_letter_nojsr2
+    adc     #$30
+    jmp     low_hex
+get_letter_nojsr2:
+    adc     #$36
+
+low_hex:
+    sta     screen_memory,Y
+    jmp     printhex_nojsr_return
