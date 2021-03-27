@@ -190,6 +190,7 @@ done_page:
 ready_next_page:
     ldx     page_counter
     cpx     #ram_space_end
+
     beq     done                ; done testing ram
     inx     ; increment page
     stx     page_counter
