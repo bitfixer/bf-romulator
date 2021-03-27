@@ -17,6 +17,11 @@
 
 ;test_address_start = $E800
 ;test_address_start = $8100
+
+screen_memory = $8000
+page_hex_high_position                  =   screen_memory
+page_hex_low_position                   =   screen_memory + 1
+
 test_address_start = $8100
 zero_page_compare_value                 =   test_address_start
 alternating_counter                     =   test_address_start + 1
@@ -46,26 +51,6 @@ done_marker                             =   $DD
 
 ; check from 0x0000 to 0x8000
 ; standard RAM
-
-createtexttable:
-    ldy     #0
-    lda     #$30    ; '0' character
-
-storedigit:
-    sta     text_table_start,Y
-    tax
-    inx
-    txa
-    iny
-    cpy     #10
-    beq     hexdigit
-    cpy     #16
-    beq     start
-    jmp     storedigit
-
-hexdigit:
-    lda     #$41
-    jmp     storedigit
 
 start:
     ldy     #$00    ; load index
@@ -186,6 +171,13 @@ done_page:
     lda     page_counter
     cmp     #$02
     bcs     display_page
+    ; first two pages have not been tested yet
+    ; can't use jsr yet, since we don't know if the stack is functional.
+    ; just display the digit
+    ldx     #$30    ; '0' digit
+    stx     page_hex_high_position
+    adc     #$30    ; add the offset of '0' digit
+    sta     page_hex_low_position
     
 ready_next_page:
     ldx     page_counter
@@ -214,6 +206,8 @@ doneloop:
     nop
     jmp     doneloop    ; wait here
 
+; memory test failed
+; display the failed address 
 fault:
     sta     expected_value
     lda     page_counter
@@ -240,22 +234,32 @@ showfault:
     jsr     printhex
     jmp     done
 
+; printhex
+; display a single hex character
+; value is in A
+; screen offset in Y
 printhex:
-    sty     temp_value
     tax
     lsr
     lsr
     lsr
     lsr
-    tay
-    lda     text_table_start,Y
-    ldy     temp_value
-    sta     $8000,Y
-    inc     temp_value
+
+    jsr     convert_to_hex_text
+    sta     screen_memory,Y
+    iny
     txa
     and     #$0F
-    tay
-    lda     text_table_start,Y
-    ldy     temp_value
-    sta     $8000,Y
+    
+    jsr     convert_to_hex_text
+    sta     screen_memory,Y
+    rts
+
+convert_to_hex_text:
+    cmp     #$0A
+    bcs     get_letter
+    adc     #$30
+    rts
+get_letter:
+    adc     #$36
     rts
