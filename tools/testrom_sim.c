@@ -24,6 +24,8 @@ uint8_t read6502(uint16_t address)
     {
         return RAM[address] & ~stuckLowOnAddress;
     }
+
+    //printf("READ %X (%d) -> %X (%d)\n", address, address, RAM[address], RAM[address]);
     return RAM[address];
 }
 
@@ -34,6 +36,7 @@ void write6502(uint16_t address, uint8_t value)
         address = address | stuckHigh;
     }
 
+    //printf("WRITE %D (%d) <- %X (%d)\n", address, address, value, value);
     RAM[address] = value;
 }
 
@@ -43,23 +46,19 @@ int main(int argc, char** argv)
 
     stuckHigh = 0;
     stuckLow = 0;
-    uint16_t test_start_address = 0x7100;
+    uint16_t test_start_address = 0x8100;
 
-    badAddress = 30000;
-    stuckLowOnAddress = 0x08;
+    badAddress = 0xFFFF;
+    stuckLowOnAddress = 0x01;
 
     memset(RAM, 0, 65536);
 
-    FILE* fp = fopen("bin/testromv2.out", "rb");
+    FILE* fp = fopen(argv[1], "rb");
     fseek(fp, 0, SEEK_END);
     size_t sz = ftell(fp);
     printf("size: %d\n", sz);
     fseek(fp, 0, SEEK_SET);
-    fread(&RAM[0xFE00], 1, sz, fp);
-    fclose(fp);
-
-    fp = fopen("bin/testrom_4k.bin", "wb");
-    fwrite(&RAM[0xF000], 1, 4096, fp);
+    fread(&RAM[0xF000], 1, sz, fp);
     fclose(fp);
 
     printf("run program:\n");
@@ -69,7 +68,8 @@ int main(int argc, char** argv)
 
     // simulate address line or byte fault
 
-    while (RAM[test_start_address + 0x09] != 0xDD)
+    //while (RAM[test_start_address + 0x09] != 0xDD)
+    while (RAM[test_start_address + 9] != 0xDD)
     {
         step6502();
         instructions++;
@@ -83,13 +83,13 @@ int main(int argc, char** argv)
     if (fault_indicator == 0xBB)
     {
         printf("fault detected\n");
-        uint8_t fault_page = RAM[test_start_address + 0x06];
-        uint8_t fault_byte = RAM[test_start_address + 0x07];
+        uint8_t fault_page = RAM[test_start_address + 0x04];
+        uint8_t fault_byte = RAM[test_start_address + 0x05];
 
         uint16_t fault_address = (uint16_t)fault_page * 256 + (uint16_t)fault_byte;
 
-        uint8_t expected_value = RAM[test_start_address + 0x04];
-        uint8_t read_value = RAM[test_start_address + 0x05];
+        uint8_t expected_value = RAM[test_start_address + 0x06];
+        uint8_t read_value = RAM[test_start_address + 0x07];
         printf("address bytes %X %X (%d %d), addr %d, exp %X read %X\n", 
             fault_page, fault_byte, fault_page, fault_byte, fault_address, expected_value, read_value);
     }

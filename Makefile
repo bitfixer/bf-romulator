@@ -152,7 +152,7 @@ console_test: $(BIN_DIR)/console $(BIN_DIR)/random_test.txt $(BIN_DIR)/crc32
 	xxd $(BIN_DIR)/console_readback.bin > $(BIN_DIR)/console_readback.txt
 	diff $(BIN_DIR)/console_readback.txt $(BIN_DIR)/random_test.txt
 
-$(BIN_DIR)/testrom_sim: $(BIN_DIR)/testromv2.out $(TOOLS_DIR)/testrom_sim.c $(TOOLS_DIR)/fake6502.c
+$(BIN_DIR)/testrom_sim: $(TOOLS_DIR)/testrom_sim.c $(TOOLS_DIR)/fake6502.c
 	mkdir -p $(BIN_DIR)
 	gcc -o $(BIN_DIR)/testrom_sim $(TOOLS_DIR)/testrom_sim.c $(TOOLS_DIR)/fake6502.c
 
