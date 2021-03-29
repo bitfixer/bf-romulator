@@ -116,17 +116,10 @@
 12,edit-4-b.901474-02.bin,0xe000
 12,kernal-4.901465-22.bin,0xf000
 
-13,basic-4-b000.901465-23.bin,0xb000
-13,basic-4-c000.901465-20.bin,0xc000
-13,basic-4-d000.901465-21.bin,0xd000
-13,edit-4-b.901474-02.bin,0xe000
+13,PETTESTE2KV04.bin,0xe000
 13,kernal-4.901465-22.bin,0xf000
 
-14,basic-4-b000.901465-23.bin,0xb000
-14,basic-4-c000.901465-20.bin,0xc000
-14,basic-4-d000.901465-21.bin,0xd000
-14,edit-4-b.901474-02.bin,0xe000
-14,kernal-4.901465-22.bin,0xf000
+14,../bin/testromv2.out,0xf000
 
 # RAM test
-15,../bin/testromv2.out,0xfe00
+15,../bin/ramtest.bin,0xf000

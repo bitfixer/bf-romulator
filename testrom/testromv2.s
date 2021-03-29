@@ -22,7 +22,7 @@ screen_memory = $8000
 page_hex_high_position                  =   screen_memory
 page_hex_low_position                   =   screen_memory + 1
 
-test_address_start = $8100
+test_address_start = $9000
 
 page_counter_offset     = 4
 byte_counter_offset     = 5
@@ -50,6 +50,9 @@ read_address_high_byte                  =   $FC
 
 ram_space_start                         =   $01
 ram_space_end                           =   $7F
+
+rom_space_start                         =   $90
+rom_space_end                           =   $FF
 
 ram_test_mismatch_marker                =   $BB
 ram_test_complete_marker                =   $CC

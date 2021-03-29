@@ -83,7 +83,7 @@ webserver: $(BIN_DIR)/webserver
 
 # FPGA
 
-$(BIN_DIR)/memorymap.bin: $(MEMORY_SET) $(BIN_DIR)/build_memory_map_set $(BIN_DIR)/random_test.bin $(BIN_DIR)/testrom.out $(BIN_DIR)/testrom_appleii.out
+$(BIN_DIR)/memorymap.bin: $(MEMORY_SET) $(BIN_DIR)/build_memory_map_set $(BIN_DIR)/random_test.bin $(BIN_DIR)/testrom.out $(BIN_DIR)/testrom_appleii.out $(BIN_DIR)/testromv2.out $(BIN_DIR)/ramtest.bin
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/build_memory_map_set -d $(ROMS_DIR)/ < $(MEMORY_SET) > $(BIN_DIR)/memorymap.bin
 
@@ -165,6 +165,9 @@ $(BIN_DIR)/testromv2.out: testrom/testromv2.s testrom/testromv2.cfg
 
 $(BIN_DIR)/testrom_appleii.out: testrom/testrom_appleii.s testrom/testrom_appleii.cfg
 	cd testrom; make testrom_appleii.out; cp testrom_appleii.out ../$(BIN_DIR)/testrom_appleii.out; rm testrom_appleii.out
+
+$(BIN_DIR)/ramtest.bin: testrom/ramtest.c testrom/preinit.s testrom/ramtest.cfg
+	cd testrom; make ramtest.bin; cp ramtest.bin ../$(BIN_DIR)/ramtest.bin; rm ramtest.bin
 
 $(BIN_DIR)/test_pet: $(TOOLS_DIR)/test_pet.cpp
 	mkdir -p $(BIN_DIR)

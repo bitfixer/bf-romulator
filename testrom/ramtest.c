@@ -184,7 +184,7 @@ void main()
     testPrintf(textptr, "ROM READ");
     textptr += 40;
 
-    for (test_address = (unsigned char*)0x9000; test_address < (unsigned char*)0xF000; test_address += 0x0100)
+    for (test_address = (unsigned char*)0x9000; test_address < (unsigned char*)0xE800; test_address += 0x0100)
     {
         testPrintf(textptr, "%04X", test_address);
         read_rom_page(test_address);
