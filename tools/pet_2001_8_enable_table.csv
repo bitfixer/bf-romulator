@@ -22,10 +22,10 @@
 # 9   1001 - 
 # 10  0101 - 
 # 11  1101 - 
-# 12  0011 - BASIC 4
-# 13  1011 - 
-# 14  0111 - 
-# 15  1111 - PETTEST
+# 12  0011 - NOP generator
+# 13  1011 - PETTEST
+# 14  0111 - Low RAM test
+# 15  1111 - VRAM/RAM/ROM test
 
 # RAM off, ROM off
 0,0x0000,0x7FFF,"passthrough"
@@ -105,10 +105,8 @@
 11,0xE800,0xEFFF,"passthrough"
 11,0xF000,0xFFFF,"readonly"
 
-# RAM off, ROM off
-12,0x0000,0x7FFF,"passthrough"
-12,0x8000,0x8FFF,"writethrough"
-12,0x9000,0xFFFF,"passthrough"
+# NOP generator
+12,0x0000,0xFFFF,"readonly"
 
 # PETTEST
 13,0x0000,0x7FFF,"readwrite"

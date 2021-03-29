@@ -22,10 +22,10 @@
 # 9   1001 - 
 # 10  0101 - 
 # 11  1101 - 
-# 12  0011 - BASIC 4
-# 13  1011 - 
-# 14  0111 - 
-# 15  1111 - PETTEST
+# 12  0011 - NOP generator
+# 13  1011 - PETTEST
+# 14  0111 - Low RAM test
+# 15  1111 - VRAM/RAM/ROM test
 
 # BASIC 1
 0,rom-1-c000.901439-01.bin,0xc000
@@ -110,11 +110,7 @@
 # 4 free spaces, include something here
 # repeat basic 4 for now
 
-12,basic-4-b000.901465-23.bin,0xb000
-12,basic-4-c000.901465-20.bin,0xc000
-12,basic-4-d000.901465-21.bin,0xd000
-12,edit-4-b.901474-02.bin,0xe000
-12,kernal-4.901465-22.bin,0xf000
+12,../bin/nop.bin,0x0000
 
 13,PETTESTE2KV04.bin,0xe000
 13,kernal-4.901465-22.bin,0xf000
