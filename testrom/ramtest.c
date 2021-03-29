@@ -2,13 +2,16 @@
 #include <string.h>
 #include <stdint.h>
 
-unsigned char test_page(unsigned char* page_address, unsigned char* page_byte)
+unsigned char test_page(
+    unsigned char* page_address, 
+    unsigned char* page_byte, 
+    unsigned char* expected_byte, 
+    unsigned char* read_byte)
 {
     unsigned char flag_value;
     unsigned char inv_flag_value;
     unsigned char start_position;
     unsigned char interval;
-    unsigned char done;
     unsigned char pagedone;
     unsigned char byte;
 
@@ -23,8 +26,7 @@ unsigned char test_page(unsigned char* page_address, unsigned char* page_byte)
         // then write every third byte
         interval = start_position;
         byte = 0;
-        done = 0;
-        while (done == 0)
+        while(1)
         {
             interval--;
             if (interval == 0)
@@ -35,15 +37,14 @@ unsigned char test_page(unsigned char* page_address, unsigned char* page_byte)
 
             if (++byte == 0)
             {
-                done = 1;
+                break;
             }
         }
 
         // now compare the page
         interval = start_position;
         byte = 0;
-        done = 0;
-        while (done == 0)
+        while(1)
         {
             interval--;
             if (interval == 0)
@@ -51,6 +52,8 @@ unsigned char test_page(unsigned char* page_address, unsigned char* page_byte)
                 if (page_address[byte] != inv_flag_value)
                 {
                     *page_byte = byte;
+                    *expected_byte = inv_flag_value;
+                    *read_byte = page_address[byte];
                     return 0;
                 }
                 interval = 3;
@@ -60,13 +63,15 @@ unsigned char test_page(unsigned char* page_address, unsigned char* page_byte)
                 if (page_address[byte] != flag_value)
                 {
                     *page_byte = byte;
+                    *expected_byte = flag_value;
+                    *read_byte = page_address[byte];
                     return 0;
                 }
             }
 
             if (++byte == 0)
             {
-                done = 1;
+                break;
             }
         }
 
@@ -91,32 +96,102 @@ unsigned char test_page(unsigned char* page_address, unsigned char* page_byte)
 
 }
 
+void read_rom_page(unsigned char* address)
+{
+    unsigned char* read_addr = address;
+    unsigned char byte;
+    unsigned char index = 0;
+    while (1)
+    {
+        byte = *read_addr;
+        *read_addr = byte;
+        read_addr++;
+        index++;
+        if (index == 0)
+        {
+            break;
+        }
+    }
+}
+
+void testPrintf(char* textptr, const char* format, ...)
+{
+    static char buffer[16];
+    va_list arg;
+    va_start(arg, format);
+    vsprintf(buffer, format, arg);
+
+    // copy memory to screen
+    memcpy(textptr, buffer, strlen(buffer));
+}
+
 void main()
 {
     unsigned char* screen = (unsigned char*)0x8000;
-    unsigned char* tmp = (unsigned char*)0xFA;
+    unsigned char* tmp = (unsigned char*)0x7FFF;
     unsigned char* start_address = (unsigned char*)0x0200;
-    unsigned char* end_address = (unsigned char*)0x0F00;
+    unsigned char* end_address = (unsigned char*)0x6000;
     unsigned char* test_address;
     unsigned char* textptr;
     unsigned char page_byte;
+    unsigned char expected_byte;
+    unsigned char read_byte;
 
+    // video ram test
+    textptr = screen;
+
+    for (test_address = (unsigned char*)0x8000; test_address < (unsigned char*)0x9000; test_address += 0x0100)
+    {
+        if (test_page(test_address, &page_byte, &expected_byte, &read_byte) == 0)
+        {
+            test_address += page_byte;
+            break;
+        }
+    }
+
+    // video ram test done
     // clear screen
     memset(screen, 0x20, 1024);
-    textptr = screen;
-    sprintf(textptr, "RAM TEST");
+    if (test_address == (unsigned char*)0x9000)
+    {
+        testPrintf(textptr, "VRAM OK");
+    }
+    else
+    {
+        testPrintf(textptr, "VRAM %04X", test_address);
+        textptr += 40;
+        testPrintf(textptr, "EX %02X RE %02X", expected_byte, read_byte);
+    }
+    textptr += 40;
+
+    testPrintf(textptr, "RAM TEST");
     textptr += 40;
 
     for (test_address = start_address; test_address < end_address; test_address += 0x0100)
     {
-        sprintf(textptr, "%04X", test_address);
-        if (test_page(test_address, &page_byte) == 0)
+        testPrintf(textptr, "%04X", test_address);
+        if (test_page(test_address, &page_byte, &expected_byte, &read_byte) == 0)
         {
             test_address += page_byte;
-            sprintf(textptr, "%04X FAULT", test_address);
+            testPrintf(textptr, "%04X FAULT", test_address);
+            textptr += 40;
+            testPrintf(textptr, "EX %02X RE %02X", expected_byte, read_byte);
             break;
         }
     }
+
+    textptr += 40;
+    testPrintf(textptr, "ROM READ");
+    textptr += 40;
+
+    for (test_address = (unsigned char*)0x9000; test_address < (unsigned char*)0xF000; test_address += 0x0100)
+    {
+        testPrintf(textptr, "%04X", test_address);
+        read_rom_page(test_address);
+    }
+
+    textptr += 40;
+    testPrintf(textptr, "DONE");
 
     *tmp = 0xDD;
     while (1) {}

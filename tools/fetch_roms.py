@@ -24,5 +24,6 @@ baseurl = sys.argv[2]
 with open(csvfile, 'rb') as csvfile:
     romreader = csv.reader(csvfile)
     for row in romreader:
-        cmd = "wget -nc " + baseurl + row[1]
-        os.system(cmd)
+        if len(row) >= 3:
+            cmd = "wget -nc " + baseurl + row[1]
+            os.system(cmd)
