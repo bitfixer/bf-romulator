@@ -117,7 +117,7 @@ void read_rom_page(unsigned char* address, uint16_t* checksum)
         checksum_val += (uint16_t)byte << 8;
         read_addr++;
         index++;
-        
+
         *checksum += checksum_val;
 
         if (index == 0)
@@ -206,12 +206,12 @@ void main()
         //testPrintf(textptr, "%04X", test_address);
         read_rom_page(test_address, &checksum);
         read_byte++;
-        if (read_byte == 16)
+        if (read_byte == 8)
         {
             read_byte = 0;
             testPrintf(textptr, "%02X %04X", page_byte, checksum);
             checksum = 0;
-            page_byte += 0x10;
+            page_byte += 8;
             textptr += 40;
         }
     }
