@@ -96,17 +96,30 @@ unsigned char test_page(
 
 }
 
-void read_rom_page(unsigned char* address)
+void read_rom_page(unsigned char* address, uint16_t* checksum)
 {
     unsigned char* read_addr = address;
     unsigned char byte;
     unsigned char index = 0;
+    uint16_t checksum_val = 0;
     while (1)
     {
         byte = *read_addr;
         *read_addr = byte;
+
+        checksum_val = byte;
         read_addr++;
         index++;
+
+        byte = *read_addr;
+        *read_addr = byte;
+
+        checksum_val += (uint16_t)byte << 8;
+        read_addr++;
+        index++;
+        
+        *checksum += checksum_val;
+
         if (index == 0)
         {
             break;
@@ -136,6 +149,7 @@ void main()
     unsigned char page_byte;
     unsigned char expected_byte;
     unsigned char read_byte;
+    uint16_t checksum;
 
     // video ram test
     textptr = screen;
@@ -184,10 +198,22 @@ void main()
     testPrintf(textptr, "ROM READ");
     textptr += 40;
 
+    checksum = 0;
+    page_byte = 0x90;
+    read_byte = 0;
     for (test_address = (unsigned char*)0x9000; test_address < (unsigned char*)0xE800; test_address += 0x0100)
     {
-        testPrintf(textptr, "%04X", test_address);
-        read_rom_page(test_address);
+        //testPrintf(textptr, "%04X", test_address);
+        read_rom_page(test_address, &checksum);
+        read_byte++;
+        if (read_byte == 16)
+        {
+            read_byte = 0;
+            testPrintf(textptr, "%02X %04X", page_byte, checksum);
+            checksum = 0;
+            page_byte += 0x10;
+            textptr += 40;
+        }
     }
 
     textptr += 40;
