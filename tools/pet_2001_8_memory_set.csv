@@ -63,22 +63,22 @@
 # BASIC 2
 4,basic-2-c000.901465-01.bin,0xc000
 4,basic-2-d000.901465-02.bin,0xd000
-4,edit-2-b.901474-01.bin,0xe000
+4,edit-2-n.901447-24.bin,0xe000
 4,kernal-2.901465-03.bin,0xf000
 
 5,basic-2-c000.901465-01.bin,0xc000
 5,basic-2-d000.901465-02.bin,0xd000
-5,edit-2-b.901474-01.bin,0xe000
+5,edit-2-n.901447-24.bin,0xe000
 5,kernal-2.901465-03.bin,0xf000
 
 6,basic-2-c000.901465-01.bin,0xc000
 6,basic-2-d000.901465-02.bin,0xd000
-6,edit-2-b.901474-01.bin,0xe000
+6,edit-2-n.901447-24.bin,0xe000
 6,kernal-2.901465-03.bin,0xf000
 
 7,basic-2-c000.901465-01.bin,0xc000
 7,basic-2-d000.901465-02.bin,0xd000
-7,edit-2-b.901474-01.bin,0xe000
+7,edit-2-n.901447-24.bin,0xe000
 7,kernal-2.901465-03.bin,0xf000
 
 # BASIC 4
@@ -86,25 +86,25 @@
 8,basic-4-b000.901465-23.bin,0xb000
 8,basic-4-c000.901465-20.bin,0xc000
 8,basic-4-d000.901465-21.bin,0xd000
-8,edit-4-b.901474-02.bin,0xe000
+8,edit-4-n.901447-29.bin,0xe000
 8,kernal-4.901465-22.bin,0xf000
 
 9,basic-4-b000.901465-23.bin,0xb000
 9,basic-4-c000.901465-20.bin,0xc000
 9,basic-4-d000.901465-21.bin,0xd000
-9,edit-4-b.901474-02.bin,0xe000
+9,edit-4-n.901447-29.bin,0xe000
 9,kernal-4.901465-22.bin,0xf000
 
 10,basic-4-b000.901465-23.bin,0xb000
 10,basic-4-c000.901465-20.bin,0xc000
 10,basic-4-d000.901465-21.bin,0xd000
-10,edit-4-b.901474-02.bin,0xe000
+10,edit-4-n.901447-29.bin,0xe000
 10,kernal-4.901465-22.bin,0xf000
 
 11,basic-4-b000.901465-23.bin,0xb000
 11,basic-4-c000.901465-20.bin,0xc000
 11,basic-4-d000.901465-21.bin,0xd000
-11,edit-4-b.901474-02.bin,0xe000
+11,edit-4-n.901447-29.bin,0xe000
 11,kernal-4.901465-22.bin,0xf000
 
 # 4 free spaces, include something here

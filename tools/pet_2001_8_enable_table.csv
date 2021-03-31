@@ -45,7 +45,7 @@
 2,0xE800,0xEFFF,"passthrough"
 2,0xF000,0xFFFF,"readonly"
 
-# RAM on, ROM off
+# RAM on, ROM on
 3,0x0000,0x7FFF,"readwrite"
 3,0x8000,0x8FFF,"writethrough"
 3,0x9000,0xAFFF,"passthrough"
@@ -71,7 +71,7 @@
 6,0xE800,0xEFFF,"passthrough"
 6,0xF000,0xFFFF,"readonly"
 
-# RAM on, ROM off
+# RAM on, ROM on
 7,0x0000,0x7FFF,"readwrite"
 7,0x8000,0x8FFF,"writethrough"
 7,0x9000,0xAFFF,"passthrough"
@@ -97,7 +97,7 @@
 10,0xE800,0xEFFF,"passthrough"
 10,0xF000,0xFFFF,"readonly"
 
-# RAM on, ROM off
+# RAM on, ROM on
 11,0x0000,0x7FFF,"readwrite"
 11,0x8000,0x8FFF,"writethrough"
 11,0x9000,0xAFFF,"passthrough"
