@@ -129,6 +129,7 @@ void read_rom_page(unsigned char* address, uint16_t* checksum)
 
 void testPrintf(char* textptr, const char* format, ...)
 {
+    int i;
     static char buffer[16];
     va_list arg;
     va_start(arg, format);
@@ -144,6 +145,7 @@ void main()
     unsigned char* tmp = (unsigned char*)0x7FFF;
     unsigned char* start_address = (unsigned char*)0x0200;
     unsigned char* end_address = (unsigned char*)0x6000;
+    unsigned char* text_mode = (unsigned char*)53272;
     unsigned char* test_address;
     unsigned char* textptr;
     unsigned char page_byte;
@@ -153,6 +155,7 @@ void main()
 
     // video ram test
     textptr = screen;
+    *text_mode = 23;
 
     for (test_address = (unsigned char*)0x8000; test_address < (unsigned char*)0x9000; test_address += 0x0100)
     {
