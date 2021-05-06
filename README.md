@@ -86,3 +86,14 @@ For convenience if you are downloading ROM images from a single source, there is
 If you were downloading every rom with the base url of http://bitfixer.com, you would run the command:\
 ```BASEURL=http://bitfixer.com make fetch_roms```\
 This downloads every unique rom specified in [tools/default_memory_set.csv](tools/default_memory_set.csv) to the roms directory.
+
+## Programming Custom Firmware
+
+If you just want to program a custom .bin file (if I send you one, for example) the procedure is a bit simpler.
+Before the first time doing this run\
+```make bin/programmer_spi```
+from the ~/bf-romulator directory.
+
+Then, copy the custom .bin file somewhere on your raspberry pi, and run\
+```bin/programmer_spi < customfirmware.bin```
+from the ~/bf-romulator directory, replacing customfirmware.bin with the actual path of that file.
