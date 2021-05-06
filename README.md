@@ -57,6 +57,8 @@ You can use the optional RPI ROMulator programming board, or directly connect th
 |21      |9 (MISO)|10 (GND) |34  |
 
 If you are only programming and not running the debug client, DBG and CDONE are optional.
+Take a look at this wiring diagram for a visual aid:
+![programming/debug diagram](/schematics/programming_wiring.png "programming/debug diagram")
 
 Please follow this procedure to enter debug mode on the romulator and read the contents of a running CPU.
 1. run ```make bin/console``` from bf-romulator directory
