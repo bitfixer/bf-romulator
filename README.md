@@ -91,9 +91,9 @@ This downloads every unique rom specified in [tools/default_memory_set.csv](tool
 
 If you just want to program a custom .bin file (if I send you one, for example) the procedure is a bit simpler.
 Before the first time doing this run\
-```make bin/programmer_spi```
+```make bin/programmer_spi```\
 from the ~/bf-romulator directory.
 
 Then, copy the custom .bin file somewhere on your raspberry pi, and run\
-```bin/programmer_spi < customfirmware.bin```
+```bin/programmer_spi < customfirmware.bin```\
 from the ~/bf-romulator directory, replacing customfirmware.bin with the actual path of that file.
