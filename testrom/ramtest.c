@@ -144,7 +144,7 @@ void main()
     unsigned char* screen = (unsigned char*)0x8000;
     unsigned char* tmp = (unsigned char*)0x7FFF;
     unsigned char* start_address = (unsigned char*)0x0200;
-    unsigned char* end_address = (unsigned char*)0x6000;
+    unsigned char* end_address = (unsigned char*)0x8000;
     unsigned char* text_mode = (unsigned char*)53272;
     unsigned char* test_address;
     unsigned char* textptr;
