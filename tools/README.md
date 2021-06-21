@@ -66,7 +66,7 @@ The first few lines of the enable table file are:
 Each of these lines has a range of indices specified instead of a single index.\
 Examine the first line:
 Set indices are 0-14. This means to use this setting for all switch settings between 0-14, inclusive.
-Start address is 0x0000, and end address is 0x7FFF. This means the setting applies to this range of addressive. The end address is inclusive.
+Start address is 0x0000, and end address is 0x7FFF. This means the setting applies to this range of addresses. The end address is inclusive.
 Then the keyword is "readwrite". This means for this range, we want to use the ROMulator's onboard memory to override any reads or writes to these addresses.
 
 You can specify ranges of indices like this as a shortcut to save you from duplicating the same entries for a series of settings that are the same or nearly the same, as is the case with a group of similar PET computers. 
