@@ -16,6 +16,8 @@ The format is:
 
 |Set Index	|ROM Filename	|Memory Address in hex i.e. 0xFFFF	|
 
+You can include comments in this file by starting the line with a # character.
+
 Let's look at an example - the memory map for a PET 4032.\
 Here's the section in the default_memory_set.csv file for this entry:\
 
@@ -36,3 +38,38 @@ The second column in the entry is the name of a binary file with the contents of
 the third column is a memory address in hex indicating the start addres of this particular ROM.\
 
 Currently the ROMulator supports up to 16 memory maps (indices 0-15). With an upcoming firmware update, ROMulators with 8 switches on the board will be able to select up to 32. 
+
+To support a new 6502 machine, first get a list of the ROMs for that machine, and the memory locations where they should be placed. Then you can add an entry to default_memory_set.csv for your configuration. You can also make an entirely separate csv file, this is covered a bit later.
+
+## Enable Tables
+
+The second half of a configuration for the ROMulator is the enable table. This is a list of ranges in memory space specified by a start and end address, and a keyword which indicates how that section of memory should be handled by the ROMulator. 
+The default enable table is defined in the following file:
+
+### enable_table_pet.csv
+
+Similar to a memory map, each line of the enable table has the format:
+
+|Set Index (or range of indices)|Start Address in Hex|End Address in Hex|"Keyword"|
+
+Let's look at the example for setting 4 again, for the PET 4032.
+The first few lines of the enable table file are:
+```
+0-14,0x0000,0x7FFF,"readwrite"
+0-14,0x8000,0x8FFF,"writethrough"
+0-14,0x9000,0xAFFF,"passthrough"
+0-14,0xB000,0xE7FF,"readonly"
+0-14,0xE800,0xEFFF,"passthrough"
+0-14,0xF000,0xFFFF,"readonly"
+```
+
+Each of these lines has a range of indices specified instead of a single index.\
+Examine the first line:
+Set indices are 0-14. This means to use this setting for all switch settings between 0-14, inclusive.
+Start address is 0x0000, and end address is 0x7FFF. This means the setting applies to this range of addressive. The end address is inclusive.
+Then the keyword is "readwrite". This means for this range, we want to use the ROMulator's onboard memory to override any reads or writes to these addresses.
+
+### memory enable keywords
+
+The following keywords are used in this table:
+
