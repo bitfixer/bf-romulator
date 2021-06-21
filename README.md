@@ -42,6 +42,11 @@ The default switch settings are as follows:
 The memory maps are defined in [tools/default_memory_set.csv](tools/default_memory_set.csv).
 This file indicates which ROMs are located at which memory address.
 
+## Adding Configurations for New 6502 Machines
+
+This topic is big enough to have its own readme, and it is located here:\
+[tools/README.md](tools/README.md)
+
 ## Program / Debug
 
 Programming or Debug functionality of the ROMulator uses a Raspberry Pi using a soft SPI implementation. 
