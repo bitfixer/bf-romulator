@@ -19,7 +19,7 @@ The format is:
 You can include comments in this file by starting the line with a # character.
 
 Let's look at an example - the memory map for a PET 4032.\
-Here's the section in the default_memory_set.csv file for this entry:\
+Here's the section in the default_memory_set.csv file for this entry:
 
 ```
 # PET 4032
@@ -31,9 +31,9 @@ Here's the section in the default_memory_set.csv file for this entry:\
 ```
 
 This entry has the set index 4. This number maps to a switch setting on the ROMulator's dip switches. Each switch is a binary digit, starting with switch 1 as the least significant bit.\
-So index 4 equals binary 0100. The 1s digit maps to switch 1, the 2s digit maps to switch 2, etc. Index 4 would be Switch 1 OFF, Switch 2 OFF, Switch 3 ON, Switch 4 OFF.\
+So index 4 equals binary 0100. The 1s digit maps to switch 1, the 2s digit maps to switch 2, etc. Index 4 would be Switch 1 OFF, Switch 2 OFF, Switch 3 ON, Switch 4 OFF.
 
-The second column in the entry is the name of a binary file with the contents of a ROM that should be loaded. These files should be located in the #roms# directory.\
+The second column in the entry is the name of a binary file with the contents of a ROM that should be loaded. These files should be located in the #roms# directory.
 
 the third column is a memory address in hex indicating the start addres of this particular ROM.\
 
