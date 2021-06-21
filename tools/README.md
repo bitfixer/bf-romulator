@@ -69,7 +69,28 @@ Set indices are 0-14. This means to use this setting for all switch settings bet
 Start address is 0x0000, and end address is 0x7FFF. This means the setting applies to this range of addressive. The end address is inclusive.
 Then the keyword is "readwrite". This means for this range, we want to use the ROMulator's onboard memory to override any reads or writes to these addresses.
 
+You can specify ranges of indices like this as a shortcut to save you from duplicating the same entries for a series of settings that are the same or nearly the same, as is the case with a group of similar PET computers. 
+
+These lines can be overridden later in the file as is done with this entry:
+```
+# only enable 16k ram for 4016
+7,0x0000,0x3FFF,"readwrite"
+7,0x4000,0x7FFF,"passthrough"
+```
+
+In this case, for index 7, we override the previously specified keyword for these regions of memory, which effectively disables region 0x4000-0x7FFF on the ROMulator, meaning that the PET 4016 only detects 16k of memory. An example of how you can override range settings.
+
 ### memory enable keywords
 
 The following keywords are used in this table:
+* "readwrite" : fully replace any read or write to this range. This is used for RAM that you wish the ROMulator to replace.
+* "readonly" : replace any read to this range with the ROMulator's memory, and disable writes. This is used for ROMs.
+* "passthrough" : reads and writes to this region should go through to the mainboard and not be intercepted by the ROMulator. This is used for I/O.
+* "writethrough" : writes to this region are done both to the mainboard and to the ROMulator. Reads are read from the mainboard. This is useful for sections of memory that are read by something other than the CPU, which is often the case with video RAM.
 
+Adding an enable table entry or entries for a new 6502 machine means learning the memory map for that machine and defining the regions of memory directly in enable_table_pet.csv (name should be changed!) or in a separate csv.\
+Generally to replace RAM, use "readwrite". To replace ROM, use "readonly". IO regions should be "passthrough" and video ram would usually be "writethrough". Any other section you don't want the ROMulator to touch would be "passthrough".
+
+Currently, the smallest independently configurable region is 256 bytes. This is somewhat arbitrary and could be smaller if needed with a software change, it just uses more block RAM on the FPGA to do so.
+
+Once you have set up your memory map and enable table, and have gotten all your ROM files into the roms directory, then you are ready to load the new firmware with your configuration: See https://github.com/bitfixer/bf-romulator#programming to do this.
