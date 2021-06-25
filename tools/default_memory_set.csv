@@ -42,6 +42,14 @@
 7,edit-4-n.901447-29.bin,0xe000
 7,kernal-4.901465-22.bin,0xf000
 
+# Apple II+
+8,341-0011.bin,0xd000
+8,341-0012.bin,0xd800
+8,341-0013.bin,0xe000
+8,341-0014.bin,0xe800
+8,341-0015.bin,0xf000
+8,341-0020.bin,0xf800
+
 12,../bin/nop.bin,0x0000
 
 13,PETTESTE2KV04.bin,0xe000
