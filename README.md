@@ -27,7 +27,7 @@ Just make sure to double check:
 
 ## Default Switch Settings
 
-The ROMulator supports up to 16 memory maps. Only 4 are populated by default, but you can add any maps you want via the programming interface.
+The ROMulator supports up to 16 memory maps. The default memory maps shipped with the ROMulator are currently mostly related to the Commodore PET, but you can add any maps you want via the programming interface. Over time more configurations for common 6502 computers will be added.
 The default switch settings are as follows:
 
 |Set Index  |Setting                                        |Switch 1   |Switch 2   |Switch 3   |Switch 4   |
@@ -36,8 +36,12 @@ The default switch settings are as follows:
 |1          |BASIC 4, NON-CRTC  (i.e. 2001)                 |On         |Off        |Off        |Off        |
 |2          |BASIC 4, CRTC, 80C (i.e. 8032)                 |Off        |On         |Off        |Off        |
 |3          |BASIC 4, CRTC, 40C (i.e. 4032,4016)            |On         |On         |Off        |Off        |
-|4          |Reserved                                       |Off        |Off        |On         |Off        |
+|4          |BASIC 4, PET 4032 60Hz                         |Off        |Off        |On         |Off        |
 |5          |BASIC 2, NON-CRTC, Normal Kbd (i.e. 2001)      |On         |Off        |On         |Off        |
+|6          |BASIC 4, PET 4032 50Hz                         |Off        |On         |On         |Off        |
+|7          |BASIC 4, PET 4016 60Hz                         |On         |On         |On         |Off        |
+|8          |Apple II plus                                  |Off        |Off        |Off        |On         |
+|9          |BASIC 1, PET 2001-8                            |On         |Off        |Off        |On         |
 
 The memory maps are defined in [tools/default_memory_set.csv](tools/default_memory_set.csv).
 This file indicates which ROMs are located at which memory address.
