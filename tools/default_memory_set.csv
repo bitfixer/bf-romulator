@@ -63,6 +63,8 @@
 9,rom-1-f000.901439-04.bin,0xf000
 9,rom-1-f800.901439-07.bin,0xf800
 
+11,../bin/ieee_test.bin,0xf000
+
 12,../bin/nop.bin,0x0000
 
 13,PETTESTE2KV04.bin,0xe000
