@@ -69,6 +69,17 @@ If you are only programming and not running the debug client, DBG and CDONE are 
 Take a look at this wiring diagram for a visual aid:
 ![programming/debug diagram](/schematics/programming_wiring.png "programming/debug diagram")
 
+# ROMulator programming board
+
+The optional RPI ROMulator programming board is just a breakout board for SPI and UART on the Pi which brings SPI0 and SPI1 pins out to separate headers, as well as a UART header. The ROMulator only uses the SPI0 header. If you received a kit for this board, here are a few quick notes on the assembly.
+1. Solder header pins onto the TOP of the board in the section marked 'SPI0'.
+2. Solder a 2-pin header onto the header section directly adjacent to SPI0.
+3. Solder the 2x20 socket onto the BOTTOM of the board.
+4. Connect the jumper onto the 2-pin header for programming. Remove for debug.
+5. When attaching the board to the raspberry pi, the headers face away from the body of the raspberry pi. See this image for reference:
+
+![images/rpi romulator connection](/images/romulator-rpi-connection.jpg "images/rpi romulator connection")
+
 Please follow this procedure to enter debug mode on the romulator and read the contents of a running CPU.
 1. run ```make bin/console``` from bf-romulator directory
 2. run ```make debug``` to set appropriate pin directions on the pi. Specifically, this sets the DBG line to 1 to allow the ROMulator to start and not be stuck in a halt state, and sets the RST line to an input to avoid holding the fpga in reset.
