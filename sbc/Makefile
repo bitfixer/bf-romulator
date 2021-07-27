@@ -4,14 +4,14 @@
 # License: <insert your license reference here>
 
 #DEVICE     = atmega1284p
-DEVICE     = attiny45
+DEVICE     = atmega168a
 CLOCK      = 8000000
 PROGRAMMER = -c linuxspi -P /dev/spidev0.0
 SRCDIR     = src
 BIN        = bin
 OBJECTS    = $(SRCDIR)/clockgen.o
 
-FUSES      = -U lfuse:w:0x22:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+FUSES      = -U lfuse:w:0x22:m -U hfuse:w:0xDF:m -U efuse:w:0xF9:m -U lock:w:0xFF:m
 
 # For computing fuse byte values for other devices and options see
 # the fuse bit calculator at http://www.engbedded.com/fusecalc/
