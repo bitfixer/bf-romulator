@@ -5,7 +5,7 @@
 
 #DEVICE     = atmega1284p
 DEVICE     = attiny45
-CLOCK      = 8000000
+CLOCK      = 1000000
 PROGRAMMER = -c linuxspi -P /dev/spidev0.0
 SRCDIR     = src
 BIN        = bin
