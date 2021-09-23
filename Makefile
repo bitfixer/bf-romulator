@@ -20,8 +20,9 @@ PROGRAMMER_DIR := programmer
 TOOLS_DIR := tools
 ROMULATOR_DIR := romulator
 ROMS_DIR := roms
-MEMORY_SET := $(shell pwd)/$(TOOLS_DIR)/default_memory_set.csv
-ENABLE_TABLE := $(shell pwd)/$(TOOLS_DIR)/enable_table_pet.csv
+CONFIG := default
+MEMORY_SET := $(shell pwd)/$(TOOLS_DIR)/memory_set_$(CONFIG).csv
+ENABLE_TABLE := $(shell pwd)/$(TOOLS_DIR)/enable_table_$(CONFIG).csv
 BIN_DIR := bin
 
 #pin definitions
