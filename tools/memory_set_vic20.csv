@@ -1,0 +1,15 @@
+0,basic.901486-01.bin,0xC000
+0,kernal.901486-07.bin,0xE000
+1,basic.901486-01.bin,0xC000
+1,kernal.901486-07.bin,0xE000
+2,basic.901486-01.bin,0xC000
+2,kernal.901486-07.bin,0xE000
+3,basic.901486-01.bin,0xC000
+3,kernal.901486-07.bin,0xE000
+4,basic.901486-01.bin,0xC000
+4,kernal.901486-07.bin,0xE000
+5,basic.901486-01.bin,0xC000
+5,JiffyDOS_VIC-20.bin,0xE000
+6,vc20.bin,0xA000
+6,basic.901486-01.bin,0xC000
+6,kernal.901486-07.bin,0xE000
