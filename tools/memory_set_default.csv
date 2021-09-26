@@ -63,11 +63,13 @@
 9,rom-1-f000.901439-04.bin,0xf000
 9,rom-1-f800.901439-07.bin,0xf800
 
-# VIC-20
+# VIC-20 PAL
 10,basic.901486-01.bin,0xC000
 10,kernal.901486-07.bin,0xE000
 
-11,../bin/ieee_test.bin,0xf000
+# VIC-20 NTSC
+11,basic.901486-01.bin,0xC000
+11,kernal.901486-06.bin,0xE000
 
 12,../bin/nop.bin,0x0000
 
