@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     int rows = 25;
     bool testonly = false;
 
-    while ((opt = getopt(argc, argv, "r:o:m:c:t")) != -1)
+    while ((opt = getopt(argc, argv, "r:o:m:w:c:t")) != -1)
     {
         switch (opt)
         {
@@ -110,6 +110,9 @@ int main(int argc, char** argv) {
                 break;
             case 'c':
                 columns = atoi(optarg);
+                break;
+            case 'w':
+                rows = atoi(optarg);
                 break;
             case 't':
                 testonly = true;

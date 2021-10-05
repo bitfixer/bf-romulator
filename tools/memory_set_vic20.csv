@@ -1,3 +1,4 @@
+# PAL
 0,basic.901486-01.bin,0xC000
 0,kernal.901486-07.bin,0xE000
 1,basic.901486-01.bin,0xC000
@@ -13,3 +14,20 @@
 6,vc20.bin,0xA000
 6,basic.901486-01.bin,0xC000
 6,kernal.901486-07.bin,0xE000
+
+# NTSC
+8,basic.901486-01.bin,0xC000
+8,kernal.901486-06.bin,0xE000
+9,basic.901486-01.bin,0xC000
+9,kernal.901486-06.bin,0xE000
+10,basic.901486-01.bin,0xC000
+10,kernal.901486-06.bin,0xE000
+11,basic.901486-01.bin,0xC000
+11,kernal.901486-06.bin,0xE000
+12,basic.901486-01.bin,0xC000
+12,kernal.901486-06.bin,0xE000
+13,basic.901486-01.bin,0xC000
+13,JiffyDOS_VIC-20.bin,0xE000
+14,vc20.bin,0xA000
+14,basic.901486-01.bin,0xC000
+14,kernal.901486-06.bin,0xE000
