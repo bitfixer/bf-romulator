@@ -9,7 +9,7 @@ Using the ROMulator in any 6502 machine requires configuration of two things: A 
 A memory map is comprised of a list of ROM files along with memory addresses where these ROMs should be placed in memory.\
 Each entry in the memory map in referred to by a number, what we call the set index. Let's look at a couple of examples in the default memory map used by the ROMulator.
 
-### default_memory_set.csv:
+### memory_set_default.csv:
 
 This file contains a list of which ROM images should be placed at specified memory addresses in memory maps for the ROMulator.
 The format is:
@@ -19,7 +19,7 @@ The format is:
 You can include comments in this file by starting the line with a # character.
 
 Let's look at an example - the memory map for a PET 4032.\
-Here's the section in the default_memory_set.csv file for this entry:
+Here's the section in the memory_set_default.csv file for this entry:
 
 ```
 # PET 4032
@@ -39,14 +39,14 @@ the third column is a memory address in hex indicating the start addres of this 
 
 Currently the ROMulator supports up to 16 memory maps (indices 0-15). With an upcoming firmware update, ROMulators with 8 switches on the board will be able to select up to 32. 
 
-To support a new 6502 machine, first get a list of the ROMs for that machine, and the memory locations where they should be placed. Then you can add an entry to default_memory_set.csv for your configuration. You can also make an entirely separate csv file, this is covered a bit later.
+To support a new 6502 machine, first get a list of the ROMs for that machine, and the memory locations where they should be placed. Then you can add an entry to memory_set_default.csv for your configuration. You can also make an entirely separate csv file, this is covered a bit later.
 
 ## Enable Tables
 
 The second half of a configuration for the ROMulator is the enable table. This is a list of ranges in memory space specified by a start and end address, and a keyword which indicates how that section of memory should be handled by the ROMulator. 
 The default enable table is defined in the following file:
 
-### enable_table_pet.csv
+### enable_table_default.csv
 
 Similar to a memory map, each line of the enable table has the format:
 
@@ -88,7 +88,7 @@ The following keywords are used in this table:
 * "passthrough" : reads and writes to this region should go through to the mainboard and not be intercepted by the ROMulator. This is used for I/O.
 * "writethrough" : writes to this region are done both to the mainboard and to the ROMulator. Reads are read from the mainboard. This is useful for sections of memory that are read by something other than the CPU, which is often the case with video RAM.
 
-Adding an enable table entry or entries for a new 6502 machine means learning the memory map for that machine and defining the regions of memory directly in enable_table_pet.csv (name should be changed!) or in a separate csv.\
+Adding an enable table entry or entries for a new 6502 machine means learning the memory map for that machine and defining the regions of memory directly in enable_table_default.csv or in a separate csv.\
 Generally to replace RAM, use "readwrite". To replace ROM, use "readonly". IO regions should be "passthrough" and video ram would usually be "writethrough". Any other section you don't want the ROMulator to touch would be "passthrough".
 
 Currently, the smallest independently configurable region is 256 bytes. This is somewhat arbitrary and could be smaller if needed with a software change, it just uses more block RAM on the FPGA to do so.
