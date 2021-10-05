@@ -261,6 +261,24 @@ spi_flash_reader flashReader(
     configuration
 );
 
+// write clock is true when both onboard and bus are enabled for write
+assign vram_write_clk = we && cs_enable && cs_enable_bus;
+wire [9:0]vram_read_address;
+wire [7:0]vram_output;
+wire vram_read_clock;
+
+simple_ram_dual_clock #(8, 10)
+videoRam
+(
+    .data(ram_datain),
+    .read_addr(vram_read_address),
+    .write_addr(ram_address[9:0]),
+    .we(1'b0),
+    .read_clk(vram_read_clock),
+    .write_clk(1'b0),
+    .q(vram_output),
+);
+
 // fpga reset (unused now)
 wire reset;
 assign reset = 1;
@@ -281,7 +299,11 @@ diagnostics diag(
   diag_ram_we,
   diag_ram_cs,
 
-  configuration
+  configuration,
+
+  vram_read_address,
+  vram_output,
+  vram_read_clock
 );
 
 initial

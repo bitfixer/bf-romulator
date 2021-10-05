@@ -138,7 +138,8 @@ typedef enum _action
 {
     READ,
     WRITE,
-    CONFIG
+    CONFIG,
+    VRAM
 } Action;
 
 void halt_cpu()
@@ -205,7 +206,7 @@ int main(int argc, char** argv)
     bool xfer_whole_buffer = false;
     bool verify = false;
 
-    while ((opt = getopt(argc, argv, "rcw:bv")) != -1)
+    while ((opt = getopt(argc, argv, "rcw:bvs")) != -1)
     {
         switch (opt)
         {
@@ -225,6 +226,9 @@ int main(int argc, char** argv)
                 break;
             case 'v':
                 verify = true;
+                break;
+            case 's':
+                a = VRAM;
                 break;
         }
     }
@@ -299,6 +303,23 @@ int main(int argc, char** argv)
         delay(1);
         uint8_t byte = xfer(0);
         fprintf(stderr, "config: %X\n", byte);
+    }
+    else if (a == VRAM)
+    {
+        // retrieve contents of video ram
+        xfer(0x88);
+        uint8_t vram[1024];
+        for (int b = 0; b < 1024; b++)
+        {
+            vram[b] = xfer(0);
+        }
+
+        /*
+        for (int b = 0; b < 1024; b++)
+        {
+            fprintf(stderr, "recv: %d %X\n", b, vram[b]);
+        }
+        */
     }
 
     reset_inout();

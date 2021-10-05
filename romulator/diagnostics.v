@@ -32,7 +32,12 @@ module diagnostics(
      output reg we,
      output reg cs,
 
-     input      [3:0] configuration
+     input      [3:0] configuration,
+
+     // video ram
+     output reg [9:0] vram_address,
+     input      [7:0] vram_data,
+     output reg vram_read_clock
 );
 
 // module states
@@ -55,6 +60,9 @@ localparam WRITE_DUMMY_BYTE_WAIT = 15;
 localparam WRITE_DUMMY_BYTE_NEXT = 16;
 
 localparam WRITE_MEMORY_BYTE_NEXT2 = 17;
+localparam SEND_VRAM_BYTE = 18;
+localparam NEXT_VRAM_BYTE = 19;
+localparam END_VRAM_BYTE = 20;
 reg [7:0] state = RUNNING;
 
 // spi slave setup
@@ -75,6 +83,7 @@ localparam HALT_CPU = 8'haa;
 localparam RESUME_CPU = 8'h55;
 localparam READ_MEMORY = 8'h66;
 localparam READ_CONFIG = 8'h77;
+localparam READ_VRAM = 8'h88;
 localparam WRITE_MEMORY = 8'h99;
 
 SPI_Slave spiSlave(
@@ -116,7 +125,43 @@ begin
                 tx_byte <= config_byte;
                 state <= WRITE_CONFIG_BYTE;
             end
+            else if (rx_byte == READ_VRAM) // start reading back from video ram
+            begin
+                //tx_dv <= 1;
+                //tx_byte <= 8'hab;
+                vram_read_clock <= 1;
+                state <= SEND_VRAM_BYTE;
+            end
         end
+    end
+    SEND_VRAM_BYTE:
+    begin
+      // now transfer byte from vram and send
+      tx_dv <= 1;
+      tx_byte <= vram_data;
+      vram_read_clock <= 0;
+      vram_address <= vram_address + 1;
+      state <= NEXT_VRAM_BYTE;
+    end
+    NEXT_VRAM_BYTE:
+    begin
+      tx_dv <= 0;
+      if (rx_dv == 1'b1)
+      begin
+        if (vram_address == 0)
+        begin
+          state <= RUNNING;
+        end
+        else 
+        begin
+          vram_read_clock <= 1;
+          state <= SEND_VRAM_BYTE;
+        end
+      end
+      else
+      begin
+        state <= NEXT_VRAM_BYTE;
+      end
     end
     WRITE_CONFIG_BYTE:
     begin
@@ -299,6 +344,8 @@ initial
 begin
     halt <= 0;
     address <= 0;
+    vram_address <= 0;
+    vram_read_clock <= 0;
     we <= 0;
     cs <= 0;
 
