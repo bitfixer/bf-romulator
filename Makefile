@@ -48,6 +48,10 @@ $(BIN_DIR)/make_screen_image: $(PROGRAMMER_DIR)/make_screen_image.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/make_screen_image $(PROGRAMMER_DIR)/make_screen_image.cpp
 
+$(BIN_DIR)/make_test_vram: $(PROGRAMMER_DIR)/make_test_vram.cpp
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/make_test_vram $(PROGRAMMER_DIR)/make_test_vram.cpp
+
 # Tools
 
 $(BIN_DIR)/build_memory_map_set: $(TOOLS_DIR)/build_memory_map_set.cpp
@@ -95,7 +99,7 @@ $(BIN_DIR)/enable_table.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE)
 $(BIN_DIR)/crc32_table.txt: $(BIN_DIR)/crc32
 	$(BIN_DIR)/crc32 -t -x > $(BIN_DIR)/crc32_table.txt
 
-$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt
+$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
 	mkdir -p $(BIN_DIR)
 	cd $(ROMULATOR_DIR); rm hardware.*; apio build
 	cp $(ROMULATOR_DIR)/hardware.bin $(BIN_DIR)/hardware.bin
@@ -175,6 +179,9 @@ $(BIN_DIR)/ieee_test.bin: testrom/ieee_test.c testrom/preinit.s testrom/ieee_tes
 
 $(BIN_DIR)/nop.bin: testrom/nop.c
 	cd testrom; make nop.bin; cp nop.bin ../$(BIN_DIR)/nop.bin; rm nop.bin
+
+$(BIN_DIR)/vram_test.txt: $(BIN_DIR)/make_test_vram
+	$(BIN_DIR)/make_test_vram > $(BIN_DIR)/vram_test.txt
 
 $(BIN_DIR)/test_pet: $(TOOLS_DIR)/test_pet.cpp
 	mkdir -p $(BIN_DIR)

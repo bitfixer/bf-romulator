@@ -262,20 +262,31 @@ spi_flash_reader flashReader(
 );
 
 // write clock is true when both onboard and bus are enabled for write
-assign vram_write_clk = we && cs_enable && cs_enable_bus;
+//assign vram_write_clk = we && cs_enable && cs_enable_bus;
+//assign vram_write_clk = address[15:10] == 8'b100000;
+
+//assign vram_write_clk = rdy && ram_address[15:8] == 8'h80;
+//assign vram_write_clk = ram_address[15:10] == 6'b100000;
+
+// --- this one worked (sort of)
+//assign vram_write_clk = ram_address[15:10] == 6'b100000 && we;
+
+assign vram_we = ram_address[15:10] == 6'b100000 && we;
+
 wire [9:0]vram_read_address;
 wire [7:0]vram_output;
 wire vram_read_clock;
 
+// include dual ported ram for the vram section
 simple_ram_dual_clock #(8, 10)
 videoRam
 (
     .data(ram_datain),
     .read_addr(vram_read_address),
     .write_addr(ram_address[9:0]),
-    .we(1'b0),
+    .we(vram_we),
     .read_clk(vram_read_clock),
-    .write_clk(1'b0),
+    .write_clk(clk),
     .q(vram_output),
 );
 

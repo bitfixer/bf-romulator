@@ -14,7 +14,8 @@ module simple_ram_dual_clock #(
   reg [DATA_WIDTH-1:0] ram [2**ADDR_WIDTH-1:0]; // ** is exponentiation
     
   always @(posedge write_clk) begin //WRITE
-    if (we) begin 
+    if (we)
+    begin 
       ram[write_addr] <= data;
     end
   end
@@ -22,12 +23,10 @@ module simple_ram_dual_clock #(
   always @(posedge read_clk) begin //READ
     q <= ram[read_addr];
   end
-    
+
 initial
 begin
-  $readmemh("../bin/testvram.txt", ram);
+  $readmemh("../bin/vram_test.txt", ram);
 end
-
-
 
 endmodule

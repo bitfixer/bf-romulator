@@ -314,12 +314,7 @@ int main(int argc, char** argv)
             vram[b] = xfer(0);
         }
 
-        /*
-        for (int b = 0; b < 1024; b++)
-        {
-            fprintf(stderr, "recv: %d %X\n", b, vram[b]);
-        }
-        */
+        fwrite(vram, 1, 1024, stdout);
     }
 
     reset_inout();
