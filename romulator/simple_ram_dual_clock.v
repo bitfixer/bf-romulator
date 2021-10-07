@@ -14,7 +14,7 @@ module simple_ram_dual_clock #(
   reg [DATA_WIDTH-1:0] ram [2**ADDR_WIDTH-1:0]; // ** is exponentiation
     
   always @(posedge write_clk) begin //WRITE
-    if (we)
+    if (we == 1)
     begin 
       ram[write_addr] <= data;
     end
