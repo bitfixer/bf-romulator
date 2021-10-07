@@ -144,8 +144,9 @@ int get_screen_image()
     // first - dummy request for fixed image
 
     // use console to get memory dump
-    system("bin/console -r > memory.bin");
-    system("bin/make_screen_image -r ../roms/characters-2.901447-10.bin -c 40 < memory.bin > out.ppm");
+    //system("bin/console -r > memory.bin");
+    system("bin/console -s > screen.bin");
+    system("bin/make_screen_image -r roms/characters-2.901447-10.bin -o 0 -m 1024 -c 40 < screen.bin > out.ppm");
     system("convert out.ppm out.png");
     return open("out.png", O_RDONLY);
 }

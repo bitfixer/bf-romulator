@@ -197,6 +197,61 @@ bool read_memory(uint8_t* buffer, int retries)
     return false;
 }
 
+bool read_vram(uint8_t* vram, int vram_size)
+{
+    xfer(0x88);
+    int b = 0;
+    uint8_t parity_byte = 0;
+    bool error = false;
+    bool verbose = false;
+    while (b < 1024) {
+        for (int parity_counter = 0; parity_counter < 8; parity_counter++)
+        {
+            vram[b] = xfer(0);
+            if (verbose) fprintf(stderr, "%02X ", vram[b]);
+            b++;
+        }
+
+        // get parity byte for last 8 bytes
+        parity_byte = xfer(0);
+
+        uint8_t local_parity = 0;
+        // generate local version of parity byte
+        for (int pb = 0; pb < 8; pb++)
+        {
+            local_parity >>= 1;
+            uint8_t parity_bit = 0;
+            uint8_t data_byte = vram[b-8+pb];
+            for (int bit = 0; bit < 8; bit++)
+            {
+
+                parity_bit += data_byte & 0x01;
+                data_byte >>= 1;
+            }
+
+            local_parity |= ((parity_bit & 0x01) << 7);
+        }
+
+        if (verbose) fprintf(stderr, ": P %02X *LP %02X\n", parity_byte, local_parity);
+
+        if (parity_byte != local_parity)
+        {
+            error = true;
+        }
+    }
+
+    if (error)
+    {
+        fprintf(stderr, "error!\n");
+    }
+    else
+    {
+        fprintf(stderr, "no error\n");
+    }
+
+    return error;
+}
+
 int main(int argc, char** argv)
 {
 
@@ -307,14 +362,26 @@ int main(int argc, char** argv)
     else if (a == VRAM)
     {
         // retrieve contents of video ram
-        xfer(0x88);
+        int retries = 0;
         uint8_t vram[1024];
-        for (int b = 0; b < 1024; b++)
+        bool error = false;
+        for (retries = 0; retries < 5; retries++)
         {
-            vram[b] = xfer(0);
+            error = read_vram(vram, 1024);
+            if (!error)
+            {
+                break;
+            }
         }
 
-        fwrite(vram, 1, 1024, stdout);
+        if (error)
+        {
+            fprintf(stderr, "failed to read without error\n");
+        }
+        else
+        {
+            fwrite(vram, 1, 1024, stdout);
+        }
     }
 
     reset_inout();

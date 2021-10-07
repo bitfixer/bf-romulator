@@ -37,7 +37,8 @@ module diagnostics(
      // video ram
      output reg [9:0] vram_address,
      input      [7:0] vram_data,
-     output reg vram_read_clock
+     output reg vram_read_clock,
+     output reg vram_read_happened
 );
 
 // module states
@@ -63,6 +64,7 @@ localparam WRITE_MEMORY_BYTE_NEXT2 = 17;
 localparam SEND_VRAM_BYTE = 18;
 localparam NEXT_VRAM_BYTE = 19;
 localparam END_VRAM_BYTE = 20;
+localparam SEND_PARITY_BYTE = 21;
 reg [7:0] state = RUNNING;
 
 // spi slave setup
@@ -78,6 +80,10 @@ reg [31:0] crc32;
 reg [7:0] crc32_byte_index;
 
 reg [31:0] crc32_table [0:255];
+reg [7:0] parity_byte;
+reg [2:0] parity_counter;
+reg parity_sent;
+reg send_parity;
 
 localparam HALT_CPU = 8'haa;
 localparam RESUME_CPU = 8'h55;
@@ -129,6 +135,11 @@ begin
             begin
                 //tx_dv <= 1;
                 //tx_byte <= 8'hab;
+                parity_byte <= 0;
+                parity_counter <= 0;
+                parity_sent <= 0;
+                send_parity <= 0;
+                //vram_read_happened <= 1;
                 vram_read_clock <= 1;
                 state <= SEND_VRAM_BYTE;
             end
@@ -139,8 +150,14 @@ begin
       // now transfer byte from vram and send
       tx_dv <= 1;
       tx_byte <= vram_data;
+      parity_byte[parity_counter] = vram_data[0] + vram_data[1] + vram_data[2] + vram_data[3] + vram_data[4] + vram_data[5] + vram_data[6] + vram_data[7];
       vram_read_clock <= 0;
       vram_address <= vram_address + 1;
+      if (parity_counter == 3'b111)
+      begin
+        send_parity <= 1;
+      end
+      parity_counter <= parity_counter + 1;
       state <= NEXT_VRAM_BYTE;
     end
     NEXT_VRAM_BYTE:
@@ -148,12 +165,17 @@ begin
       tx_dv <= 0;
       if (rx_dv == 1'b1)
       begin
-        if (vram_address == 0)
+        if (send_parity == 1)
+        begin
+          state <= SEND_PARITY_BYTE;
+        end
+        else if (vram_address == 0)
         begin
           state <= RUNNING;
         end
         else 
         begin
+          parity_sent <= 0;
           vram_read_clock <= 1;
           state <= SEND_VRAM_BYTE;
         end
@@ -162,6 +184,13 @@ begin
       begin
         state <= NEXT_VRAM_BYTE;
       end
+    end
+    SEND_PARITY_BYTE:
+    begin
+        tx_dv <= 1;
+        tx_byte <= parity_byte;
+        send_parity <= 0;
+        state <= NEXT_VRAM_BYTE;
     end
     WRITE_CONFIG_BYTE:
     begin
@@ -348,6 +377,7 @@ begin
     vram_read_clock <= 0;
     we <= 0;
     cs <= 0;
+    vram_read_happened <= 0;
 
     $readmemh("../bin/crc32_table.txt", crc32_table);
 end

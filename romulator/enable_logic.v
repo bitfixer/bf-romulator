@@ -235,6 +235,8 @@ assign led_blue = read_complete && rdy;
 assign led_green = 1;
 assign led_red = 1;
 
+wire vram_read_happened;
+
 reg [3:0] configuration;
 
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
@@ -271,7 +273,7 @@ spi_flash_reader flashReader(
 // --- this one worked (sort of)
 //assign vram_write_clk = ram_address[15:10] == 6'b100000 && we;
 
-assign vram_we = ram_address[15:10] == 6'b100000 && we;
+assign vram_we = ram_address[15:10] == 6'b100000 && we && !vram_read_happened;
 
 wire [9:0]vram_read_address;
 wire [7:0]vram_output;
@@ -314,7 +316,8 @@ diagnostics diag(
 
   vram_read_address,
   vram_output,
-  vram_read_clock
+  vram_read_clock,
+  vram_read_happened
 );
 
 initial
