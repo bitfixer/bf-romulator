@@ -230,12 +230,9 @@ assign spi_out = (spi_master_active) ? flash_spi_out : diag_spi_out;
 wire echo_cs;
 assign rdy = !halt && read_complete;
 
-
 assign led_blue = read_complete && rdy;
 assign led_green = 1;
 assign led_red = 1;
-
-wire vram_read_happened;
 
 reg [3:0] configuration;
 
@@ -263,21 +260,16 @@ spi_flash_reader flashReader(
     configuration
 );
 
-// write clock is true when both onboard and bus are enabled for write
-//assign vram_write_clk = we && cs_enable && cs_enable_bus;
-//assign vram_write_clk = address[15:10] == 8'b100000;
-
-//assign vram_write_clk = rdy && ram_address[15:8] == 8'h80;
-//assign vram_write_clk = ram_address[15:10] == 6'b100000;
-
-// --- this one worked (sort of)
-//assign vram_write_clk = ram_address[15:10] == 6'b100000 && we;
-
-assign vram_we = ram_address[15:10] == 6'b100000 && we && !vram_read_happened;
+// write enable for video ram section
+// use regular we signal, also check that this is the right section of memory
+reg [15:0] vram_start[15:0];
+reg [15:0] vram_end[15:0];
+assign vram_we = ram_address >= vram_start[config_byte] && ram_address < vram_end[config_byte] && ram_we;
 
 wire [9:0]vram_read_address;
 wire [7:0]vram_output;
 wire vram_read_clock;
+wire [3:0]config_byte;
 
 // include dual ported ram for the vram section
 simple_ram_dual_clock #(8, 10)
@@ -317,12 +309,15 @@ diagnostics diag(
   vram_read_address,
   vram_output,
   vram_read_clock,
-  vram_read_happened
+
+  config_byte
 );
 
 initial
 begin
   configuration <= ~wdatain[3:0];
+  $readmemh("../bin/vram_start_addr.txt", vram_start);
+  $readmemh("../bin/vram_end_addr.txt", vram_end);
 end
 
 endmodule

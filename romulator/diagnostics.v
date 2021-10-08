@@ -38,7 +38,8 @@ module diagnostics(
      output reg [9:0] vram_address,
      input      [7:0] vram_data,
      output reg vram_read_clock,
-     output reg vram_read_happened
+
+     output reg [3:0] config_byte
 );
 
 // module states
@@ -76,7 +77,7 @@ reg tx_dv = 0;
 reg [7:0] tx_byte = 8'h00;
 
 reg write_started = 0;
-reg [3:0] config_byte;
+//reg [3:0] config_byte;
 
 reg [31:0] crc32;
 reg [7:0] crc32_byte_index;
@@ -136,13 +137,10 @@ begin
             end
             else if (rx_byte == READ_VRAM) // start reading back from video ram
             begin
-                //tx_dv <= 1;
-                //tx_byte <= 8'hab;
                 parity_byte <= 0;
                 parity_counter <= 0;
                 parity_sent <= 0;
                 send_parity <= 0;
-                //vram_read_happened <= 1;
                 vram_read_clock <= 1;
                 state <= SEND_VRAM_BYTE;
             end
@@ -401,7 +399,6 @@ begin
     vram_read_clock <= 0;
     we <= 0;
     cs <= 0;
-    vram_read_happened <= 0;
 
     $readmemh("../bin/crc32_table.txt", crc32_table);
 end

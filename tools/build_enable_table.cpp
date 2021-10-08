@@ -27,13 +27,21 @@
 // enable setting.
 #define ADDR_GRANULARITY_SIZE 256
 
+// region definitions for different key strings
+// each region is a 5 bit number
+// bit 4: is a vram region
+// bit 3: read enable for romulator
+// bit 2: read enable for mainboard
+// bit 1: write enable for romulator
+// bit 0: write enable for mainboard
 typedef enum _region
 {
-    READWRITE = 0b1010,
-    WRITETHROUGH = 0b0111,
-    READONLY = 0b1001,
-    PASSTHROUGH = 0b0101,
-    INACTIVE = 0b0000
+    READWRITE = 0b01010,
+    WRITETHROUGH = 0b00111,
+    READONLY = 0b01001,
+    PASSTHROUGH = 0b00101,
+    VRAM = 0b10111,
+    INACTIVE = 0b00000
 } region;
 
 region get_region_type(char* region_str) {
@@ -52,6 +60,10 @@ region get_region_type(char* region_str) {
     else if (strstr(region_str, "passthrough"))
     {
         return PASSTHROUGH;
+    }
+    else if (strstr(region_str, "vram"))
+    {
+        return VRAM;
     }
 
     return INACTIVE;
@@ -86,6 +98,15 @@ int main(int argc, char** argv)
     // create table for all memory maps
     uint8_t* table = new uint8_t[num_entries];
     memset(table, 0, num_entries);
+
+    uint16_t vram_start_addr[NUMMAPS];
+    uint16_t vram_end_addr[NUMMAPS];
+
+    for (int i = 0; i < NUMMAPS; i++)
+    {
+        vram_start_addr[i] = 0;
+        vram_end_addr[i] = 0;
+    }
     
     while (fgets(line, sizeof(line), fp))
     {
@@ -167,13 +188,35 @@ int main(int argc, char** argv)
                     // 2 lower bits are the write value
                     uint8_t byteval = 0;
                     if (rw == 1) {
-                        byteval = (region_type & 0b1100) >> 2;
+                        byteval = (region_type & 0b01100) >> 2;
                     } else {
-                        byteval = (region_type & 0b0011);
+                        byteval = (region_type & 0b00011);
                     }
 
                     //fprintf(stderr, "address %X, rw %d, ci %d, as %d, table_addr %d %X, r %d %X bv %X\n", address, rw, config_index, addr_shift, table_addr, table_addr, region_type, region_type, byteval);
                     table[table_addr] = byteval;
+                }
+            }
+        }
+
+        if ((region_type & 0b10000) != 0)
+        {
+            // this is a vram region
+            for (int m = start_map_index; m <= end_map_index; m++)
+            {
+                vram_start_addr[m] = addr;
+                vram_end_addr[m] = end_addr;
+            }
+        }
+        else
+        {
+            for (int m = start_map_index; m <= end_map_index; m++)
+            {
+                // check if this range matches a region mapped as vram before
+                if (vram_start_addr[m] == addr && vram_end_addr[m] == end_addr)
+                {
+                    vram_start_addr[m] = 0;
+                    vram_end_addr[m] = 0;
                 }
             }
         }
@@ -182,9 +225,22 @@ int main(int argc, char** argv)
     // print table
     for (int aa = 0; aa < num_entries; aa++)
     {
-        //printf("table %d %X => %X\n", aa, aa, table[aa]);
         printf("%X\n", table[aa]);
     }
+
+    FILE* fp_vram = fopen("bin/vram_start_addr.txt", "wb");
+    for (int v = 0; v < NUMMAPS; v++)
+    {
+        fprintf(fp_vram, "%04X\n", vram_start_addr[v]);
+    }
+    fclose(fp_vram);
+
+    fp_vram = fopen("bin/vram_end_addr.txt", "wb");
+    for (int v = 0; v < NUMMAPS; v++)
+    {
+        fprintf(fp_vram, "%04X\n", vram_end_addr[v]);
+    }
+    fclose(fp_vram);
 
     delete[] table;
 }
