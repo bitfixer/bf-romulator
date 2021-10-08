@@ -197,6 +197,50 @@ bool read_memory(uint8_t* buffer, int retries)
     return false;
 }
 
+void start_vram_read()
+{
+    xfer(0x88);
+}
+
+bool read_vram_block(uint8_t* vram)
+{
+    bool verbose = false;
+    for (int b = 0; b < 8; b++)
+    {
+        vram[b] = xfer(0);
+        if (verbose) fprintf(stderr, "%02X ", vram[b]);
+    }
+
+    // receive parity byte
+    uint8_t parity_byte = xfer(0);
+
+    // generate local parity byte
+    uint8_t local_parity = 0;
+    // generate local version of parity byte
+    for (int pb = 0; pb < 8; pb++)
+    {
+        local_parity >>= 1;
+        uint8_t parity_bit = 0;
+        uint8_t data_byte = vram[pb];
+        for (int bit = 0; bit < 8; bit++)
+        {
+            parity_bit += data_byte & 0x01;
+            data_byte >>= 1;
+        }
+
+        local_parity |= ((parity_bit & 0x01) << 7);
+    }
+
+    if (verbose) fprintf(stderr, ": P %02X *LP %02X\n", parity_byte, local_parity);
+
+    if (parity_byte != local_parity)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 bool read_vram(uint8_t* vram, int vram_size)
 {
     xfer(0x88);
@@ -364,24 +408,43 @@ int main(int argc, char** argv)
         // retrieve contents of video ram
         int retries = 0;
         uint8_t vram[1024];
-        bool error = false;
-        for (retries = 0; retries < 5; retries++)
+        int valid_bytes = 1000;
+        //bool error = false;
+
+        int byte = 0;
+        start_vram_read();
+        while (byte < 1024)
         {
-            error = read_vram(vram, 1024);
-            if (!error)
+            //fprintf(stderr, "byte %d\n", byte);
+            bool success = false;
+            // read an 8-byte block from vram
+            success = read_vram_block(&vram[byte]);
+            if (success || byte >= valid_bytes)
             {
-                break;
+                retries = 0;
+                xfer(0);
+                byte += 8;
+            }
+            else
+            {
+                // parity error token
+                if (retries < 5)
+                {
+                    retries++;
+                    fprintf(stderr, "error byte %d retries %d\n", byte, retries);
+                    xfer(0x22);
+                }
+                else
+                {
+                    // give up on this block
+                    retries = 0;
+                    xfer(0);
+                    byte += 8;
+                }
             }
         }
 
-        if (error)
-        {
-            fprintf(stderr, "failed to read without error\n");
-        }
-        else
-        {
-            fwrite(vram, 1, 1024, stdout);
-        }
+        fwrite(vram, 1, valid_bytes, stdout);
     }
 
     reset_inout();

@@ -65,6 +65,8 @@ localparam SEND_VRAM_BYTE = 18;
 localparam NEXT_VRAM_BYTE = 19;
 localparam END_VRAM_BYTE = 20;
 localparam SEND_PARITY_BYTE = 21;
+localparam DONE_SEND_PARITY_BYTE = 22;
+localparam VERIFY_PARITY_BYTE = 23;
 reg [7:0] state = RUNNING;
 
 // spi slave setup
@@ -91,6 +93,7 @@ localparam READ_MEMORY = 8'h66;
 localparam READ_CONFIG = 8'h77;
 localparam READ_VRAM = 8'h88;
 localparam WRITE_MEMORY = 8'h99;
+localparam PARITY_ERROR = 8'h22;
 
 SPI_Slave spiSlave(
   .i_Rst_L(fpga_reset),
@@ -190,7 +193,28 @@ begin
         tx_dv <= 1;
         tx_byte <= parity_byte;
         send_parity <= 0;
+        state <= DONE_SEND_PARITY_BYTE;
+    end
+    DONE_SEND_PARITY_BYTE:
+    begin
+      tx_dv <= 0;
+      if (rx_dv == 1'b1)
+      begin
+        state <= VERIFY_PARITY_BYTE;
+      end
+    end
+    VERIFY_PARITY_BYTE:
+    begin
+      tx_dv <= 0;
+      if (rx_dv <= 1'b1)
+      begin
+        if (rx_byte == PARITY_ERROR)
+        begin
+          vram_address <= vram_address - 8;
+        end
+
         state <= NEXT_VRAM_BYTE;
+      end
     end
     WRITE_CONFIG_BYTE:
     begin
