@@ -271,13 +271,15 @@ wire [7:0]vram_output;
 wire vram_read_clock;
 wire [3:0]config_byte;
 
+wire [10:0]vram_write_address = ram_address - vram_start[config_byte];
+
 // include dual ported ram for the vram section
-simple_ram_dual_clock #(8, 10)
+simple_ram_dual_clock #(8, 11)
 videoRam
 (
     .data(ram_datain),
     .read_addr(vram_read_address),
-    .write_addr(ram_address[9:0]),
+    .write_addr(vram_write_address),
     .we(vram_we),
     .read_clk(vram_read_clock),
     .write_clk(clk),
