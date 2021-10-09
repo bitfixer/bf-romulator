@@ -212,9 +212,14 @@ int main(int argc, char** argv)
         {
             for (int m = start_map_index; m <= end_map_index; m++)
             {
-                // check if this range matches a region mapped as vram before
-                if (vram_start_addr[m] == addr && vram_end_addr[m] == end_addr)
+                // check if this range overlaps a region mapped as vram before
+                //if (vram_start_addr[m] == addr && vram_end_addr[m] == end_addr)
+                if ((vram_start_addr[m] <= addr && vram_end_addr[m] > addr) ||
+                    (vram_start_addr[m] <= end_addr && vram_end_addr[m] > end_addr) ||
+                    (addr < vram_start_addr[m] && vram_end_addr[m] < end_addr))
                 {
+                    // if there is any overlap, just override the previously set vram section
+                    // and deactivate vram for this region.
                     vram_start_addr[m] = 0;
                     vram_end_addr[m] = 0;
                 }
