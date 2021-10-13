@@ -82,7 +82,7 @@ localparam XFER_DONE = 15;
 reg [4:0] xfer_state;
 
 reg [3:0] next_xfer_state;
-reg [7:0] xfer_send_bytes [0:10];
+reg [7:0] xfer_send_bytes [0:3];
 reg xfer_read = 0;
 reg [8:0] xfer_flash_blocks_to_read;
 

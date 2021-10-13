@@ -264,9 +264,10 @@ spi_flash_reader flashReader(
 // use regular we signal, also check that this is the right section of memory
 reg [15:0] vram_start[15:0];
 reg [15:0] vram_end[15:0];
+wire vram_we;
 assign vram_we = ram_address >= vram_start[config_byte] && ram_address < vram_end[config_byte] && ram_we;
 
-wire [9:0]vram_read_address;
+wire [10:0]vram_read_address;
 wire [7:0]vram_output;
 wire vram_read_clock;
 wire [3:0]config_byte;

@@ -35,7 +35,7 @@ module diagnostics(
      input      [3:0] configuration,
 
      // video ram
-     output reg [9:0] vram_address,
+     output reg [10:0] vram_address,
      input      [7:0] vram_data,
      output reg vram_read_clock,
 
