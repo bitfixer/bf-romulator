@@ -39,7 +39,8 @@ module diagnostics(
      input      [7:0] vram_data,
      output reg vram_read_clock,
 
-     output reg [3:0] config_byte
+     output reg [3:0] config_byte,
+     input  wire [3:0] flash_addr
 );
 
 // module states
@@ -132,7 +133,8 @@ begin
             else if (rx_byte == READ_CONFIG)
             begin
                 tx_dv <= 1;
-                tx_byte <= config_byte;
+                //tx_byte <= config_byte;
+                tx_byte <= flash_addr;
                 state <= WRITE_CONFIG_BYTE;
             end
             else if (rx_byte == READ_VRAM) // start reading back from video ram

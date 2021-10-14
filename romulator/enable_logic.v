@@ -257,8 +257,12 @@ spi_flash_reader flashReader(
     clk,
 
     read_complete,
-    configuration
+    configuration,
+
+    out_flash_addr
 );
+
+wire [3:0] out_flash_addr;
 
 // write enable for video ram section
 // use regular we signal, also check that this is the right section of memory
@@ -313,7 +317,8 @@ diagnostics diag(
   vram_output,
   vram_read_clock,
 
-  config_byte
+  config_byte,
+  out_flash_addr
 );
 
 initial
