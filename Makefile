@@ -24,6 +24,7 @@ CONFIG := default
 MEMORY_SET := $(shell pwd)/$(TOOLS_DIR)/memory_set_$(CONFIG).csv
 ENABLE_TABLE := $(shell pwd)/$(TOOLS_DIR)/enable_table_$(CONFIG).csv
 BIN_DIR := bin
+REMOTE := raspberrypi.local
 
 #pin definitions
 DBG := 27
@@ -143,6 +144,9 @@ program: init reset $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 readback: init $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi -r $(shell stat --printf="%s" $(BIN_DIR)/romulator.bin) > readback.bin
 	diff readback.bin $(BIN_DIR)/romulator.bin
+
+transfer: clean $(BIN_DIR)/romulator.bin
+	scp $(BIN_DIR)/romulator.bin pi@$(REMOTE):~/bf-romulator/$(BIN_DIR)
 
 # testing
 $(BIN_DIR)/random_test.bin:
