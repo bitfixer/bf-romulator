@@ -75,6 +75,10 @@ $(BIN_DIR)/crc32: $(PROGRAMMER_DIR)/crc32.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/crc32 $(PROGRAMMER_DIR)/crc32.cpp
 
+$(BIN_DIR)/consoled: $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.h $(TOOLS_DIR)/libRomulatorDebug.cpp
+	mkdir -o $(BIN_DIR)
+	g++ -o $(BIN_DIR)/consoled -lwiringPi $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp
+
 fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 	mkdir -p $(ROMS_DIR)
 	#cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
