@@ -269,14 +269,14 @@ wire [3:0] out_flash_addr;
 reg [15:0] vram_start[15:0];
 reg [15:0] vram_end[15:0];
 wire vram_we;
-assign vram_we = ram_address >= vram_start[config_byte] && ram_address < vram_end[config_byte] && ram_we;
+assign vram_we = ram_address >= vram_start[out_flash_addr] && ram_address < vram_end[out_flash_addr] && ram_we;
 
 wire [10:0]vram_read_address;
 wire [7:0]vram_output;
 wire vram_read_clock;
 wire [3:0]config_byte;
 
-wire [10:0]vram_write_address = ram_address - vram_start[config_byte];
+wire [10:0]vram_write_address = ram_address - vram_start[out_flash_addr];
 
 // include dual ported ram for the vram section
 simple_ram_dual_clock #(8, 11)
