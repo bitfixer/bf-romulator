@@ -17,6 +17,20 @@
 // console.cpp - debug console for ROMulator
 #include "libRomulatorDebug.h"
 #include <wiringPi.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <string.h>
+#include <time.h>
+
+// hardware SPI pins
+#define PI_ICE_MISO         19
+#define PI_ICE_CLK          23
+#define PI_ICE_CDONE        11
+
+#define PI_ICE_CRESET       22
+#define PI_ICE_MOSI         21
+#define PI_DEBUG_CS         36
 
 typedef enum _action
 {
@@ -82,9 +96,9 @@ int main(int argc, char** argv)
     if (a == READ)
     {
         uint8_t buffer[65536];
-        halt_cpu();
-        bool read_success = read_memory(buffer, 5);
-        start_cpu();
+        romulatorHaltCpu();
+        bool read_success = romulatorReadMemory(buffer, 5);
+        romulatorStartCpu();
 
         if (!read_success)
         {
@@ -98,39 +112,7 @@ int main(int argc, char** argv)
         uint8_t send_buffer[65536];
         fread(send_buffer, 1, 65536, fp);
 
-        uint32_t calc_crc = 0;
-        crc32(send_buffer, 65536, &calc_crc);
-        fprintf(stderr, "send calc crc: %X\n", calc_crc);
-
-        // send command to halt CPU
-        halt_cpu();
-
-        // write memory map
-        xfer(0x99);
-        
-        uint8_t send_byte;
-        for (uint32_t i = 0; i < 65536; i++)
-        {
-            send_byte = send_buffer[i];
-            uint8_t byte = xfer(send_byte);
-        }
-
-        xfer(0x55);
-        if (verify)
-        {
-            uint8_t buffer[65536];
-            if (!romulatorReadMemory(buffer, 5))
-            {
-                fprintf(stderr, "read error during verify.\n");
-            }
-
-            if (memcmp(send_buffer, buffer, 65536) != 0)
-            {
-                fprintf(stderr, "write error, mismatch.\n");
-            }
-        }
-
-        start_cpu();
+        romulatorWriteMemory(send_buffer, true);
     }
     else if (a == CONFIG) 
     {
@@ -143,7 +125,7 @@ int main(int argc, char** argv)
         int retries = 0;
         uint8_t vram[1024];
         int valid_bytes = 1000;
-        romulatorReadVram(vram, 1024, valid_bytes);
+        romulatorReadVram(vram, 1024, valid_bytes, 5);
         fwrite(vram, 1, valid_bytes, stdout);
     }
 

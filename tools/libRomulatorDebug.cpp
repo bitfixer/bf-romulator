@@ -1,5 +1,9 @@
 #include "libRomulatorDebug.h"
 #include <wiringPi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 // hardware SPI pins
 #define PI_ICE_MISO         19
@@ -103,13 +107,13 @@ void xfer_buffer(uint8_t* buffer, int size)
     fprintf(stderr, "end transfer of %d bytes\n", size);
 }
 
-void halt_cpu()
+void romulatorHaltCpu()
 {
     // send command to halt CPU
     xfer(0xAA);
 }
 
-void start_cpu()
+void romulatorStartCpu()
 {
     xfer(0x55);
 }
@@ -117,6 +121,43 @@ void start_cpu()
 void start_vram_read()
 {
     xfer(0x88);
+}
+
+void romulatorWriteMemory(uint8_t* send_buffer, bool verify)
+{
+    uint32_t calc_crc = 0;
+    crc32(send_buffer, 65536, &calc_crc);
+    fprintf(stderr, "send calc crc: %X\n", calc_crc);
+
+    // send command to halt CPU
+    romulatorHaltCpu();
+
+    // write memory map
+    xfer(0x99);
+    
+    uint8_t send_byte;
+    for (uint32_t i = 0; i < 65536; i++)
+    {
+        send_byte = send_buffer[i];
+        uint8_t byte = xfer(send_byte);
+    }
+
+    xfer(0x55);
+    if (verify)
+    {
+        uint8_t buffer[65536];
+        if (!romulatorReadMemory(buffer, 5))
+        {
+            fprintf(stderr, "read error during verify.\n");
+        }
+
+        if (memcmp(send_buffer, buffer, 65536) != 0)
+        {
+            fprintf(stderr, "write error, mismatch.\n");
+        }
+    }
+
+    romulatorStartCpu();
 }
 
 bool romulatorReadMemory(uint8_t* buffer, int retries)
@@ -211,10 +252,11 @@ uint8_t romulatorReadConfig()
     return byte;
 }
 
-bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes)
+bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)
 {
     int byte = 0;
     start_vram_read();
+    bool read_success = true;
     while (byte < size)
     {
         //fprintf(stderr, "byte %d\n", byte);
@@ -242,7 +284,10 @@ bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes)
                 retries = 0;
                 xfer(0);
                 byte += 8;
+                read_success = false;
             }
         }
     }
+
+    return read_success;
 }
