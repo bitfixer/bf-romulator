@@ -110,7 +110,7 @@ int main(int argc, char** argv)
 void startServer(char *port)
 {
     struct addrinfo hints, *res, *p;
-
+    
     // getaddrinfo for host
     memset (&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
@@ -161,25 +161,31 @@ int get_screen_image()
     return -1;
 }
 
-void getBmpImage(uint8_t* bmpBuffer)
+void getBmpImage(uint8_t* bmpBuffer, int pos)
 {
+    int width = 320;
+    int height = 200;
     uint8_t bitmap[64000];
     uint8_t val = 0;
-    for (int i = 0; i < 64000; i++)
+    int index = 0;
+
+    int ww = pos % width;
+    for (int h = 0; h < height; h++)
     {
-        bitmap[i] = val;
-        if (val == 0)
+        for (int w = 0; w < width; w++)
         {
-            val = 255;
-        }
-        else
-        {
-            val = 0;
+            if (w >= ww && w < ww + 10)
+            {
+                bitmap[index] = 255;
+            }
+            else
+            {
+                bitmap[index] = 0;
+            }
+            index++;
         }
     }
 
-    int width = 320;
-    int height = 200;
     uint8_t rgbbitmap[192000];
     int rgbindex = 0;
     for (int i = 0; i < 64000; i++)
@@ -247,7 +253,7 @@ void respond(int n)
                 printf("file: %s\n", path);
 
                 // handle specific paths
-                if (strstr(path, "romulator")) {
+                if (strstr(path, "romulator.")) {
                     fprintf(stderr, "romulator path\n");
 
                     if (strstr(path, ".png"))
@@ -275,7 +281,7 @@ void respond(int n)
                         int bmpSize = bmpGetFileSize(200, 320);
                         uint8_t* bmp = (uint8_t*)malloc(bmpSize);
 
-                        getBmpImage(bmp);
+                        getBmpImage(bmp, n);
 
                         FILE* fp = fopen("test.bmp", "wb");
                         fwrite(bmp, 1, bmpSize, fp);
@@ -304,7 +310,8 @@ void respond(int n)
                 {
                     if ( (fd=open(path, O_RDONLY))!=-1 )    //FILE FOUND
                     {
-                        send(clients[n], "HTTP/1.0 200 OK\n\n", 17, 0);
+                        send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
+                        sendStringToClient(clients[n], "Content-Type: text/html\n\n");
                         while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
                         {
                             write (clients[n], data_to_send, bytes_read);

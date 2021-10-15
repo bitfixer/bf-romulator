@@ -1,0 +1,11 @@
+<html>
+<img src="romulator.bmp" id="screenImage" />
+
+<script>
+    setInterval(function() {
+        var myImageElement = document.getElementById('screenImage');
+        myImageElement.src = 'romulator.bmp?rand=' + Math.random();
+    }, 33);
+</script>
+
+</html>
