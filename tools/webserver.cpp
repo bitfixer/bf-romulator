@@ -19,7 +19,7 @@
 char *ROOT;
 int listenfd, clients[CONNMAX];
 void startServer(char *);
-void respond(int);
+void respond(int, int);
 
 void error(char* str) {
     fprintf(stderr, "%s\n", str);
@@ -81,6 +81,7 @@ int main(int argc, char** argv)
     fprintf(stderr, "server started\n");
 
     // ACCEPT connections
+    int ii = 0;
     while (1)
     {
         addrlen = sizeof(clientaddr);
@@ -90,11 +91,15 @@ int main(int argc, char** argv)
             error ("accept() error");
         else
         {
+            /*
             if ( fork()==0 )
             {
                 respond(slot);
                 exit(0);
             }
+            */
+
+            respond(slot, ii++);
         }
 
         while (clients[slot]!=-1) slot = (slot+1)%CONNMAX;
@@ -214,7 +219,7 @@ void sendStringToClient(int client, char* string)
 
 
 //client connection
-void respond(int n)
+void respond(int n, int tmp)
 {
     char mesg[99999], *reqline[3], data_to_send[BYTES], path[99999];
     int rcvd, fd, bytes_read;
@@ -281,7 +286,7 @@ void respond(int n)
                         int bmpSize = bmpGetFileSize(200, 320);
                         uint8_t* bmp = (uint8_t*)malloc(bmpSize);
 
-                        getBmpImage(bmp, n);
+                        getBmpImage(bmp, tmp);
 
                         FILE* fp = fopen("test.bmp", "wb");
                         fwrite(bmp, 1, bmpSize, fp);
