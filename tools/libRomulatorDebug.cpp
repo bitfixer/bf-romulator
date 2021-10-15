@@ -14,6 +14,32 @@
 #define PI_ICE_MOSI         21
 #define PI_DEBUG_CS         36
 
+void reset_inout()
+{
+    pinMode(PI_ICE_CLK,         INPUT);
+    pinMode(PI_ICE_MOSI,        INPUT);
+    pinMode(PI_ICE_MISO,        INPUT);
+    pinMode(PI_DEBUG_CS,        OUTPUT);
+}
+
+void romulatorInit()
+{
+    wiringPiSetupPhys();
+    reset_inout();
+
+    int start = millis();
+
+    pinMode(PI_DEBUG_CS,        OUTPUT);
+    digitalWrite(PI_DEBUG_CS,   HIGH);
+    pinMode(PI_ICE_CLK,         OUTPUT);
+    digitalWrite(PI_ICE_CLK,    LOW);
+}
+
+void romulatorClose()
+{
+    reset_inout();
+}
+
 void spi_begin()
 {
     digitalWrite(PI_DEBUG_CS, LOW);

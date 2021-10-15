@@ -10,6 +10,9 @@
 #include <signal.h>
 #include <fcntl.h>
 
+//#include "libRomulatorDebug.h"
+#include "libbmp.h"
+
 #define CONNMAX 1000
 #define BYTES 1024
 
@@ -97,6 +100,9 @@ int main(int argc, char** argv)
         while (clients[slot]!=-1) slot = (slot+1)%CONNMAX;
     }
 
+    // initialize romulator connection
+    //romulatorInit();
+
     return 0;
 }
 
@@ -145,10 +151,54 @@ int get_screen_image()
 
     // use console to get memory dump
     //system("bin/console -r > memory.bin");
+    /*
     system("bin/console -s > screen.bin");
     system("bin/make_screen_image -r roms/characters-2.901447-10.bin -o 0 -m 1024 -c 40 < screen.bin > out.ppm");
     system("convert out.ppm out.png");
     return open("out.png", O_RDONLY);
+    */
+
+    return -1;
+}
+
+void getBmpImage(uint8_t* bmpBuffer)
+{
+    uint8_t bitmap[64000];
+    uint8_t val = 0;
+    for (int i = 0; i < 64000; i++)
+    {
+        bitmap[i] = val;
+        if (val == 0)
+        {
+            val = 255;
+        }
+        else
+        {
+            val = 0;
+        }
+    }
+
+    int width = 320;
+    int height = 200;
+    uint8_t rgbbitmap[192000];
+    int rgbindex = 0;
+    for (int i = 0; i < 64000; i++)
+    {
+        uint8_t v = bitmap[i];
+        rgbbitmap[rgbindex] = v;
+        rgbbitmap[rgbindex+1] = v;
+        rgbbitmap[rgbindex+2] = v;
+        rgbindex += 3;
+    }
+
+    // now create bitmap image
+
+    generateBitmapImageToMemory(rgbbitmap, height, width, bmpBuffer);
+
+    //char* imageFileName = (char*) "bitmapImage.bmp";
+    //generateBitmapImage((unsigned char*) rgbbitmap, height, width, imageFileName);
+
+    //return open(imageFileName, O_RDONLY);
 }
 
 void sendStringToClient(int client, char* string)
@@ -170,7 +220,7 @@ void respond(int n)
     if (rcvd<0)    // receive error
         fprintf(stderr,("recv() error\n"));
     else if (rcvd==0)    // receive socket closed
-        fprintf(stderr,"Client disconnected upexpectedly.\n");
+        fprintf(stderr,"Client disconnected unexpectedly.\n");
     else    // message received
     {
         printf("%s", mesg);
@@ -219,6 +269,31 @@ void respond(int n)
                         {
                             write(clients[n], "HTTP/1.0 404 Not Found\n", 23); //FILE NOT FOUND
                         }
+                    }
+                    else if (strstr(path, ".bmp"))
+                    {
+                        int bmpSize = bmpGetFileSize(200, 320);
+                        uint8_t* bmp = (uint8_t*)malloc(bmpSize);
+
+                        getBmpImage(bmp);
+
+                        FILE* fp = fopen("test.bmp", "wb");
+                        fwrite(bmp, 1, bmpSize, fp);
+                        fclose(fp);
+
+                        sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
+                        sendStringToClient(clients[n], "Content-Type: image/bmp\n\n");
+
+                        int bytesToWrite = bmpSize;
+                        uint8_t* bmpPtr = bmp;
+                        while (bytesToWrite > 0)
+                        {
+                            ssize_t res = write(clients[n], bmpPtr, bytesToWrite >= 1024 ? 1024 : bytesToWrite);
+                            bmpPtr += res;
+                            bytesToWrite -= res;
+                        }
+
+                        free(bmp);
                     }
                     else
                     {

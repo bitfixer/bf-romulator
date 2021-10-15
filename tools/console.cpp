@@ -40,14 +40,6 @@ typedef enum _action
     VRAM
 } Action;
 
-void reset_inout()
-{
-    pinMode(PI_ICE_CLK,     INPUT);
-    pinMode(PI_ICE_MOSI,    INPUT);
-    pinMode(PI_ICE_MISO,    INPUT);
-    pinMode(PI_DEBUG_CS,      OUTPUT);
-}
-
 int main(int argc, char** argv)
 {
     int opt;
@@ -83,15 +75,9 @@ int main(int argc, char** argv)
         }
     }
 
-    wiringPiSetupPhys();
-    reset_inout();
+    romulatorInit();
 
     int start = millis();
-
-    pinMode(PI_DEBUG_CS,      OUTPUT);
-    digitalWrite(PI_DEBUG_CS, HIGH);
-    pinMode(PI_ICE_CLK,     OUTPUT);
-    digitalWrite(PI_ICE_CLK, LOW);
 
     if (a == READ)
     {
@@ -129,8 +115,8 @@ int main(int argc, char** argv)
         fwrite(vram, 1, valid_bytes, stdout);
     }
 
-    reset_inout();
     int end = millis();
+    romulatorClose();
     float elapsed = (float)(end - start) / 1000.0;
     fprintf(stderr, "transfer took %f seconds.\n", elapsed);
 }

@@ -84,8 +84,8 @@ fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 	#cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
 	cd $(ROMS_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
 
-$(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(BIN_DIR)/console $(BIN_DIR)/make_screen_image
-	g++ -o $(BIN_DIR)/webserver $(TOOLS_DIR)/webserver.cpp
+$(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp
+	g++ -o $(BIN_DIR)/webserver $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp
 
 .PHONY: webserver
 webserver: $(BIN_DIR)/webserver
