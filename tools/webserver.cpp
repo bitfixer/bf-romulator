@@ -10,7 +10,12 @@
 #include <signal.h>
 #include <fcntl.h>
 
-//#include "libRomulatorDebug.h"
+#define TEST 1
+
+#ifndef TEST
+#include "libRomulatorDebug.h"
+#endif
+
 #include "libbmp.h"
 
 #define CONNMAX 1000
@@ -80,6 +85,11 @@ int main(int argc, char** argv)
 
     fprintf(stderr, "server started\n");
 
+    // initialize romulator connection
+    #ifndef TEST
+    romulatorInit();
+    #endif
+
     // ACCEPT connections
     int ii = 0;
     while (1)
@@ -104,9 +114,6 @@ int main(int argc, char** argv)
 
         while (clients[slot]!=-1) slot = (slot+1)%CONNMAX;
     }
-
-    // initialize romulator connection
-    //romulatorInit();
 
     return 0;
 }
@@ -191,6 +198,13 @@ void getBmpImage(uint8_t* bmpBuffer, int pos)
         }
     }
 
+    uint8_t vram[1024];
+    // get vram from romulator
+    romulatorReadVram(vram, 1024, 1000, 5);
+
+    // convert vram into a bitmap
+    
+
     uint8_t rgbbitmap[192000];
     int rgbindex = 0;
     for (int i = 0; i < 64000; i++)
@@ -205,11 +219,6 @@ void getBmpImage(uint8_t* bmpBuffer, int pos)
     // now create bitmap image
 
     generateBitmapImageToMemory(rgbbitmap, height, width, bmpBuffer);
-
-    //char* imageFileName = (char*) "bitmapImage.bmp";
-    //generateBitmapImage((unsigned char*) rgbbitmap, height, width, imageFileName);
-
-    //return open(imageFileName, O_RDONLY);
 }
 
 void sendStringToClient(int client, char* string)

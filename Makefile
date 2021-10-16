@@ -45,9 +45,9 @@ $(BIN_DIR)/console: $(PROGRAMMER_DIR)/console.cc
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/console -lwiringPi $(PROGRAMMER_DIR)/console.cc
 
-$(BIN_DIR)/make_screen_image: $(PROGRAMMER_DIR)/make_screen_image.cpp
+$(BIN_DIR)/make_screen_image: $(TOOLS_DIR)/make_screen_image.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
 	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/make_screen_image $(PROGRAMMER_DIR)/make_screen_image.cpp
+	g++ -o $(BIN_DIR)/make_screen_image $(TOOLS_DIR)/make_screen_image.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
 
 $(BIN_DIR)/make_test_vram: $(PROGRAMMER_DIR)/make_test_vram.cpp
 	mkdir -p $(BIN_DIR)
