@@ -16,6 +16,7 @@
 #include "libRomulatorDebug.h"
 #endif
 
+#include "libRomulatorVram.h"
 #include "libbmp.h"
 
 #define CONNMAX 1000
@@ -23,6 +24,11 @@
 
 char *ROOT;
 int listenfd, clients[CONNMAX];
+char characterRomName[1024];
+uint8_t* characterRom;
+uint8_t rgbbitmap[192000];
+uint8_t bitmap[64000];
+
 void startServer(char *);
 void respond(int, int);
 
@@ -42,19 +48,18 @@ int main(int argc, char** argv)
 {
     struct sockaddr_in clientaddr;
     socklen_t addrlen;
-    int c;    
+    int c;
     
     //Default Values PATH = ~/ and PORT=10000
     char PORT[6];
     ROOT = getenv("PWD");
     strcpy(PORT,"10000");
-
     int slot=0;
-
-    fprintf(stderr, "here\n");
+    memset(characterRomName, 0, 1024);
+    characterRom = NULL;
 
     //Parsing the command line arguments
-    while ((c = getopt(argc, argv, "p:r:")) != -1)
+    while ((c = getopt(argc, argv, "p:r:c:")) != -1)
     {
         switch (c)
         {
@@ -68,6 +73,10 @@ int main(int argc, char** argv)
             case '?':
                 fprintf(stderr,"Wrong arguments given!!!\n");
                 exit(1);
+            case 'c':
+                // character rom
+                strcpy(characterRomName, optarg);
+                break;
             default:
                 fprintf(stderr, "default\n");
                 exit(1);
@@ -177,7 +186,8 @@ void getBmpImage(uint8_t* bmpBuffer, int pos)
 {
     int width = 320;
     int height = 200;
-    uint8_t bitmap[64000];
+
+    /*
     uint8_t val = 0;
     int index = 0;
 
@@ -197,27 +207,86 @@ void getBmpImage(uint8_t* bmpBuffer, int pos)
             index++;
         }
     }
+    */
 
     uint8_t vram[1024];
+
+    #ifdef TEST
+    // fill screen with characters
+    uint8_t v = 0;
+    for (int i = 0; i < 1024; i++)
+    {
+        vram[i] = v++;
+    }
+    #else
     // get vram from romulator
     romulatorReadVram(vram, 1024, 1000, 5);
-
+    #endif
     // convert vram into a bitmap
-    
 
-    uint8_t rgbbitmap[192000];
+    if (characterRom == NULL)
+    {
+        // read character rom from file
+        FILE* fp = fopen(characterRomName, "rb");
+        fseek(fp, 0, SEEK_END);
+        int size = (int)ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        characterRom = (uint8_t*)malloc(size);
+        fread(characterRom, 1, size, fp);
+        fclose(fp);
+    }
+
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "vram %d %02X\n", i, vram[i]);
+    }
+
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "crom %d %02X\n", i, characterRom[i]);
+    }
+
+    romulatorVramToBitmap(vram, characterRom, 40, 25, 8, 8, bitmap);
+
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "bmp %d %02X\n", i, bitmap[i]);
+    }
+    
+    /*
     int rgbindex = 0;
     for (int i = 0; i < 64000; i++)
     {
         uint8_t v = bitmap[i];
+        if (v != 0) v = 255;
+
         rgbbitmap[rgbindex] = v;
         rgbbitmap[rgbindex+1] = v;
         rgbbitmap[rgbindex+2] = v;
         rgbindex += 3;
     }
+    */
+
+    int rgbindex = 0;
+    for (int h = 0; h < height; h++)
+    {
+        int bmp_h = height - 1 - h;
+        for (int w = 0; w < width; w++)
+        {
+            int bmp_index = (bmp_h * width) + w;
+
+            uint8_t v = bitmap[bmp_index];
+            if (v != 0) v = 255;
+
+            rgbbitmap[rgbindex] = v;
+            rgbbitmap[rgbindex+1] = v;
+            rgbbitmap[rgbindex+2] = v;
+            rgbindex += 3;
+        }
+    }
 
     // now create bitmap image
-
     generateBitmapImageToMemory(rgbbitmap, height, width, bmpBuffer);
 }
 
