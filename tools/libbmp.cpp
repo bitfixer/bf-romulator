@@ -78,27 +78,26 @@ void generateBitmapImageToMemory (unsigned char* image, int height, int width, u
     int paddingSize = (4 - (widthInBytes) % 4) % 4;
 
     int stride = (widthInBytes) + paddingSize;
-
-    //FILE* imageFile = fopen(imageFileName, "wb");
     unsigned char* imagePtr = imageBuffer;
 
     unsigned char* fileHeader = createBitmapFileHeader(height, stride);
-    //fwrite(fileHeader, 1, FILE_HEADER_SIZE, imageFile);
     memcpy(imagePtr, fileHeader, FILE_HEADER_SIZE);
     imagePtr += FILE_HEADER_SIZE;
 
     unsigned char* infoHeader = createBitmapInfoHeader(height, width);
-    //fwrite(infoHeader, 1, INFO_HEADER_SIZE, imageFile);
     memcpy(imagePtr, infoHeader, INFO_HEADER_SIZE);
     imagePtr += INFO_HEADER_SIZE;
 
     int i;
-    for (i = 0; i < height; i++) {
-        //fwrite(image + (i*widthInBytes), BYTES_PER_PIXEL, width, imageFile);
+
+    // flip lines vertically
+    // bmp starts with the bottom line and goes up
+    //for (i = 0; i < height; i++) {
+    for (i = height - 1; i >= 0; i--) 
+    {
         memcpy(imagePtr, image + (i*widthInBytes), BYTES_PER_PIXEL*width);
         imagePtr += BYTES_PER_PIXEL*width;
 
-        //fwrite(padding, 1, paddingSize, imageFile);
         memcpy(imagePtr, padding, paddingSize);
         imagePtr += paddingSize;
     }

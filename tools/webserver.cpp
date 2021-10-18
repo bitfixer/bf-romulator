@@ -103,6 +103,7 @@ int main(int argc, char** argv)
     int ii = 0;
     while (1)
     {
+        printf("slot %d\n", slot);
         addrlen = sizeof(clientaddr);
         clients[slot] = accept (listenfd, (struct sockaddr *) &clientaddr, &addrlen);
 
@@ -123,6 +124,8 @@ int main(int argc, char** argv)
 
         while (clients[slot]!=-1) slot = (slot+1)%CONNMAX;
     }
+
+    printf("done.\n");
 
     return 0;
 }
@@ -182,38 +185,70 @@ int get_screen_image()
     return -1;
 }
 
-void getBmpImage(uint8_t* bmpBuffer, int pos)
+void write_ppm_header(int width, int height, FILE* fp)
 {
-    int width = 320;
-    int height = 200;
+    fprintf(fp, "P6\n");
+    fprintf(fp, "%d %d\n", width, height);
+    fprintf(fp, "255\n");
+}
 
-    /*
-    uint8_t val = 0;
-    int index = 0;
+void write_pixel(uint8_t r, uint8_t g, uint8_t b, FILE* fp)
+{
+    //printf("%d %d %d ", r, g, b);
+    fwrite(&r, 1, 1, fp);
+    fwrite(&g, 1, 1, fp);
+    fwrite(&b, 1, 1, fp);
+}
 
-    int ww = pos % width;
+void draw_bitmap(uint8_t* bitmap, int image_width, int image_height, FILE* fp)
+{
+    write_ppm_header(image_width, image_height, fp);
+    for (int y = 0; y < image_height; y++)
+    {
+        for (int x = 0; x < image_width; x++)
+        {
+            int pixel_index = (y * image_width) + x;
+            if (bitmap[pixel_index] == 0)
+            {
+                write_pixel(0, 0, 0, fp);
+            }
+            else
+            {
+                write_pixel(255, 255, 255, fp);
+            }
+        }
+    }
+}
+
+void convertMonoToRGBBitmap(uint8_t* monoBitmap, uint8_t* rgbBitmap, int width, int height)
+{
+    int rgbindex = 0;
     for (int h = 0; h < height; h++)
     {
         for (int w = 0; w < width; w++)
         {
-            if (w >= ww && w < ww + 10)
-            {
-                bitmap[index] = 255;
-            }
-            else
-            {
-                bitmap[index] = 0;
-            }
-            index++;
+            int bmp_index = (h * width) + w;
+
+            uint8_t v = monoBitmap[bmp_index];
+            if (v != 0) v = 255;
+
+            rgbBitmap[rgbindex] = v;
+            rgbBitmap[rgbindex+1] = v;
+            rgbBitmap[rgbindex+2] = v;
+            rgbindex += 3;
         }
     }
-    */
+}
 
+void getBmpImage(uint8_t* bmpBuffer, int pos)
+{
+    int width = 320;
+    int height = 200;
     uint8_t vram[1024];
 
     #ifdef TEST
     // fill screen with characters
-    uint8_t v = 0;
+    uint8_t v = pos % 256;
     for (int i = 0; i < 1024; i++)
     {
         vram[i] = v++;
@@ -237,55 +272,8 @@ void getBmpImage(uint8_t* bmpBuffer, int pos)
         fclose(fp);
     }
 
-    for (int i = 0; i < 10; i++)
-    {
-        fprintf(stderr, "vram %d %02X\n", i, vram[i]);
-    }
-
-    for (int i = 0; i < 10; i++)
-    {
-        fprintf(stderr, "crom %d %02X\n", i, characterRom[i]);
-    }
-
-    romulatorVramToBitmap(vram, characterRom, 40, 25, 8, 8, bitmap);
-
-    for (int i = 0; i < 10; i++)
-    {
-        fprintf(stderr, "bmp %d %02X\n", i, bitmap[i]);
-    }
-    
-    /*
-    int rgbindex = 0;
-    for (int i = 0; i < 64000; i++)
-    {
-        uint8_t v = bitmap[i];
-        if (v != 0) v = 255;
-
-        rgbbitmap[rgbindex] = v;
-        rgbbitmap[rgbindex+1] = v;
-        rgbbitmap[rgbindex+2] = v;
-        rgbindex += 3;
-    }
-    */
-
-    int rgbindex = 0;
-    for (int h = 0; h < height; h++)
-    {
-        int bmp_h = height - 1 - h;
-        for (int w = 0; w < width; w++)
-        {
-            int bmp_index = (bmp_h * width) + w;
-
-            uint8_t v = bitmap[bmp_index];
-            if (v != 0) v = 255;
-
-            rgbbitmap[rgbindex] = v;
-            rgbbitmap[rgbindex+1] = v;
-            rgbbitmap[rgbindex+2] = v;
-            rgbindex += 3;
-        }
-    }
-
+    romulatorVramToBitmap(vram, characterRom, 25, 40, 8, 8, bitmap);
+    convertMonoToRGBBitmap(bitmap, rgbbitmap, width, height);
     // now create bitmap image
     generateBitmapImageToMemory(rgbbitmap, height, width, bmpBuffer);
 }
@@ -383,6 +371,8 @@ void respond(int n, int tmp)
                         }
 
                         free(bmp);
+
+                        printf("done with %s\n", path);
                     }
                     else
                     {
@@ -413,4 +403,5 @@ void respond(int n, int tmp)
     shutdown (clients[n], SHUT_RDWR);         //All further send and recieve operations are DISABLED...
     close(clients[n]);
     clients[n]=-1;
+    printf("closing socket\n");
 }
