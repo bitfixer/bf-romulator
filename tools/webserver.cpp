@@ -19,7 +19,7 @@
 #include "libRomulatorVram.h"
 #include "libbmp.h"
 
-#define CONNMAX 1000
+#define CONNMAX 5
 #define BYTES 1024
 
 char *ROOT;
@@ -28,9 +28,10 @@ char characterRomName[1024];
 uint8_t* characterRom;
 uint8_t rgbbitmap[192000];
 uint8_t bitmap[64000];
+uint8_t* bmpImage;
 
 void startServer(char *);
-void respond(int, int);
+void respond(int, int, int*);
 
 void error(char* str) {
     fprintf(stderr, "%s\n", str);
@@ -57,6 +58,7 @@ int main(int argc, char** argv)
     int slot=0;
     memset(characterRomName, 0, 1024);
     characterRom = NULL;
+    bmpImage = NULL;
 
     //Parsing the command line arguments
     while ((c = getopt(argc, argv, "p:r:c:")) != -1)
@@ -86,9 +88,9 @@ int main(int argc, char** argv)
     fprintf(stderr, "Server started at port no. %s with root directory as %s\n",PORT,ROOT);
     // Setting all elements to -1: signifies there is no client connected
     int i;
-    for (i=0; i<CONNMAX; i++)
+    for (i=0; i < CONNMAX; i++)
     {
-        clients[i]=-1;
+        clients[i] = -1;
     }
     startServer(PORT);
 
@@ -99,34 +101,28 @@ int main(int argc, char** argv)
     romulatorInit();
     #endif
 
+    signal(SIGPIPE, SIG_IGN);
+
     // ACCEPT connections
     int ii = 0;
     while (1)
     {
-        printf("slot %d\n", slot);
+        //printf("start request slot %d\n", slot);
         addrlen = sizeof(clientaddr);
+
         clients[slot] = accept (listenfd, (struct sockaddr *) &clientaddr, &addrlen);
 
-        if (clients[slot]<0)
+        if (clients[slot] < 0)
             error ("accept() error");
         else
         {
-            /*
-            if ( fork()==0 )
-            {
-                respond(slot);
-                exit(0);
-            }
-            */
-
-            respond(slot, ii++);
+            // single threaded handler
+            respond(slot, ii, &clients[slot]);
+            ii++;
         }
 
         while (clients[slot]!=-1) slot = (slot+1)%CONNMAX;
     }
-
-    printf("done.\n");
-
     return 0;
 }
 
@@ -285,7 +281,7 @@ void sendStringToClient(int client, char* string)
 
 
 //client connection
-void respond(int n, int tmp)
+void respond(int n, int tmp, int* cc)
 {
     char mesg[99999], *reqline[3], data_to_send[BYTES], path[99999];
     int rcvd, fd, bytes_read;
@@ -300,7 +296,7 @@ void respond(int n, int tmp)
         fprintf(stderr,"Client disconnected unexpectedly.\n");
     else    // message received
     {
-        printf("%s", mesg);
+        //printf("%s\n", mesg);
         reqline[0] = strtok (mesg, " \t\n");
         if ( strncmp(reqline[0], "GET\0", 4)==0 )
         {
@@ -317,15 +313,15 @@ void respond(int n, int tmp)
                     //reqline[1] = "/index.html";
                 }
 
-                fprintf(stderr, "requested path: %s\n", reqline[1]);
+                //fprintf(stderr, "requested path: %s\n", reqline[1]);
 
                 strcpy(path, ROOT);
                 strcpy(&path[strlen(ROOT)], reqline[1]);
-                printf("file: %s\n", path);
+                //printf("file: %s\n", path);
 
                 // handle specific paths
                 if (strstr(path, "romulator.")) {
-                    fprintf(stderr, "romulator path\n");
+                    //fprintf(stderr, "romulator path\n");
 
                     if (strstr(path, ".png"))
                     {
@@ -350,29 +346,39 @@ void respond(int n, int tmp)
                     else if (strstr(path, ".bmp"))
                     {
                         int bmpSize = bmpGetFileSize(200, 320);
-                        uint8_t* bmp = (uint8_t*)malloc(bmpSize);
+                        //uint8_t* bmp = (uint8_t*)malloc(bmpSize);
 
-                        getBmpImage(bmp, tmp);
+                        if (bmpImage == NULL)
+                        {
+                            bmpImage = (uint8_t*)malloc(bmpSize);
+                        }
+
+                        getBmpImage(bmpImage, tmp);
 
                         FILE* fp = fopen("test.bmp", "wb");
-                        fwrite(bmp, 1, bmpSize, fp);
+                        fwrite(bmpImage, 1, bmpSize, fp);
                         fclose(fp);
-
+                        
+                        //char tmp[1024];
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: image/bmp\n\n");
+                        //sprintf(tmp, "Content-Length: %d\n\n", bmpSize);
+                        //sendStringToClient(clients[n], tmp);
 
                         int bytesToWrite = bmpSize;
-                        uint8_t* bmpPtr = bmp;
+                        uint8_t* bmpPtr = bmpImage;
                         while (bytesToWrite > 0)
                         {
                             ssize_t res = write(clients[n], bmpPtr, bytesToWrite >= 1024 ? 1024 : bytesToWrite);
+                            if (res == -1)
+                            {
+                                printf("**** broken pipe\n");
+                                break;
+                            }
+                            //printf("res %d btw %d\n", res, bytesToWrite);
                             bmpPtr += res;
                             bytesToWrite -= res;
                         }
-
-                        free(bmp);
-
-                        printf("done with %s\n", path);
                     }
                     else
                     {
@@ -400,8 +406,10 @@ void respond(int n, int tmp)
     }
 
     //Closing SOCKET
-    shutdown (clients[n], SHUT_RDWR);         //All further send and recieve operations are DISABLED...
-    close(clients[n]);
-    clients[n]=-1;
-    printf("closing socket\n");
+        
+        shutdown (clients[n], SHUT_RDWR);         //All further send and recieve operations are DISABLED...
+        close(clients[n]);
+        clients[n] = -1;
+
+    //printf("closing socket slot %d, %d\n", n, clients[n]);
 }
