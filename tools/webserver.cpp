@@ -12,7 +12,7 @@
 
 #include <png.h>
 
-#define TEST 1
+//#define TEST 1
 
 #ifndef TEST
 #include "libRomulatorDebug.h"
@@ -39,6 +39,8 @@ png_structp png_ptr;
 png_infop info_ptr;
 png_byte color_type;
 png_bytep* row_pointers;
+FILE* fp_png;
+int pngImageLoc;
 
 void startServer(char *);
 void respond(int, int, int*);
@@ -57,7 +59,16 @@ long getSize(FILE* fp)
 
 void png_init()
 {
-
+    int width = 320;
+    int height = 200;
+    // initialize row pointers, set them to the fixed rgb bitmap rows in memory
+    row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
+    png_bytep row = (png_bytep)rgbbitmap;
+    for (int i = 0; i < height; i++)
+    {
+        row_pointers[i] = row;
+        row += width * 3;
+    }
 }
 
 int main(int argc, char** argv)
@@ -296,8 +307,6 @@ void getBmpImage(uint8_t* bmpBuffer, int pos)
     generateBitmapImageToMemory(rgbbitmap, height, width, bmpBuffer);
 }
 
-
-
 void getPngImage(int pos)
 {
     int width = 320;
@@ -305,46 +314,34 @@ void getPngImage(int pos)
     
     getRGBBitmap(width, height, pos);
 
-    row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
-    png_bytep row = (png_bytep)rgbbitmap;
-    for (int i = 0; i < height; i++)
-    {
-        row_pointers[i] = row;
-        row += width * 3;
-    }
-
     color_type = PNG_COLOR_TYPE_RGB;
-
-    fprintf(stderr, "here\n");
-    //FILE *fp = fopen("test.png", "wb");
     FILE* fp = fmemopen(pngBuffer, 192000, "wb");
-
+    
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     info_ptr = png_create_info_struct(png_ptr);
 
-    setjmp(png_jmpbuf(png_ptr));
+
+    //setjmp(png_jmpbuf(png_ptr));
     png_init_io(png_ptr, fp);
 
-    setjmp(png_jmpbuf(png_ptr));
-
+    //setjmp(png_jmpbuf(png_ptr));
+    
     png_set_IHDR(png_ptr, info_ptr, width, height,
                      8, color_type, PNG_INTERLACE_NONE,
                      PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
     png_write_info(png_ptr, info_ptr);
-
-    if (setjmp(png_jmpbuf(png_ptr)))
-                fprintf(stderr,"[write_png_file] Error during writing bytes");
-
+    
+    //if (setjmp(png_jmpbuf(png_ptr)))
+    //            fprintf(stderr,"[write_png_file] Error during writing bytes");
     png_write_image(png_ptr, row_pointers);
 
     /* end write */
-        if (setjmp(png_jmpbuf(png_ptr)))
-                fprintf(stderr,"[write_png_file] Error during end of write");
+    //    if (setjmp(png_jmpbuf(png_ptr)))
+    //            fprintf(stderr,"[write_png_file] Error during end of write");
 
     png_write_end(png_ptr, NULL);
-
-    fprintf(stderr,"done1\n");
+    png_destroy_write_struct(&png_ptr, &info_ptr);
 
     pngLen = ftell(fp);
     fclose(fp);
@@ -355,6 +352,30 @@ void sendStringToClient(int client, char* string)
     send(client, string, strlen(string), 0);
 }
 
+bool sendBufferToClient(uint8_t* buffer, int length, int sendTo)
+{
+    int bytesToWrite = length;
+    uint8_t* bufPtr = buffer;
+    while (bytesToWrite > 0)
+    {
+        ssize_t res = write(sendTo, bufPtr, bytesToWrite >= 1024 ? 1024 : bytesToWrite);
+        if (res == -1)
+        {
+            printf("**** broken pipe\n");
+            break;
+        }
+        
+        bufPtr += res;
+        bytesToWrite -= res;
+    }
+
+    if (bytesToWrite == 0)
+    {
+        return true;
+    }
+
+    return false;
+}
 
 //client connection
 void respond(int n, int tmp, int* cc)
@@ -440,6 +461,7 @@ void respond(int n, int tmp, int* cc)
                         //sprintf(tmp, "Content-Length: %d\n\n", bmpSize);
                         //sendStringToClient(clients[n], tmp);
 
+                        /*
                         int bytesToWrite = bmpSize;
                         uint8_t* bmpPtr = bmpImage;
                         while (bytesToWrite > 0)
@@ -454,6 +476,8 @@ void respond(int n, int tmp, int* cc)
                             bmpPtr += res;
                             bytesToWrite -= res;
                         }
+                        */
+                        sendBufferToClient(bmpImage, bmpSize, clients[n]);
                     }
                     else if (strstr(path, ".png"))
                     {
@@ -463,6 +487,7 @@ void respond(int n, int tmp, int* cc)
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: image/png\n\n");
 
+                        /*
                         int bytesToWrite = pngLen;
                         uint8_t* pngPtr = pngBuffer;
                         while (bytesToWrite > 0)
@@ -477,13 +502,8 @@ void respond(int n, int tmp, int* cc)
                             pngPtr += res;
                             bytesToWrite -= res;
                         }
-
-                        /*
-                        while ( (bytes_read = read(fd, data_to_send, BYTES))>0 )
-                        {
-                            write (clients[n], data_to_send, bytes_read);
-                        }
                         */
+                        sendBufferToClient(pngBuffer, pngLen, clients[n]);
                     }
                     else
                     {
