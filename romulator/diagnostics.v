@@ -144,6 +144,7 @@ begin
                 parity_sent <= 0;
                 send_parity <= 0;
                 vram_read_clock <= 1;
+                vram_address <= 0;
                 state <= SEND_VRAM_BYTE;
             end
         end
@@ -172,8 +173,9 @@ begin
         begin
           state <= SEND_PARITY_BYTE;
         end
-        else if (vram_address == 0)
+        else if (vram_address == 1024)
         begin
+          vram_address <= 0;
           state <= RUNNING;
         end
         else 
