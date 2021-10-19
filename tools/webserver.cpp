@@ -503,6 +503,7 @@ void respond(int n, int tmp, int* cc)
                             bytesToWrite -= res;
                         }
                         */
+                        fprintf(stderr, "png %d\n", pngLen);
                         sendBufferToClient(pngBuffer, pngLen, clients[n]);
                     }
                     else
@@ -514,7 +515,8 @@ void respond(int n, int tmp, int* cc)
                 {
                     if ( (fd=open(path, O_RDONLY))!=-1 )    //FILE FOUND
                     {
-                        send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
+                        //send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
+                        sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: text/html\n\n");
                         while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
                         {
@@ -523,6 +525,7 @@ void respond(int n, int tmp, int* cc)
                     }
                     else
                     {
+                        fprintf(stderr, "not found\n");
                         write(clients[n], "HTTP/1.0 404 Not Found\n", 23); //FILE NOT FOUND
                     }
                 }
