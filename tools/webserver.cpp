@@ -20,6 +20,7 @@
 
 #include "libRomulatorVram.h"
 #include "libbmp.h"
+#include "../bf-shared/timer.hpp"
 
 #define CONNMAX 5
 #define BYTES 1024
@@ -123,6 +124,7 @@ int main(int argc, char** argv)
     fprintf(stderr, "server started\n");
 
     png_init();
+    Tools::Timer::startProgramTimer();
 
     // initialize romulator connection
     #ifndef TEST
@@ -481,8 +483,10 @@ void respond(int n, int tmp, int* cc)
                     }
                     else if (strstr(path, ".png"))
                     {
+                        unsigned int startMillis = Tools::Timer::millis();
                         getPngImage(tmp);
                         //int fd = open("test.png", O_RDONLY);
+                        unsigned int readDataMillis = Tools::Timer::millis();
 
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: image/png\n\n");
@@ -503,8 +507,15 @@ void respond(int n, int tmp, int* cc)
                             bytesToWrite -= res;
                         }
                         */
-                        fprintf(stderr, "png %d\n", pngLen);
+                        //fprintf(stderr, "png %d\n", pngLen);
                         sendBufferToClient(pngBuffer, pngLen, clients[n]);
+
+                        unsigned int sentDataMillis = Tools::Timer::millis();
+                        unsigned int dataReadTime = readDataMillis - startMillis;
+                        unsigned int sendTime = sentDataMillis - readDataMillis;
+                        unsigned int totalTime = sentDataMillis - startMillis;
+
+                        fprintf(stderr, "png time %d, read %d send %d\n", totalTime, dataReadTime, sendTime);
                     }
                     else
                     {

@@ -20,6 +20,7 @@ PROGRAMMER_DIR := programmer
 TOOLS_DIR := tools
 ROMULATOR_DIR := romulator
 ROMS_DIR := roms
+SHARED_DIR := bf-shared
 CONFIG := default
 MEMORY_SET := $(shell pwd)/$(TOOLS_DIR)/memory_set_$(CONFIG).csv
 ENABLE_TABLE := $(shell pwd)/$(TOOLS_DIR)/enable_table_$(CONFIG).csv
@@ -84,11 +85,11 @@ fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 	#cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
 	cd $(ROMS_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
 
-$(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
-	g++ -o $(BIN_DIR)/webserver -lwiringPi -lpng $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp
+$(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp
+	g++ -o $(BIN_DIR)/webserver -lwiringPi -lpng $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp $(SHARED_DIR)/timer.cpp 
 
-$(BIN_DIR)/webserver_test: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
-	g++ -o $(BIN_DIR)/webserver_test -lpng $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
+$(BIN_DIR)/webserver_test: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp
+	g++ -o $(BIN_DIR)/webserver_test $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp -lpng
 
 .PHONY: webserver
 webserver: $(BIN_DIR)/webserver
