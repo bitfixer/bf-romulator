@@ -86,7 +86,7 @@ fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 	cd $(ROMS_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
 
 $(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp
-	g++ -o $(BIN_DIR)/webserver -lwiringPi -lpng $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp $(SHARED_DIR)/timer.cpp 
+	g++ -o $(BIN_DIR)/webserver $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp $(SHARED_DIR)/timer.cpp -lwiringPi -lpng -lpthread
 
 $(BIN_DIR)/webserver_test: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp
 	g++ -o $(BIN_DIR)/webserver_test $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp -lpng

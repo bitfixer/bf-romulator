@@ -11,8 +11,11 @@
 #include <fcntl.h>
 
 #include <png.h>
+#include <thread>
+#include <mutex>
 
 //#define TEST 1
+#define IMAGETHREAD 1
 
 #ifndef TEST
 #include "libRomulatorDebug.h"
@@ -33,18 +36,21 @@ uint8_t rgbbitmap[192000];
 uint8_t bitmap[64000];
 uint8_t* bmpImage;
 
-uint8_t pngBuffer[192000];
-int pngLen;
+uint8_t pngBuffer[2][192000];
+int pngIndex;
+int pngLen[2];
 
 png_structp png_ptr;
 png_infop info_ptr;
 png_byte color_type;
 png_bytep* row_pointers;
-FILE* fp_png;
-int pngImageLoc;
+
+std::thread imageThread;
+std::mutex imageMutex;
 
 void startServer(char *);
 void respond(int, int, int*);
+void imageThreadRun();
 
 void error(char* str) {
     fprintf(stderr, "%s\n", str);
@@ -70,6 +76,8 @@ void png_init()
         row_pointers[i] = row;
         row += width * 3;
     }
+
+    pngIndex = 0;
 }
 
 int main(int argc, char** argv)
@@ -122,8 +130,11 @@ int main(int argc, char** argv)
     startServer(PORT);
 
     fprintf(stderr, "server started\n");
-
     png_init();
+
+    #ifdef IMAGETHREAD
+    std::thread imageThread(imageThreadRun);
+    #endif
     Tools::Timer::startProgramTimer();
 
     // initialize romulator connection
@@ -316,7 +327,7 @@ void getBmpImage(uint8_t* bmpBuffer, int pos)
         doneBmp - endBitmap);
 }
 
-void getPngImage(int pos)
+void getPngImage(int pos, uint8_t* buffer, int* len)
 {
     int width = 320;
     int height = 200;
@@ -326,7 +337,7 @@ void getPngImage(int pos)
     unsigned int endBitmap = Tools::Timer::millis();
 
     color_type = PNG_COLOR_TYPE_RGB;
-    FILE* fp = fmemopen(pngBuffer, 192000, "wb");
+    FILE* fp = fmemopen(buffer, 192000, "wb");
     
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     info_ptr = png_create_info_struct(png_ptr);
@@ -358,15 +369,17 @@ void getPngImage(int pos)
     png_write_end(png_ptr, NULL);
     png_destroy_write_struct(&png_ptr, &info_ptr);
 
-    pngLen = ftell(fp);
+    *len = ftell(fp);
     fclose(fp);
     unsigned int donePngWrite = Tools::Timer::millis();
 
+    /*
     fprintf(stderr, "png image bitmap %d header %d encode %d close %d\n",
         endBitmap - startBitmap,
         startPngWrite - endBitmap,
         endPngWrite - startPngWrite,
         donePngWrite - endPngWrite);
+    */
 }
 
 void sendStringToClient(int client, char* string)
@@ -508,31 +521,20 @@ void respond(int n, int tmp, int* cc)
                     else if (strstr(path, ".png"))
                     {
                         unsigned int startMillis = Tools::Timer::millis();
-                        getPngImage(tmp);
-                        //int fd = open("test.png", O_RDONLY);
+                        #ifndef IMAGETHREAD
+                        getPngImage(tmp, pngBuffer[pngIndex], &pngLen[pngIndex]);
+                        #endif
                         unsigned int readDataMillis = Tools::Timer::millis();
 
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: image/png\n\n");
 
-                        /*
-                        int bytesToWrite = pngLen;
-                        uint8_t* pngPtr = pngBuffer;
-                        while (bytesToWrite > 0)
                         {
-                            ssize_t res = write(clients[n], pngPtr, bytesToWrite >= 1024 ? 1024 : bytesToWrite);
-                            if (res == -1)
-                            {
-                                printf("**** broken pipe\n");
-                                break;
-                            }
-                            //printf("res %d btw %d\n", res, bytesToWrite);
-                            pngPtr += res;
-                            bytesToWrite -= res;
+                            #ifdef IMAGETHREAD
+                            std::lock_guard<std::mutex> guard(imageMutex);
+                            #endif
+                            sendBufferToClient(pngBuffer[pngIndex], pngLen[pngIndex], clients[n]);
                         }
-                        */
-                        //fprintf(stderr, "png %d\n", pngLen);
-                        sendBufferToClient(pngBuffer, pngLen, clients[n]);
 
                         unsigned int sentDataMillis = Tools::Timer::millis();
                         unsigned int dataReadTime = readDataMillis - startMillis;
@@ -575,4 +577,21 @@ void respond(int n, int tmp, int* cc)
         clients[n] = -1;
 
     //printf("closing socket slot %d, %d\n", n, clients[n]);
+}
+
+void imageThreadRun()
+{
+    while (1)
+    {
+        unsigned int startTime = Tools::Timer::millis();
+        int writeIndex = pngIndex == 0 ? 1 : 0;
+        getPngImage(0, pngBuffer[writeIndex], &pngLen[writeIndex]);
+
+        unsigned int endTime = Tools::Timer::millis();
+        //fprintf(stderr, "read png %d\n", endTime - startTime);
+
+        // switch to other buffer
+        std::lock_guard<std::mutex> guard(imageMutex);
+        pngIndex = writeIndex;
+    }
 }
