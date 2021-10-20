@@ -15,7 +15,7 @@
 #include <mutex>
 
 //#define TEST 1
-#define IMAGETHREAD 1
+//#define IMAGETHREAD 1
 
 #ifndef TEST
 #include "libRomulatorDebug.h"
@@ -277,7 +277,7 @@ void convertMonoToRGBBitmap(uint8_t* monoBitmap, uint8_t* rgbBitmap, int width, 
     }
 }
 
-void getRGBBitmap(int width, int height, int pos)
+void getMonoBitmap(int width, int height, int pos)
 {
     uint8_t vram[1024];
 
@@ -307,6 +307,11 @@ void getRGBBitmap(int width, int height, int pos)
     }
 
     romulatorVramToBitmap(vram, characterRom, 25, 40, 8, 8, bitmap);
+}
+
+void getRGBBitmap(int width, int height, int pos)
+{
+    getMonoBitmap(width, height, pos);
     convertMonoToRGBBitmap(bitmap, rgbbitmap, width, height);
 }
 
@@ -474,6 +479,16 @@ void respond(int n, int tmp, int* cc)
                         {
                             write(clients[n], "HTTP/1.0 404 Not Found\n", 23); //FILE NOT FOUND
                         }
+                    }
+                    else if (strstr(path, ".bin"))
+                    {
+                        fprintf(stderr, "getting bin\n");
+                        getMonoBitmap(320, 200, tmp);
+                        //memset(bitmap, 1, 64000);
+                        sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
+                        sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
+                        sendBufferToClient(bitmap, 64000, clients[n]);
+
                     }
                     else if (strstr(path, ".bmp"))
                     {
