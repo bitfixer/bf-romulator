@@ -304,9 +304,16 @@ void getBmpImage(uint8_t* bmpBuffer, int pos)
     int width = 320;
     int height = 200;
     
+    unsigned int startBitmap = Tools::Timer::millis();
     getRGBBitmap(width, height, pos);
+    unsigned int endBitmap = Tools::Timer::millis();
     // now create bitmap image
     generateBitmapImageToMemory(rgbbitmap, height, width, bmpBuffer);
+    unsigned int doneBmp = Tools::Timer::millis();
+
+    fprintf(stderr, "bmp image bitmap %d bmp %d\n",
+        endBitmap - startBitmap,
+        doneBmp - endBitmap);
 }
 
 void getPngImage(int pos)
@@ -314,7 +321,9 @@ void getPngImage(int pos)
     int width = 320;
     int height = 200;
     
+    unsigned int startBitmap = Tools::Timer::millis();
     getRGBBitmap(width, height, pos);
+    unsigned int endBitmap = Tools::Timer::millis();
 
     color_type = PNG_COLOR_TYPE_RGB;
     FILE* fp = fmemopen(pngBuffer, 192000, "wb");
@@ -333,10 +342,14 @@ void getPngImage(int pos)
                      PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
     png_write_info(png_ptr, info_ptr);
+
+    unsigned int startPngWrite = Tools::Timer::millis();
     
     //if (setjmp(png_jmpbuf(png_ptr)))
     //            fprintf(stderr,"[write_png_file] Error during writing bytes");
     png_write_image(png_ptr, row_pointers);
+
+    unsigned int endPngWrite = Tools::Timer::millis();
 
     /* end write */
     //    if (setjmp(png_jmpbuf(png_ptr)))
@@ -347,6 +360,13 @@ void getPngImage(int pos)
 
     pngLen = ftell(fp);
     fclose(fp);
+    unsigned int donePngWrite = Tools::Timer::millis();
+
+    fprintf(stderr, "png image bitmap %d header %d encode %d close %d\n",
+        endBitmap - startBitmap,
+        startPngWrite - endBitmap,
+        endPngWrite - startPngWrite,
+        donePngWrite - endPngWrite);
 }
 
 void sendStringToClient(int client, char* string)
@@ -444,6 +464,7 @@ void respond(int n, int tmp, int* cc)
                     }
                     else if (strstr(path, ".bmp"))
                     {
+                        unsigned int startTime = Tools::Timer::millis();
                         int bmpSize = bmpGetFileSize(200, 320);
 
                         if (bmpImage == NULL)
@@ -452,10 +473,7 @@ void respond(int n, int tmp, int* cc)
                         }
 
                         getBmpImage(bmpImage, tmp);
-
-                        FILE* fp = fopen("test.bmp", "wb");
-                        fwrite(bmpImage, 1, bmpSize, fp);
-                        fclose(fp);
+                        unsigned int bmpDone = Tools::Timer::millis();
                         
                         //char tmp[1024];
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
@@ -480,6 +498,12 @@ void respond(int n, int tmp, int* cc)
                         }
                         */
                         sendBufferToClient(bmpImage, bmpSize, clients[n]);
+                        unsigned int bmpSent = Tools::Timer::millis();
+
+                        fprintf(stderr, "bmp total %d image %d send %d\n",
+                            bmpSent - startTime,
+                            bmpDone - startTime,
+                            bmpSent - bmpDone);
                     }
                     else if (strstr(path, ".png"))
                     {
