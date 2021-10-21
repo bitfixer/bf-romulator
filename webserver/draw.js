@@ -8,11 +8,31 @@ var height = canvas.height;
 
 var imagedata = ctx.createImageData(width, height);
 
+var bitmapArray = new Uint8Array(64000);
+var characterRom;
+
+function loadRom()
+{
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "romulator.rom", true);
+    xhttp.responseType = 'arraybuffer';
+
+    xhttp.onload = function(e) {
+        var arrayBuffer = xhttp.response;
+        if (arrayBuffer) {
+            characterRom = new Uint8Array(arrayBuffer);
+            console.log(characterRom.byteLength);
+            setTimeout(createImage, 0);
+        }
+    }
+    xhttp.send(null);
+}
+
 function createImage(offset)
 {
     // retrieve data
     var xhttp = new XMLHttpRequest();
-    xhttp.open("GET", "http://192.168.0.102:10000/romulator.bin", true);
+    xhttp.open("GET", "romulator.vram", true);
     xhttp.responseType = 'arraybuffer';
 
     xhttp.onload = function(e) {
@@ -21,6 +41,37 @@ function createImage(offset)
 
             if (arrayBuffer) {
                 var byteArray = new Uint8Array(arrayBuffer);
+
+                console.log("vram ", byteArray.byteLength);
+                romulatorVramToBitmap(
+                    byteArray,
+                    characterRom,
+                    25,
+                    40,
+                    8,
+                    8,
+                    bitmapArray);
+
+                console.log("bitmap ", bitmapArray.byteLength);
+
+                for (var i = 0; i < bitmapArray.byteLength; i++)
+                {
+                    var pixelindex = i * 4;
+
+                    var val = bitmapArray[i];
+                    if (val > 0) {
+                        val = 255;
+                    }
+
+                    imagedata.data[pixelindex] = val;
+                    imagedata.data[pixelindex+1] = val;
+                    imagedata.data[pixelindex+2] = val;
+                    imagedata.data[pixelindex+3] = 255;
+                }
+
+                ctx.putImageData(imagedata, 0, 0);
+                setTimeout(createImage, 30, 0);
+                /*
                 for (var i = 0; i < byteArray.byteLength; i++) 
                 {
                     var pixelindex = i * 4;
@@ -37,6 +88,7 @@ function createImage(offset)
                 }
                 
                 ctx.putImageData(imagedata, 0, 0);
+                */
             }
             else
             {
@@ -48,18 +100,6 @@ function createImage(offset)
     xhttp.send(null);
 }
 
-/*
-function main(tframe)
-{
-    window.requestAnimationFrame(main);
-
-    createImage(Math.floor(tframe / 10));
-    ctx.putImageData(imagedata, 0, 0);
-}
-*/
-
-//main(0);
-
-createImage(0);
+loadRom();
 
 }

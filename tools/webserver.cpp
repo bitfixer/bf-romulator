@@ -14,7 +14,7 @@
 #include <thread>
 #include <mutex>
 
-//#define TEST 1
+#define TEST 1
 //#define IMAGETHREAD 1
 
 #ifndef TEST
@@ -277,10 +277,8 @@ void convertMonoToRGBBitmap(uint8_t* monoBitmap, uint8_t* rgbBitmap, int width, 
     }
 }
 
-void getMonoBitmap(int width, int height, int pos)
+void getVram(uint8_t* vram, int pos)
 {
-    uint8_t vram[1024];
-
     #ifdef TEST
     // fill screen with characters
     uint8_t v = pos % 256;
@@ -292,6 +290,15 @@ void getMonoBitmap(int width, int height, int pos)
     // get vram from romulator
     romulatorReadVram(vram, 1024, 1000, 5);
     #endif
+}
+
+void getMonoBitmap(int width, int height, int pos)
+{
+    uint8_t vram[1024];
+
+    unsigned int startTime = Tools::Timer::millis();
+    getVram(vram, pos);
+    unsigned int readVramTime = Tools::Timer::millis();
 
     if (characterRom == NULL)
     {
@@ -307,7 +314,34 @@ void getMonoBitmap(int width, int height, int pos)
     }
 
     romulatorVramToBitmap(vram, characterRom, 25, 40, 8, 8, bitmap);
+    unsigned int convertBitmap = Tools::Timer::millis();
+
+    fprintf(stderr, "mono total %d read %d convert %d\n",
+        convertBitmap - startTime,
+        readVramTime - startTime,
+        convertBitmap - readVramTime);
 }
+
+/*
+void getPackedMonoBitmap(int width, int height, int pos)
+{
+    uint8_t buf[8000];
+    getMonoBitmap(with, height, pos);
+
+    int index = 0;
+    for (int i = 0; i < 8000; i++)
+    {
+        uint8_t byte = 0;
+        for (int j = 0; j < 8; j++)
+        {
+            byte += bitmap[index++];
+            byte <<= 1;
+        }
+
+        buf[i] = byte;
+    }
+}
+*/
 
 void getRGBBitmap(int width, int height, int pos)
 {
@@ -482,13 +516,39 @@ void respond(int n, int tmp, int* cc)
                     }
                     else if (strstr(path, ".bin"))
                     {
-                        fprintf(stderr, "getting bin\n");
+                        unsigned int startTime = Tools::Timer::millis();
                         getMonoBitmap(320, 200, tmp);
+                        unsigned int gotBitmap = Tools::Timer::millis();
                         //memset(bitmap, 1, 64000);
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
                         sendBufferToClient(bitmap, 64000, clients[n]);
+                        unsigned int sentBitmap = Tools::Timer::millis();
 
+                        fprintf(stderr, "bin total %d img %d send %d\n",
+                            sentBitmap - startTime,
+                            gotBitmap - startTime,
+                            sentBitmap - gotBitmap);
+
+                    }
+                    else if (strstr(path, ".rom"))
+                    {
+                        fd=open("character.rom", O_RDONLY);
+                        sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
+                        sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
+                        while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
+                        {
+                            write (clients[n], data_to_send, bytes_read);
+                        }
+                    }
+                    else if (strstr(path, ".vram"))
+                    {
+                        uint8_t vram[1024];
+                        getVram(vram, tmp);
+
+                        sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
+                        sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
+                        sendBufferToClient(vram, 1024, clients[n]);
                     }
                     else if (strstr(path, ".bmp"))
                     {
