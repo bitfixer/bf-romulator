@@ -10,7 +10,6 @@ function drawCharacter(
     {
         var byteIndex = (character * 8) + yy;
         var byte = characterRom[byteIndex];
-        //console.log("rom ", byte);
         for (var xx = 0; xx < 8; xx++)
         {
             var bitIndex = 7 - xx;
@@ -22,8 +21,7 @@ function drawCharacter(
             }
             else
             {
-                //console.log(xx, yy, pixelIndex);
-                bitmap[pixelIndex] = 1;
+                bitmap[pixelIndex] = 255;
             }
         }
     }
@@ -47,10 +45,9 @@ function romulatorVramToBitmap(
     {
         for (var col = 0; col < columns; col++)
         {
-            var x = col * 8;
-            var y = row * 8;
+            var x = col * charWidth;
+            var y = row * charHeight;
             var character = vram[charIndex++];
-            //console.log("char ", row, col, character);
             drawCharacter(character, x, y, bitmap, characterRom, imageWidth);
         }
     }

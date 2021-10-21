@@ -10,6 +10,7 @@ var imagedata = ctx.createImageData(width, height);
 
 var bitmapArray = new Uint8Array(64000);
 var characterRom;
+var scale = 2;
 
 function loadRom()
 {
@@ -28,7 +29,7 @@ function loadRom()
     xhttp.send(null);
 }
 
-function createImage(offset)
+function createImage()
 {
     // retrieve data
     var xhttp = new XMLHttpRequest();
@@ -42,7 +43,6 @@ function createImage(offset)
             if (arrayBuffer) {
                 var byteArray = new Uint8Array(arrayBuffer);
 
-                console.log("vram ", byteArray.byteLength);
                 romulatorVramToBitmap(
                     byteArray,
                     characterRom,
@@ -52,43 +52,36 @@ function createImage(offset)
                     8,
                     bitmapArray);
 
-                console.log("bitmap ", bitmapArray.byteLength);
-
-                for (var i = 0; i < bitmapArray.byteLength; i++)
+                var i = 0;
+                var ydest = 0;
+                for (var y = 0; y < 200; y++)
                 {
-                    var pixelindex = i * 4;
+                    var xdest = 0;
+                    for (var x = 0; x < 320; x++)
+                    {
+                        var val = bitmapArray[i];
+                        for (yy = ydest; yy < ydest + scale; yy++)
+                        {
+                            for (xx = xdest; xx < xdest + scale; xx++)
+                            {
+                                var pixelIndex = ((yy * width) + xx) * 4;
+                                imagedata.data[pixelIndex] = val;
+                                imagedata.data[pixelIndex+1] = val;
+                                imagedata.data[pixelIndex+2] = val;
+                                imagedata.data[pixelIndex+3] = 255;
+                            }
+                        }
 
-                    var val = bitmapArray[i];
-                    if (val > 0) {
-                        val = 255;
+                        i++;
+                        xdest += scale;
                     }
 
-                    imagedata.data[pixelindex] = val;
-                    imagedata.data[pixelindex+1] = val;
-                    imagedata.data[pixelindex+2] = val;
-                    imagedata.data[pixelindex+3] = 255;
+                    ydest += scale;
                 }
+
 
                 ctx.putImageData(imagedata, 0, 0);
                 setTimeout(createImage, 30, 0);
-                /*
-                for (var i = 0; i < byteArray.byteLength; i++) 
-                {
-                    var pixelindex = i * 4;
-
-                    var val = byteArray[i];
-                    if (val > 0) {
-                        val = 255;
-                    }
-
-                    imagedata.data[pixelindex] = val;
-                    imagedata.data[pixelindex+1] = val;
-                    imagedata.data[pixelindex+2] = val;
-                    imagedata.data[pixelindex+3] = 255;
-                }
-                
-                ctx.putImageData(imagedata, 0, 0);
-                */
             }
             else
             {
