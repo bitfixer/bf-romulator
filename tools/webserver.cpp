@@ -14,7 +14,7 @@
 #include <thread>
 #include <mutex>
 
-#define TEST 1
+//#define TEST 1
 //#define IMAGETHREAD 1
 
 #ifndef TEST
