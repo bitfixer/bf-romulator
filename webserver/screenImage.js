@@ -1,3 +1,35 @@
+function drawCursor(
+    row,
+    col,
+    bitmap,
+    imageWidth)
+{
+    var xstart = col * 8;
+    var ystart = row * 8;
+
+    var bitmapIndex = (ystart * imageWidth) + xstart;
+    for (var yy = 0; yy < 8; yy++)
+    {
+        for (var xx = 0; xx < 8; xx++)
+        {
+            var byte = bitmap[bitmapIndex+xx];
+            if (byte == 0)
+            {
+                byte = 255;
+            }
+            else
+            {
+                byte = 0;
+            }
+
+            bitmap[bitmapIndex+xx] = byte;
+        }
+
+        bitmapIndex += imageWidth;
+    }
+}
+
+
 function drawCharacter(
     character,
     x,

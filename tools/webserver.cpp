@@ -14,7 +14,6 @@
 #include <thread>
 #include <mutex>
 
-//#define TEST 1
 //#define IMAGETHREAD 1
 
 #ifndef TEST
@@ -40,9 +39,6 @@ uint8_t pngBuffer[2][192000];
 int pngIndex;
 int pngLen[2];
 
-png_structp png_ptr;
-png_infop info_ptr;
-png_byte color_type;
 png_bytep* row_pointers;
 
 std::thread imageThread;
@@ -205,23 +201,6 @@ void startServer(char *port)
     }
 }
 
-int get_screen_image()
-{
-    // this is a request for a pet screen image.
-    // first - dummy request for fixed image
-
-    // use console to get memory dump
-    //system("bin/console -r > memory.bin");
-    /*
-    system("bin/console -s > screen.bin");
-    system("bin/make_screen_image -r roms/characters-2.901447-10.bin -o 0 -m 1024 -c 40 < screen.bin > out.ppm");
-    system("convert out.ppm out.png");
-    return open("out.png", O_RDONLY);
-    */
-
-    return -1;
-}
-
 void write_ppm_header(int width, int height, FILE* fp)
 {
     fprintf(fp, "P6\n");
@@ -288,7 +267,7 @@ void getVram(uint8_t* vram, int pos)
     }
     #else
     // get vram from romulator
-    romulatorReadVram(vram, 1024, 1000, 5);
+    romulatorReadVram(vram, 2048, 2048, 5);
     #endif
 }
 
@@ -322,27 +301,6 @@ void getMonoBitmap(int width, int height, int pos)
         convertBitmap - readVramTime);
 }
 
-/*
-void getPackedMonoBitmap(int width, int height, int pos)
-{
-    uint8_t buf[8000];
-    getMonoBitmap(with, height, pos);
-
-    int index = 0;
-    for (int i = 0; i < 8000; i++)
-    {
-        uint8_t byte = 0;
-        for (int j = 0; j < 8; j++)
-        {
-            byte += bitmap[index++];
-            byte <<= 1;
-        }
-
-        buf[i] = byte;
-    }
-}
-*/
-
 void getRGBBitmap(int width, int height, int pos)
 {
     getMonoBitmap(width, height, pos);
@@ -370,6 +328,10 @@ void getPngImage(int pos, uint8_t* buffer, int* len)
 {
     int width = 320;
     int height = 200;
+
+    png_structp png_ptr;
+    png_infop info_ptr;
+    png_byte color_type;
     
     unsigned int startBitmap = Tools::Timer::millis();
     getRGBBitmap(width, height, pos);
@@ -494,32 +456,12 @@ void respond(int n, int tmp, int* cc)
                 if (strstr(path, "romulator.")) {
                     //fprintf(stderr, "romulator path\n");
 
-                    if (strstr(path, ".ppm"))
-                    {
-                        fd = get_screen_image();
-
-                        if (fd != -1)
-                        {
-                            //send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
-                            sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
-                            sendStringToClient(clients[n], "Content-Type: image/png\n\n");
-                            //send(clients[n], "Content-Type: image/ppm\n\n");
-                            while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
-                            {
-                                write (clients[n], data_to_send, bytes_read);
-                            }
-                        }
-                        else
-                        {
-                            write(clients[n], "HTTP/1.0 404 Not Found\n", 23); //FILE NOT FOUND
-                        }
-                    }
-                    else if (strstr(path, ".bin"))
+                    // mono bitmap, unpacked
+                    if (strstr(path, ".bin"))
                     {
                         unsigned int startTime = Tools::Timer::millis();
                         getMonoBitmap(320, 200, tmp);
                         unsigned int gotBitmap = Tools::Timer::millis();
-                        //memset(bitmap, 1, 64000);
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
                         sendBufferToClient(bitmap, 64000, clients[n]);
@@ -541,14 +483,14 @@ void respond(int n, int tmp, int* cc)
                             write (clients[n], data_to_send, bytes_read);
                         }
                     }
-                    else if (strstr(path, ".vram"))
+                    else if (strstr(path, ".vram")) // retrieve contents of vram section
                     {
-                        uint8_t vram[1024];
+                        uint8_t vram[2048];
                         getVram(vram, tmp);
 
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
-                        sendBufferToClient(vram, 1024, clients[n]);
+                        sendBufferToClient(vram, 2048, clients[n]);
                     }
                     else if (strstr(path, ".bmp"))
                     {
@@ -566,25 +508,7 @@ void respond(int n, int tmp, int* cc)
                         //char tmp[1024];
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: image/bmp\n\n");
-                        //sprintf(tmp, "Content-Length: %d\n\n", bmpSize);
-                        //sendStringToClient(clients[n], tmp);
-
-                        /*
-                        int bytesToWrite = bmpSize;
-                        uint8_t* bmpPtr = bmpImage;
-                        while (bytesToWrite > 0)
-                        {
-                            ssize_t res = write(clients[n], bmpPtr, bytesToWrite >= 1024 ? 1024 : bytesToWrite);
-                            if (res == -1)
-                            {
-                                printf("**** broken pipe\n");
-                                break;
-                            }
-                            //printf("res %d btw %d\n", res, bytesToWrite);
-                            bmpPtr += res;
-                            bytesToWrite -= res;
-                        }
-                        */
+                        
                         sendBufferToClient(bmpImage, bmpSize, clients[n]);
                         unsigned int bmpSent = Tools::Timer::millis();
 
@@ -627,7 +551,6 @@ void respond(int n, int tmp, int* cc)
                 {
                     if ( (fd=open(path, O_RDONLY))!=-1 )    //FILE FOUND
                     {
-                        //send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: text/html\n\n");
                         while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
@@ -646,12 +569,9 @@ void respond(int n, int tmp, int* cc)
     }
 
     //Closing SOCKET
-        
-        shutdown (clients[n], SHUT_RDWR);         //All further send and recieve operations are DISABLED...
-        close(clients[n]);
-        clients[n] = -1;
-
-    //printf("closing socket slot %d, %d\n", n, clients[n]);
+    shutdown (clients[n], SHUT_RDWR);         //All further send and recieve operations are DISABLED...
+    close(clients[n]);
+    clients[n] = -1;
 }
 
 void imageThreadRun()
@@ -663,8 +583,7 @@ void imageThreadRun()
         getPngImage(0, pngBuffer[writeIndex], &pngLen[writeIndex]);
 
         unsigned int endTime = Tools::Timer::millis();
-        //fprintf(stderr, "read png %d\n", endTime - startTime);
-
+        
         // switch to other buffer
         std::lock_guard<std::mutex> guard(imageMutex);
         pngIndex = writeIndex;

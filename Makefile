@@ -89,7 +89,7 @@ $(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_D
 	g++ -o $(BIN_DIR)/webserver $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp $(SHARED_DIR)/timer.cpp -lwiringPi -lpng -lpthread
 
 $(BIN_DIR)/webserver_test: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp
-	g++ -o $(BIN_DIR)/webserver_test $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp -lpng
+	g++ -DTEST=1 -o $(BIN_DIR)/webserver_test $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp -lpng
 
 .PHONY: webserver
 webserver: $(BIN_DIR)/webserver

@@ -73,7 +73,7 @@ uint32_t spi_xfer(uint32_t data, int nbits = 8)
             rdata |= 1 << i;
         
         digitalWrite(PI_ICE_CLK, HIGH);
-        //delayMicroseconds(1);
+        delayMicroseconds(1);
         digitalWrite(PI_ICE_CLK, LOW);
     }
     
