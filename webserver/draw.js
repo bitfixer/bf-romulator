@@ -52,6 +52,7 @@ function createImage()
                     8,
                     bitmapArray);
 
+                /*
                 var cursorStatus = byteArray[0x04AA];
                 console.log("cursor ", cursorStatus);
 
@@ -62,6 +63,7 @@ function createImage()
                     console.log("row ", cursorRow, " col ", cursorCol);
                     drawCursor(cursorRow, cursorCol, bitmapArray, 320);
                 }
+                */
 
                 var i = 0;
                 var ydest = 0;
