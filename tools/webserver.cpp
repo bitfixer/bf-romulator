@@ -256,18 +256,18 @@ void convertMonoToRGBBitmap(uint8_t* monoBitmap, uint8_t* rgbBitmap, int width, 
     }
 }
 
-void getVram(uint8_t* vram, int pos)
+void getVram(uint8_t* vram, int len, int pos)
 {
     #ifdef TEST
     // fill screen with characters
     uint8_t v = pos % 256;
-    for (int i = 0; i < 1024; i++)
+    for (int i = 0; i < len; i++)
     {
         vram[i] = v++;
     }
     #else
     // get vram from romulator
-    romulatorReadVram(vram, 2048, 2048, 5);
+    romulatorReadVram(vram, len, len, 5);
     #endif
 }
 
@@ -276,7 +276,7 @@ void getMonoBitmap(int width, int height, int pos)
     uint8_t vram[1024];
 
     unsigned int startTime = Tools::Timer::millis();
-    getVram(vram, pos);
+    getVram(vram, 1024, pos);
     unsigned int readVramTime = Tools::Timer::millis();
 
     if (characterRom == NULL)
@@ -485,12 +485,12 @@ void respond(int n, int tmp, int* cc)
                     }
                     else if (strstr(path, ".vram")) // retrieve contents of vram section
                     {
-                        uint8_t vram[2048];
-                        getVram(vram, tmp);
+                        uint8_t vram[1024];
+                        getVram(vram, 1024, tmp);
 
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
-                        sendBufferToClient(vram, 2048, clients[n]);
+                        sendBufferToClient(vram, 1024, clients[n]);
                     }
                     else if (strstr(path, ".bmp"))
                     {

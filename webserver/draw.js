@@ -52,19 +52,6 @@ function createImage()
                     8,
                     bitmapArray);
 
-                /*
-                var cursorStatus = byteArray[0x04AA];
-                console.log("cursor ", cursorStatus);
-
-                if (cursorStatus == 1)
-                {
-                    var cursorRow = byteArray[0x04D8];
-                    var cursorCol = byteArray[0x04C6];
-                    console.log("row ", cursorRow, " col ", cursorCol);
-                    drawCursor(cursorRow, cursorCol, bitmapArray, 320);
-                }
-                */
-
                 var i = 0;
                 var ydest = 0;
                 for (var y = 0; y < 200; y++)
@@ -94,7 +81,7 @@ function createImage()
 
 
                 ctx.putImageData(imagedata, 0, 0);
-                setTimeout(createImage, 30, 0);
+                setTimeout(createImage, 1, 0);
             }
             else
             {
