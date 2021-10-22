@@ -173,7 +173,7 @@ begin
         begin
           state <= SEND_PARITY_BYTE;
         end
-        else if (vram_address == 1024)
+        else if (vram_address == 0)
         begin
           vram_address <= 0;
           state <= RUNNING;
