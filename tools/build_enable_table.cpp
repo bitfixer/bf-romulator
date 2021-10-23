@@ -27,6 +27,8 @@
 // enable setting.
 #define ADDR_GRANULARITY_SIZE 256
 
+#define MAX_VRAM_SIZE 2048
+
 // region definitions for different key strings
 // each region is a 5 bit number
 // bit 4: is a vram region
@@ -163,65 +165,64 @@ int main(int argc, char** argv)
         //int table_addr = 64 * map_index;
         // generate enable bytes for each chunk of this region
         region region_type = get_region_type(token);
-        for (int map_index = start_map_index; map_index <= end_map_index; map_index++)
+
+        if (region_type == VRAM)
         {
-            for (uint32_t address = addr; address <= end_addr; address += (uint32_t)granularity)
+            // VRAM regions are independent of other regions in the memory map,
+            // and maximum size (currently) is 2k.
+
+            // check if this VRAM region is the right size
+            if (end_addr - addr > MAX_VRAM_SIZE)
             {
-                for (uint16_t rw = 0; rw < 2; rw++)
-                {
-                    // get table address
-                    // address has the following bit pattern:
-                    // config(config_bits), rw, addr(addr_entry_bits)
-                    uint16_t config_index = (uint16_t)map_index;
-                    uint16_t table_addr = config_index;
-                    table_addr <<= 1;
-                    table_addr += rw;
-                    table_addr <<= addr_entry_bits;
-
-                    // get high bits of address to get the index of the address entry
-                    int addr_shift = 16 - addr_entry_bits;
-                    uint16_t entry_addr = (uint16_t)address >> addr_shift;
-                    table_addr += entry_addr;
-
-                    // get bit pattern for this entry
-                    // 2 higher bits are the read (high) value
-                    // 2 lower bits are the write value
-                    uint8_t byteval = 0;
-                    if (rw == 1) {
-                        byteval = (region_type & 0b01100) >> 2;
-                    } else {
-                        byteval = (region_type & 0b00011);
-                    }
-
-                    //fprintf(stderr, "address %X, rw %d, ci %d, as %d, table_addr %d %X, r %d %X bv %X\n", address, rw, config_index, addr_shift, table_addr, table_addr, region_type, region_type, byteval);
-                    table[table_addr] = byteval;
-                }
+                fprintf(stderr, "build_enable_table error: VRAM region (setting %d, start %04X end %04X) exceeds maximum size of %d bytes.\n", 
+                    start_map_index, 
+                    addr, 
+                    end_addr, 
+                    MAX_VRAM_SIZE);
+                exit(1);
             }
-        }
 
-        if ((region_type & 0b10000) != 0)
-        {
-            // this is a vram region
-            for (int m = start_map_index; m <= end_map_index; m++)
+            for (int map_index = start_map_index; map_index <= end_map_index; map_index++)
             {
-                vram_start_addr[m] = addr;
-                vram_end_addr[m] = end_addr;
+                vram_start_addr[map_index] = addr;
+                vram_end_addr[map_index] = end_addr;
             }
         }
         else
         {
-            for (int m = start_map_index; m <= end_map_index; m++)
+            for (int map_index = start_map_index; map_index <= end_map_index; map_index++)
             {
-                // check if this range overlaps a region mapped as vram before
-                //if (vram_start_addr[m] == addr && vram_end_addr[m] == end_addr)
-                if ((vram_start_addr[m] <= addr && vram_end_addr[m] > addr) ||
-                    (vram_start_addr[m] <= end_addr && vram_end_addr[m] > end_addr) ||
-                    (addr < vram_start_addr[m] && vram_end_addr[m] < end_addr))
+                for (uint32_t address = addr; address <= end_addr; address += (uint32_t)granularity)
                 {
-                    // if there is any overlap, just override the previously set vram section
-                    // and deactivate vram for this region.
-                    vram_start_addr[m] = 0;
-                    vram_end_addr[m] = 0;
+                    for (uint16_t rw = 0; rw < 2; rw++)
+                    {
+                        // get table address
+                        // address has the following bit pattern:
+                        // config(config_bits), rw, addr(addr_entry_bits)
+                        uint16_t config_index = (uint16_t)map_index;
+                        uint16_t table_addr = config_index;
+                        table_addr <<= 1;
+                        table_addr += rw;
+                        table_addr <<= addr_entry_bits;
+
+                        // get high bits of address to get the index of the address entry
+                        int addr_shift = 16 - addr_entry_bits;
+                        uint16_t entry_addr = (uint16_t)address >> addr_shift;
+                        table_addr += entry_addr;
+
+                        // get bit pattern for this entry
+                        // 2 higher bits are the read (high) value
+                        // 2 lower bits are the write value
+                        uint8_t byteval = 0;
+                        if (rw == 1) {
+                            byteval = (region_type & 0b01100) >> 2;
+                        } else {
+                            byteval = (region_type & 0b00011);
+                        }
+
+                        //fprintf(stderr, "address %X, rw %d, ci %d, as %d, table_addr %d %X, r %d %X bv %X\n", address, rw, config_index, addr_shift, table_addr, table_addr, region_type, region_type, byteval);
+                        table[table_addr] = byteval;
+                    }
                 }
             }
         }
