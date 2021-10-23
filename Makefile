@@ -42,10 +42,6 @@ $(BIN_DIR)/programmer_spi: $(PROGRAMMER_DIR)/programmer_spi.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/programmer_spi -lwiringPi $(PROGRAMMER_DIR)/programmer_spi.cpp
 
-$(BIN_DIR)/console: $(PROGRAMMER_DIR)/console.cc
-	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/console -lwiringPi $(PROGRAMMER_DIR)/console.cc
-
 $(BIN_DIR)/make_screen_image: $(TOOLS_DIR)/make_screen_image.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/make_screen_image $(TOOLS_DIR)/make_screen_image.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
@@ -76,9 +72,9 @@ $(BIN_DIR)/crc32: $(PROGRAMMER_DIR)/crc32.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/crc32 $(PROGRAMMER_DIR)/crc32.cpp
 
-$(BIN_DIR)/consoled: $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.h $(TOOLS_DIR)/libRomulatorDebug.cpp
+$(BIN_DIR)/console: $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.h $(TOOLS_DIR)/libRomulatorDebug.cpp
 	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/consoled -lwiringPi $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp
+	g++ -o $(BIN_DIR)/console -lwiringPi $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp
 
 fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 	mkdir -p $(ROMS_DIR)
