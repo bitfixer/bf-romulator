@@ -278,6 +278,7 @@ wire vram_read_clock;
 wire [3:0]config_byte;
 
 wire [10:0]vram_write_address = ram_address - vram_start[out_flash_addr];
+wire [10:0]vram_size = vram_end[out_flash_addr] - vram_start[out_flash_addr];
 
 // include dual ported ram for the vram section
 simple_ram_dual_clock #(8, 11)
@@ -319,7 +320,9 @@ diagnostics diag(
   vram_read_clock,
 
   config_byte,
-  out_flash_addr
+  out_flash_addr,
+
+  vram_size
 );
 
 initial

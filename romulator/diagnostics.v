@@ -40,7 +40,9 @@ module diagnostics(
      output reg vram_read_clock,
 
      output reg [3:0] config_byte,
-     input  wire [3:0] flash_addr
+     input  wire [3:0] flash_addr,
+
+     input      [10:0] vram_size
 );
 
 // module states
@@ -173,7 +175,7 @@ begin
         begin
           state <= SEND_PARITY_BYTE;
         end
-        else if (vram_address == 1024)
+        else if (vram_address == vram_size)
         begin
           vram_address <= 0;
           state <= RUNNING;
