@@ -39,6 +39,10 @@ uint8_t pngBuffer[2][192000];
 int pngIndex;
 int pngLen[2];
 
+unsigned int lastMeasurementTime;
+unsigned int measurementInterval;
+unsigned int requestsInInterval;
+
 png_bytep* row_pointers;
 
 std::thread imageThread;
@@ -133,6 +137,10 @@ int main(int argc, char** argv)
     #endif
     Tools::Timer::startProgramTimer();
 
+    lastMeasurementTime = Tools::Timer::millis();
+    measurementInterval = 1000;
+    requestsInInterval = 0;
+
     // initialize romulator connection
     #ifndef TEST
     romulatorInit();
@@ -156,6 +164,21 @@ int main(int argc, char** argv)
             // single threaded handler
             respond(slot, ii, &clients[slot]);
             ii++;
+
+            unsigned int currTime = Tools::Timer::millis();
+            if (currTime - lastMeasurementTime >= measurementInterval)
+            {
+                if (requestsInInterval > 0)
+                {
+                    float intervalSeconds = (float)(currTime - lastMeasurementTime) / 1000.0;
+                    float fps = (float)requestsInInterval / intervalSeconds;
+                    requestsInInterval = 0;
+
+                    fprintf(stderr, "FPS %0.2f\n", fps);
+                }
+
+                lastMeasurementTime = currTime;
+            }
         }
 
         while (clients[slot]!=-1) slot = (slot+1)%CONNMAX;
@@ -491,6 +514,9 @@ void respond(int n, int tmp, int* cc)
                         sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                         sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
                         sendBufferToClient(vram, 1024, clients[n]);
+
+                        // record request for FPS measurement
+                        requestsInInterval++;
                     }
                     else if (strstr(path, ".bmp"))
                     {

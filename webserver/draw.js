@@ -81,7 +81,7 @@ function createImage()
 
 
                 ctx.putImageData(imagedata, 0, 0);
-                setTimeout(createImage, 1, 0);
+                setTimeout(createImage, 0);
             }
             else
             {
