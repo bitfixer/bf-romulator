@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "libRomulatorVram.h"
+
 // make_screen_image.cpp
 // render a PET screen memory dump into an image,
 // using a specified character rom
@@ -46,38 +48,6 @@ void draw_bitmap(uint8_t* bitmap, int image_width, int image_height)
             else
             {
                 write_pixel(255, 255, 255);
-            }
-        }
-    }
-}
-
-void draw_character(uint8_t character,
-                    int x, 
-                    int y, 
-                    uint8_t* bitmap, 
-                    uint8_t* character_rom, 
-                    int image_width)
-{
-
-    // get bytes from character roms
-    for (int yy = 0; yy < 8; yy++)
-    {
-        int byte_index = character*8 + yy;
-        uint8_t byte = character_rom[byte_index];
-        for (int xx = 0; xx < 8; xx++)
-        {
-            int bit_index = 7 - xx;
-            int pixel_index = ((y + yy) * image_width) + (x + xx);
-
-            if ((byte & (1 << bit_index)) == 0)
-            {
-                //write_pixel(0,0,0);
-                bitmap[pixel_index] = 0;
-            }
-            else
-            {
-                //write_pixel(255, 255, 255);
-                bitmap[pixel_index] = 1;
             }
         }
     }
@@ -147,6 +117,8 @@ int main(int argc, char** argv) {
         fread(memory, 1, memory_size, stdin);
     }
 
+
+    /*
     int char_width = 8;
     int char_height = 8;
     int image_width = columns * char_width;
@@ -164,7 +136,15 @@ int main(int argc, char** argv) {
             draw_character(character, x, y, bitmap, rom, image_width);
         }
     }
-    draw_bitmap(bitmap, image_width, image_height);
+    */
+
+    int charWidth = 8;
+    int charHeight = 8;
+    int imageWidth = columns * charWidth;
+    int imageHeight = rows * charHeight;
+    uint8_t* bitmap = new uint8_t[imageWidth * imageHeight];
+    romulatorVramToBitmap(&memory[screen_offset], rom, rows, columns, charWidth, charHeight, bitmap);
+    draw_bitmap(bitmap, imageWidth, imageHeight);
 
     delete[] rom;
     delete[] memory;

@@ -230,7 +230,6 @@ assign spi_out = (spi_master_active) ? flash_spi_out : diag_spi_out;
 wire echo_cs;
 assign rdy = !halt && read_complete;
 
-
 assign led_blue = read_complete && rdy;
 assign led_green = 1;
 assign led_red = 1;
@@ -258,7 +257,40 @@ spi_flash_reader flashReader(
     clk,
 
     read_complete,
-    configuration
+    configuration,
+
+    out_flash_addr
+);
+
+wire [3:0] out_flash_addr;
+
+// write enable for video ram section
+// use regular we signal, also check that this is the right section of memory
+reg [15:0] vram_start[15:0];
+reg [15:0] vram_end[15:0];
+wire vram_we;
+
+assign vram_we = (ram_address >= vram_start[out_flash_addr] && ram_address < vram_end[out_flash_addr]) && ram_we;
+
+wire [10:0]vram_read_address;
+wire [7:0]vram_output;
+wire vram_read_clock;
+wire [3:0]config_byte;
+
+wire [10:0]vram_write_address = ram_address - vram_start[out_flash_addr];
+wire [10:0]vram_size = vram_end[out_flash_addr] - vram_start[out_flash_addr];
+
+// include dual ported ram for the vram section
+simple_ram_dual_clock #(8, 11)
+videoRam
+(
+    .data(ram_datain),
+    .read_addr(vram_read_address),
+    .write_addr(vram_write_address),
+    .we(vram_we),
+    .read_clk(vram_read_clock),
+    .write_clk(clk),
+    .q(vram_output),
 );
 
 // fpga reset (unused now)
@@ -281,12 +313,23 @@ diagnostics diag(
   diag_ram_we,
   diag_ram_cs,
 
-  configuration
+  configuration,
+
+  vram_read_address,
+  vram_output,
+  vram_read_clock,
+
+  config_byte,
+  out_flash_addr,
+
+  vram_size
 );
 
 initial
 begin
   configuration <= ~wdatain[3:0];
+  $readmemh("../bin/vram_start_addr.txt", vram_start);
+  $readmemh("../bin/vram_end_addr.txt", vram_end);
 end
 
 endmodule

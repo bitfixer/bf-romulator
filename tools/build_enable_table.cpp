@@ -27,13 +27,23 @@
 // enable setting.
 #define ADDR_GRANULARITY_SIZE 256
 
+#define MAX_VRAM_SIZE 2048
+
+// region definitions for different key strings
+// each region is a 5 bit number
+// bit 4: is a vram region
+// bit 3: read enable for romulator
+// bit 2: read enable for mainboard
+// bit 1: write enable for romulator
+// bit 0: write enable for mainboard
 typedef enum _region
 {
-    READWRITE = 0b1010,
-    WRITETHROUGH = 0b0111,
-    READONLY = 0b1001,
-    PASSTHROUGH = 0b0101,
-    INACTIVE = 0b0000
+    READWRITE = 0b01010,
+    WRITETHROUGH = 0b00111,
+    READONLY = 0b01001,
+    PASSTHROUGH = 0b00101,
+    VRAM = 0b10111,
+    INACTIVE = 0b00000
 } region;
 
 region get_region_type(char* region_str) {
@@ -52,6 +62,10 @@ region get_region_type(char* region_str) {
     else if (strstr(region_str, "passthrough"))
     {
         return PASSTHROUGH;
+    }
+    else if (strstr(region_str, "vram"))
+    {
+        return VRAM;
     }
 
     return INACTIVE;
@@ -86,6 +100,15 @@ int main(int argc, char** argv)
     // create table for all memory maps
     uint8_t* table = new uint8_t[num_entries];
     memset(table, 0, num_entries);
+
+    uint16_t vram_start_addr[NUMMAPS];
+    uint16_t vram_end_addr[NUMMAPS];
+
+    for (int i = 0; i < NUMMAPS; i++)
+    {
+        vram_start_addr[i] = 0;
+        vram_end_addr[i] = 0;
+    }
     
     while (fgets(line, sizeof(line), fp))
     {
@@ -142,38 +165,64 @@ int main(int argc, char** argv)
         //int table_addr = 64 * map_index;
         // generate enable bytes for each chunk of this region
         region region_type = get_region_type(token);
-        for (int map_index = start_map_index; map_index <= end_map_index; map_index++)
+
+        if (region_type == VRAM)
         {
-            for (uint32_t address = addr; address <= end_addr; address += (uint32_t)granularity)
+            // VRAM regions are independent of other regions in the memory map,
+            // and maximum size (currently) is 2k.
+
+            // check if this VRAM region is the right size
+            if (end_addr - addr > MAX_VRAM_SIZE)
             {
-                for (uint16_t rw = 0; rw < 2; rw++)
+                fprintf(stderr, "build_enable_table error: VRAM region (setting %d, start %04X end %04X) exceeds maximum size of %d bytes.\n", 
+                    start_map_index, 
+                    addr, 
+                    end_addr, 
+                    MAX_VRAM_SIZE);
+                exit(1);
+            }
+
+            for (int map_index = start_map_index; map_index <= end_map_index; map_index++)
+            {
+                vram_start_addr[map_index] = addr;
+                vram_end_addr[map_index] = end_addr;
+            }
+        }
+        else
+        {
+            for (int map_index = start_map_index; map_index <= end_map_index; map_index++)
+            {
+                for (uint32_t address = addr; address <= end_addr; address += (uint32_t)granularity)
                 {
-                    // get table address
-                    // address has the following bit pattern:
-                    // config(config_bits), rw, addr(addr_entry_bits)
-                    uint16_t config_index = (uint16_t)map_index;
-                    uint16_t table_addr = config_index;
-                    table_addr <<= 1;
-                    table_addr += rw;
-                    table_addr <<= addr_entry_bits;
+                    for (uint16_t rw = 0; rw < 2; rw++)
+                    {
+                        // get table address
+                        // address has the following bit pattern:
+                        // config(config_bits), rw, addr(addr_entry_bits)
+                        uint16_t config_index = (uint16_t)map_index;
+                        uint16_t table_addr = config_index;
+                        table_addr <<= 1;
+                        table_addr += rw;
+                        table_addr <<= addr_entry_bits;
 
-                    // get high bits of address to get the index of the address entry
-                    int addr_shift = 16 - addr_entry_bits;
-                    uint16_t entry_addr = (uint16_t)address >> addr_shift;
-                    table_addr += entry_addr;
+                        // get high bits of address to get the index of the address entry
+                        int addr_shift = 16 - addr_entry_bits;
+                        uint16_t entry_addr = (uint16_t)address >> addr_shift;
+                        table_addr += entry_addr;
 
-                    // get bit pattern for this entry
-                    // 2 higher bits are the read (high) value
-                    // 2 lower bits are the write value
-                    uint8_t byteval = 0;
-                    if (rw == 1) {
-                        byteval = (region_type & 0b1100) >> 2;
-                    } else {
-                        byteval = (region_type & 0b0011);
+                        // get bit pattern for this entry
+                        // 2 higher bits are the read (high) value
+                        // 2 lower bits are the write value
+                        uint8_t byteval = 0;
+                        if (rw == 1) {
+                            byteval = (region_type & 0b01100) >> 2;
+                        } else {
+                            byteval = (region_type & 0b00011);
+                        }
+
+                        //fprintf(stderr, "address %X, rw %d, ci %d, as %d, table_addr %d %X, r %d %X bv %X\n", address, rw, config_index, addr_shift, table_addr, table_addr, region_type, region_type, byteval);
+                        table[table_addr] = byteval;
                     }
-
-                    //fprintf(stderr, "address %X, rw %d, ci %d, as %d, table_addr %d %X, r %d %X bv %X\n", address, rw, config_index, addr_shift, table_addr, table_addr, region_type, region_type, byteval);
-                    table[table_addr] = byteval;
                 }
             }
         }
@@ -182,9 +231,22 @@ int main(int argc, char** argv)
     // print table
     for (int aa = 0; aa < num_entries; aa++)
     {
-        //printf("table %d %X => %X\n", aa, aa, table[aa]);
         printf("%X\n", table[aa]);
     }
+
+    FILE* fp_vram = fopen("bin/vram_start_addr.txt", "wb");
+    for (int v = 0; v < NUMMAPS; v++)
+    {
+        fprintf(fp_vram, "%04X\n", vram_start_addr[v]);
+    }
+    fclose(fp_vram);
+
+    fp_vram = fopen("bin/vram_end_addr.txt", "wb");
+    for (int v = 0; v < NUMMAPS; v++)
+    {
+        fprintf(fp_vram, "%04X\n", vram_end_addr[v]);
+    }
+    fclose(fp_vram);
 
     delete[] table;
 }

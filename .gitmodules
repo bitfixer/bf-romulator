@@ -1,3 +1,6 @@
 [submodule "cc65"]
 	path = cc65
 	url = https://github.com/cc65/cc65.git
+[submodule "bf-shared"]
+	path = bf-shared
+	url = https://github.com/bitfixer/bf-shared.git

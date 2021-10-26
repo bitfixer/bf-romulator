@@ -20,10 +20,12 @@ PROGRAMMER_DIR := programmer
 TOOLS_DIR := tools
 ROMULATOR_DIR := romulator
 ROMS_DIR := roms
+SHARED_DIR := bf-shared
 CONFIG := default
 MEMORY_SET := $(shell pwd)/$(TOOLS_DIR)/memory_set_$(CONFIG).csv
 ENABLE_TABLE := $(shell pwd)/$(TOOLS_DIR)/enable_table_$(CONFIG).csv
 BIN_DIR := bin
+REMOTE := raspberrypi.local
 
 #pin definitions
 DBG := 27
@@ -40,13 +42,13 @@ $(BIN_DIR)/programmer_spi: $(PROGRAMMER_DIR)/programmer_spi.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/programmer_spi -lwiringPi $(PROGRAMMER_DIR)/programmer_spi.cpp
 
-$(BIN_DIR)/console: $(PROGRAMMER_DIR)/console.cc
+$(BIN_DIR)/make_screen_image: $(TOOLS_DIR)/make_screen_image.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
 	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/console -lwiringPi $(PROGRAMMER_DIR)/console.cc
+	g++ -o $(BIN_DIR)/make_screen_image $(TOOLS_DIR)/make_screen_image.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
 
-$(BIN_DIR)/make_screen_image: $(PROGRAMMER_DIR)/make_screen_image.cpp
+$(BIN_DIR)/make_test_vram: $(PROGRAMMER_DIR)/make_test_vram.cpp
 	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/make_screen_image $(PROGRAMMER_DIR)/make_screen_image.cpp
+	g++ -o $(BIN_DIR)/make_test_vram $(PROGRAMMER_DIR)/make_test_vram.cpp
 
 # Tools
 
@@ -70,13 +72,20 @@ $(BIN_DIR)/crc32: $(PROGRAMMER_DIR)/crc32.cpp
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/crc32 $(PROGRAMMER_DIR)/crc32.cpp
 
+$(BIN_DIR)/console: $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.h $(TOOLS_DIR)/libRomulatorDebug.cpp
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/console -lwiringPi $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp
+
 fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
 	mkdir -p $(ROMS_DIR)
 	#cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
 	cd $(ROMS_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
 
-$(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(BIN_DIR)/console $(BIN_DIR)/make_screen_image
-	g++ -o $(BIN_DIR)/webserver $(TOOLS_DIR)/webserver.cpp
+$(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp $(SHARED_DIR)/timer.cpp
+	g++ -o $(BIN_DIR)/webserver $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp $(SHARED_DIR)/timer.cpp -lwiringPi -lpng -lpthread
+
+$(BIN_DIR)/webserver_test: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp
+	g++ -DTEST=1 -o $(BIN_DIR)/webserver_test $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(SHARED_DIR)/timer.cpp -lpng
 
 .PHONY: webserver
 webserver: $(BIN_DIR)/webserver
@@ -95,7 +104,7 @@ $(BIN_DIR)/enable_table.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE)
 $(BIN_DIR)/crc32_table.txt: $(BIN_DIR)/crc32
 	$(BIN_DIR)/crc32 -t -x > $(BIN_DIR)/crc32_table.txt
 
-$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt
+$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
 	mkdir -p $(BIN_DIR)
 	cd $(ROMULATOR_DIR); rm hardware.*; apio build
 	cp $(ROMULATOR_DIR)/hardware.bin $(BIN_DIR)/hardware.bin
@@ -140,6 +149,9 @@ readback: init $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi -r $(shell stat --printf="%s" $(BIN_DIR)/romulator.bin) > readback.bin
 	diff readback.bin $(BIN_DIR)/romulator.bin
 
+transfer: clean $(BIN_DIR)/romulator.bin
+	scp $(BIN_DIR)/romulator.bin pi@$(REMOTE):~/bf-romulator/$(BIN_DIR)
+
 # testing
 $(BIN_DIR)/random_test.bin:
 	dd if=/dev/urandom of=$(BIN_DIR)/random_test.bin bs=1 count=65536
@@ -175,6 +187,9 @@ $(BIN_DIR)/ieee_test.bin: testrom/ieee_test.c testrom/preinit.s testrom/ieee_tes
 
 $(BIN_DIR)/nop.bin: testrom/nop.c
 	cd testrom; make nop.bin; cp nop.bin ../$(BIN_DIR)/nop.bin; rm nop.bin
+
+$(BIN_DIR)/vram_test.txt: $(BIN_DIR)/make_test_vram
+	$(BIN_DIR)/make_test_vram > $(BIN_DIR)/vram_test.txt
 
 $(BIN_DIR)/test_pet: $(TOOLS_DIR)/test_pet.cpp
 	mkdir -p $(BIN_DIR)
