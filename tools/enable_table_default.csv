@@ -8,6 +8,7 @@
 
 1,0x8000,0x83FF,"vram"
 
+5,0x8000,0x83FF,"vram"
 5,0xB000,0xBFFF,"passthrough"
 
 # only enable 16k ram for 4016
