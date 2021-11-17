@@ -26,6 +26,8 @@
 
 #define CONNMAX 5
 #define BYTES 1024
+#define MAX_SETTINGS 16
+#define MAX_CHAR_ROM_NAME_LENGTH 256
 
 char *ROOT;
 int listenfd, clients[CONNMAX];
@@ -38,6 +40,9 @@ uint8_t* bmpImage;
 uint8_t pngBuffer[2][192000];
 int pngIndex;
 int pngLen[2];
+
+// character rom names
+char* characterRoms[MAX_SETTINGS];
 
 unsigned int lastMeasurementTime;
 unsigned int measurementInterval;
@@ -78,6 +83,109 @@ void png_init()
     }
 
     pngIndex = 0;
+}
+
+void trim(char* str)
+{
+    char* pos = str;
+    while (*pos != 0)
+    {
+        if (isspace(*pos))
+        {
+            // move string one space left
+            int len = strlen(pos);
+            memmove(pos, pos+1, len);
+        }
+        else
+        {
+            pos++;
+        }
+    }
+}
+
+void parseConfigFile()
+{
+    // initialize all character rom strings
+    for (int i = 0; i < MAX_SETTINGS; i++)
+    {
+        characterRoms[i] = NULL;
+    }
+
+    fprintf(stderr, "parsing config file\n");
+    FILE* fp = fopen("../config/enable_table_default.csv", "rb");
+
+    // scan each line to check for "vram" string
+    char line[256];
+
+    while (fgets(line, sizeof(line), fp))
+    {
+        // skip empty lines
+        if (strlen(line) < 2)
+        {
+            continue;
+        }
+
+        if (line[0] == '#' ||
+            (line[1] == '/' && line[2] == '/'))
+        {
+            continue;
+        }
+
+        if (strstr(line, "vram") != NULL)
+        {
+            fprintf(stderr, "vram line: %s\n", line);
+
+            char* token;
+            token = strtok(line, ",");
+
+            int index;
+            sscanf(token, "%d", &index);
+            fprintf(stderr, "index %d\n", index);
+
+            token = strtok(NULL, ",");
+
+            // get start and end addresses
+            uint32_t startAddr;
+            sscanf(token, "0x%X", &startAddr);
+            fprintf(stderr, "start %X\n", startAddr);
+
+            token = strtok(NULL, ",");
+            uint32_t endAddr;
+            sscanf(token, "0x%X", &endAddr);
+            fprintf(stderr, "end %X\n", endAddr);
+
+            // skip vram string field
+            token = strtok(NULL, ",");
+            token = strtok(NULL, ",");
+
+            if (token)
+            {
+                fprintf(stderr, "character rom name: %s\n", token);
+                // copy character rom name
+                characterRoms[index] = (char*)malloc(MAX_CHAR_ROM_NAME_LENGTH);
+                sprintf(characterRoms[index], "../roms/%s", token);
+                trim(characterRoms[index]);
+            }
+            else
+            {
+                fprintf(stderr, "no character rom found\n");
+            }
+
+        }
+    }
+
+    fclose(fp);
+
+    fprintf(stderr, "character roms\n");
+    for (int i = 0; i < MAX_SETTINGS; i++)
+    {
+        if (characterRoms[i])
+        {
+            fprintf(stderr, "%d: %s\n", i, characterRoms[i]);
+
+            // verify this file exists
+        }
+    }
 }
 
 int main(int argc, char** argv)
@@ -127,6 +235,9 @@ int main(int argc, char** argv)
     {
         clients[i] = -1;
     }
+
+
+    parseConfigFile();
     startServer(PORT);
 
     fprintf(stderr, "server started\n");
@@ -498,12 +609,19 @@ void respond(int n, int tmp, int* cc)
                     }
                     else if (strstr(path, ".rom"))
                     {
-                        fd=open("character.rom", O_RDONLY);
-                        sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
-                        sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
-                        while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
+                        //uint8_t configByte = romulatorReadConfig();
+                        // look up the character rom for this configuration
+                        uint8_t configByte = 1;
+                        char* charRomName = characterRoms[configByte];
+                        if (charRomName)
                         {
-                            write (clients[n], data_to_send, bytes_read);
+                            fd = open(charRomName, O_RDONLY);
+                            sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
+                            sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");
+                            while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
+                            {
+                                write (clients[n], data_to_send, bytes_read);
+                            }
                         }
                     }
                     else if (strstr(path, ".vram")) // retrieve contents of vram section

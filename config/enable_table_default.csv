@@ -6,9 +6,9 @@
 0-14,0xF000,0xFFFF,"readonly"
 0,0xB000,0xBFFF,"passthrough"
 
-1,0x8000,0x83FF,"vram"
+1,0x8000,0x83FF,"vram",characters-2.901447-10.bin
 
-5,0x8000,0x83FF,"vram"
+5,0x8000,0x83FF,"vram",characters-2.901447-10.bin
 5,0xB000,0xBFFF,"passthrough"
 
 # only enable 16k ram for 4016
