@@ -103,6 +103,17 @@ void trim(char* str)
     }
 }
 
+bool fileExists(const char *fname)
+{
+    FILE *file;
+    if ((file = fopen(fname, "rb")))
+    {
+        fclose(file);
+        return true;
+    }
+    return false;
+}
+
 void parseConfigFile()
 {
     // initialize all character rom strings
@@ -181,9 +192,21 @@ void parseConfigFile()
     {
         if (characterRoms[i])
         {
-            fprintf(stderr, "%d: %s\n", i, characterRoms[i]);
+            fprintf(stderr, "%d: %s", i, characterRoms[i]);
 
             // verify this file exists
+            if (fileExists(characterRoms[i]))
+            {
+                fprintf(stderr, " *\n");
+            }
+            else
+            {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "ERROR: could not find character rom %s\n", characterRoms[i]);
+                fprintf(stderr, "please check config file ../config/enable_table_default.csv\n");
+                exit(1);
+            }
+
         }
     }
 }
