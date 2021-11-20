@@ -632,9 +632,14 @@ void respond(int n, int tmp, int* cc)
                     }
                     else if (strstr(path, ".rom"))
                     {
-                        //uint8_t configByte = romulatorReadConfig();
                         // look up the character rom for this configuration
+                        #ifdef TEST
+                        uint8_t configByte = romulatorReadConfig();
+                        #else
                         uint8_t configByte = 1;
+                        #endif
+                        
+                        fprintf(stderr, "got rom request, config byte %d\n", configByte);
                         char* charRomName = characterRoms[configByte];
                         if (charRomName)
                         {
@@ -645,6 +650,11 @@ void respond(int n, int tmp, int* cc)
                             {
                                 write (clients[n], data_to_send, bytes_read);
                             }
+                        }
+                        else
+                        {
+                            fprintf(stderr, "character rom for setting %d not found\n", configByte);
+                            write(clients[n], "HTTP/1.0 404 Not Found\n", 23); //FILE NOT FOUND
                         }
                     }
                     else if (strstr(path, ".vram")) // retrieve contents of vram section
