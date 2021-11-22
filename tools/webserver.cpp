@@ -123,7 +123,7 @@ void parseConfigFile()
     }
 
     fprintf(stderr, "parsing config file\n");
-    FILE* fp = fopen("../config/enable_table_default.csv", "rb");
+    FILE* fp = fopen("config/enable_table_default.csv", "rb");
 
     // scan each line to check for "vram" string
     char line[256];
@@ -174,7 +174,7 @@ void parseConfigFile()
                 fprintf(stderr, "character rom name: %s\n", token);
                 // copy character rom name
                 characterRoms[index] = (char*)malloc(MAX_CHAR_ROM_NAME_LENGTH);
-                sprintf(characterRoms[index], "../roms/%s", token);
+                sprintf(characterRoms[index], "roms/%s", token);
                 trim(characterRoms[index]);
             }
             else
@@ -603,16 +603,11 @@ void respond(int n, int tmp, int* cc)
                     //reqline[1] = "/index.html";
                 }
 
-                //fprintf(stderr, "requested path: %s\n", reqline[1]);
-
                 strcpy(path, ROOT);
                 strcpy(&path[strlen(ROOT)], reqline[1]);
-                //printf("file: %s\n", path);
-
+                
                 // handle specific paths
                 if (strstr(path, "romulator.")) {
-                    //fprintf(stderr, "romulator path\n");
-
                     // mono bitmap, unpacked
                     if (strstr(path, ".bin"))
                     {
@@ -643,6 +638,7 @@ void respond(int n, int tmp, int* cc)
                         char* charRomName = characterRoms[configByte];
                         if (charRomName)
                         {
+                            fprintf(stderr, "character rom %s\n", charRomName);
                             fd = open(charRomName, O_RDONLY);
                             sendStringToClient(clients[n], "HTTP/1.0 200 OK\n");
                             sendStringToClient(clients[n], "Content-Type: application/octet-stream\n\n");

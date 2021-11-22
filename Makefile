@@ -23,6 +23,7 @@ ROMULATOR_DIR := romulator
 ROMS_DIR := roms
 SHARED_DIR := bf-shared
 CONFIG := default
+WEBSERVER_DIR := webserver
 MEMORY_SET := $(shell pwd)/$(CONFIG_DIR)/memory_set_$(CONFIG).csv
 ENABLE_TABLE := $(shell pwd)/$(CONFIG_DIR)/enable_table_$(CONFIG).csv
 BIN_DIR := bin
@@ -90,7 +91,7 @@ $(BIN_DIR)/webserver_test: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TO
 
 .PHONY: webserver
 webserver: $(BIN_DIR)/webserver
-	bin/webserver
+	bin/webserver -r $(WEBSERVER_DIR)
 
 # FPGA
 
