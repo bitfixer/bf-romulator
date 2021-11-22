@@ -1,6 +1,6 @@
-# bf-romulator : Tools
+# bf-romulator : Config
 
-This directory contains code which is used to build memory maps for the ROMulator.
+This directory contains configuration files which are used to build memory maps for the ROMulator.
 
 Using the ROMulator in any 6502 machine requires configuration of two things: A memory map, and an enable table.
 
