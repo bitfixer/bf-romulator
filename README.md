@@ -49,7 +49,7 @@ This file indicates which ROMs are located at which memory address.
 ## Adding Configurations for New 6502 Machines
 
 This topic is big enough to have its own readme, and it is located here:\
-[tools/README.md](tools/README.md)
+[config/README.md](config/README.md)
 
 ## Program / Debug
 
