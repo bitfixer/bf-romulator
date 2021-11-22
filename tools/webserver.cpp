@@ -634,9 +634,9 @@ void respond(int n, int tmp, int* cc)
                     {
                         // look up the character rom for this configuration
                         #ifdef TEST
-                        uint8_t configByte = romulatorReadConfig();
-                        #else
                         uint8_t configByte = 1;
+                        #else
+                        uint8_t configByte = romulatorReadConfig();
                         #endif
                         
                         fprintf(stderr, "got rom request, config byte %d\n", configByte);
