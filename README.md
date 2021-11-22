@@ -43,7 +43,7 @@ The default switch settings are as follows:
 |8          |Apple II plus                                  |Off        |Off        |Off        |On         |
 |9          |BASIC 1, PET 2001-8                            |On         |Off        |Off        |On         |
 
-The memory maps are defined in [tools/memory_set_default.csv](tools/memory_set_default.csv).
+The memory maps are defined in [config/memory_set_default.csv](config/memory_set_default.csv).
 This file indicates which ROMs are located at which memory address.
 
 ## Adding Configurations for New 6502 Machines
@@ -101,11 +101,11 @@ To program a new firmware onto the ROMulator, run\
 from the ~/bf-romulator directory.
 
 Note that you will need all of the roms present in order to complete the build.\
-This means that every unique rom specified in [tools/memory_set_default.csv](tools/memory_set_default.csv) to be present in the bf-romulator/roms directory.\
+This means that every unique rom specified in [config/memory_set_default.csv](config/memory_set_default.csv) to be present in the bf-romulator/roms directory.\
 For convenience if you are downloading ROM images from a single source, there is a script which will do this for you.\
 If you were downloading every rom with the base url of http://bitfixer.com, you would run the command:\
 ```BASEURL=http://bitfixer.com make fetch_roms```\
-This downloads every unique rom specified in [tools/memory_set_default.csv](tools/memory_set_default.csv) to the roms directory.
+This downloads every unique rom specified in [config/memory_set_default.csv](config/memory_set_default.csv) to the roms directory.
 
 ## Programming Custom Firmware
 
