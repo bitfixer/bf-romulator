@@ -117,3 +117,14 @@ from the ~/bf-romulator directory.
 Then, copy the custom .bin file somewhere on your raspberry pi, and run\
 ```bin/programmer_spi < customfirmware.bin```\
 from the ~/bf-romulator directory, replacing customfirmware.bin with the actual path of that file.
+
+## Virtual Display
+
+A recent feature added to the ROMulator is the ability to create a virtual external display, using a connected Raspberry Pi as a webserver. By pointing a browser to the pi server, you will be able to 'see' the contents of video ram in realtime rendered into bitmap images.\
+Currently, only the PET 2001 is supported, but other 6502 machines with memory-mapped graphics will be added soon.\
+To use the virtual display feature on a PET 2001, connect the ROMulator to the 6502 socket on the pet, and connect the Pi via the interface board with the programming jumper OFF. For now only setting 1 (Sw 1 ON, rest OFF) is supported, which is BASIC 4.\
+Power up the PET as usual, and the ROMulator LED should blink on for about one second. Then from the console on your Pi, from the bf-romulator directory, run:\
+```make webserver```\
+Then open a browser on another computer on the same network as the Pi, and navigate to the pi's server, like so:\
+```http://raspberrypi.local:10000/canvas.html```\
+Please note that while the pi will usually show up as raspberrypi.local, this is not always the case and you may need to know the actual local IP. At this point you should be able to enjoy a roughly 15-20 FPS PET 2001 display in your browser!
