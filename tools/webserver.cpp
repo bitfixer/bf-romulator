@@ -424,7 +424,7 @@ void getVram(uint8_t* vram, int len, int pos)
     }
     #else
     // get vram from romulator
-    romulatorReadVram(vram, len, len, 5);
+    romulatorReadVram(vram, len, 1001, 5);
     #endif
 }
 

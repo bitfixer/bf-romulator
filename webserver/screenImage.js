@@ -45,6 +45,16 @@ function romulatorVramToBitmap(
     var imageWidth = columns * charWidth;
     var imageHeight = rows * charHeight;
 
+    // pick which character set to use
+    // for PET, this is mapped to character in vram at index 1000
+    // TODO: generalize for other platforms
+    var bankByte = vram[1000];
+    var bankMask = 0;
+    if ((bankByte & 0x0E) == 0x0E)
+    {
+        bankMask = 0x80;
+    }
+
     var charIndex = 0;
     for (var row = 0; row < rows; row++)
     {
@@ -62,7 +72,7 @@ function romulatorVramToBitmap(
             }
 
             // lower high bit
-            character = character & 0x7F;
+            character = (character & 0x7F) | bankMask;
             drawCharacter(character, x, y, bitmap, characterRom, imageWidth, inverse);
         }
     }
