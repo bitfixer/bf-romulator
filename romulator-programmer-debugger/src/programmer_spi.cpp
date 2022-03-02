@@ -27,6 +27,7 @@
 #include <vector>
 #include <Arduino.h>
 #include <SPI.h>
+#include <LittleFS.h>
 
 //#define PI_ICE_MISO       21
 //#define PI_ICE_CLK        23
@@ -194,6 +195,14 @@ void read_flashmem(int n)
 
 void prog_flashmem(int pageoffset)
 {
+    // first try to open data file
+    File fp = LittleFS.open("/romulator.bin", "r");
+    if (!fp)
+    {
+        Serial.printf("error: could not open romulator.bin\n");
+        return;
+    }
+
     delayMicroseconds(100);
     
     // power_up
@@ -202,23 +211,25 @@ void prog_flashmem(int pageoffset)
     // read flash id
     read_flash_id();
 
+    /*
     // load prog data into buffer
     std::vector<uint8_t> prog_data;
     while (1) {
-        int byte = getchar();
+        int byte = fp.read();
         if (byte < 0)
             break;
         prog_data.push_back(byte);
     }
+    */
     
     int ms_timer = 0;
-    Serial.printf("writing %.2fkB..", double(prog_data.size()) / 1024);
+    Serial.printf("writing %.2fkB..", double(fp.size()) / 1024);
     
-    for (int addr = 0; addr < int(prog_data.size()); addr += 256)
+    for (int addr = 0; addr < int(fp.size()); addr += 256)
     {
         if (addr % (64*1024) == 0)
         {
-            Serial.printf("\n%3d%% @%06x ", 100*addr/int(prog_data.size()), addr);
+            Serial.printf("\n%3d%% @%06x ", 100*addr/int(fp.size()), addr);
             Serial.printf("erasing 64kB sector..");
             
             flash_write_enable();
@@ -227,22 +238,35 @@ void prog_flashmem(int pageoffset)
         }
         
         if (addr % (32*256) == 0) {
-            Serial.printf("\n%3d%% @%06x writing: ", 100*addr/int(prog_data.size()), addr);
+            Serial.printf("\n%3d%% @%06x writing: ", 100*addr/int(fp.size()), addr);
         }
         
-        int n = std::min(256, int(prog_data.size()) - addr);
+        int n = std::min(256, int(fp.size()) - addr);
         uint8_t buffer[256];
+        uint8_t file_buffer[256];
+
+        //Serial.printf("write address %06x\n", addr);
+
+        // read into file buffer
+        for (int i = 0; i < n; i++) {
+            int byte = fp.read();
+            if (byte < 0) {
+                Serial.printf("failed to read! addr %X", addr+i);
+                break;
+            }
+            file_buffer[i] = byte;
+        }
         
         bool write_success = false;
         for (int retry_count = 0; retry_count < 100; retry_count++)
         {
             flash_write_enable();
-            flash_write(addr + pageoffset * 0x10000, &prog_data[addr], n);
+            flash_write(addr + pageoffset * 0x10000, file_buffer, n);
             ms_timer += flash_wait();
             
             flash_read(addr + pageoffset * 0x10000, buffer, n);
 
-            if (!memcmp(buffer, &prog_data[addr], n)) {
+            if (!memcmp(buffer, file_buffer, n)) {
                 Serial.printf("o");
                 //goto written_ok;
                 write_success = true;
@@ -272,9 +296,11 @@ void init_spi()
 }
 
 void display_menu() {
+    Serial.printf("\n--------------\n");
     Serial.printf("p to program\n");
     Serial.printf("r to read\n");
     Serial.printf("b to reset\n");
+    Serial.printf("--------------\n");
 }
 
 void do_command(unsigned char opt)
@@ -332,9 +358,14 @@ void do_command(unsigned char opt)
 void setup() {
     Serial.begin(115200);
     pinMode(LED_PIN, OUTPUT);
-
     digitalWrite(LED_PIN, 0);
+
+    LittleFS.begin();
     display_menu();
+
+    // display start and end addresses
+    //Serial.printf("start: %X\n", (uint32_t)romulator_start);
+    //Serial.printf("end: %X\n", (uint32_t)romulator_end);
 }
 
 void loop() {
@@ -342,5 +373,6 @@ void loop() {
     if (Serial.readBytes(&b, 1) > 0) {
         // check for command
         do_command(b);
+        display_menu();
     }
 }
