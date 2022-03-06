@@ -22,42 +22,29 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-//#include <wiringPi.h>
-//#include <wiringPiSPI.h>
+#include "defines.h"
+#include "libRomulatorDebug.h"
+#include "server.h"
 #include <vector>
 #include <Arduino.h>
 #include <SPI.h>
 #include <LittleFS.h>
 
-//#define PI_ICE_MISO       21
-//#define PI_ICE_CLK        23
-//#define PI_ICE_CDONE      11
-
-//#define PI_ICE_CRESET     22
-//#define PI_ICE_MOSI       19
-//#define PI_ICE_CS         24
-
-#define  PI_ICE_CRESET  5
-#define  PI_ICE_CS      15
-
-#define  LED_PIN        2
-
 unsigned char _inBuffer[512];
+typedef enum mode
+{
+    MENU,
+    PROGRAMMING,
+    DEBUG
+} Mode;
+
+Mode _mode;
+bool _cpuHalted;
 
 void ice_reset()
 {
     pinMode(PI_ICE_CRESET,      OUTPUT);
     digitalWrite(PI_ICE_CRESET, LOW);
-}
-
-void reset_inout()
-{
-    //pinMode(PI_ICE_CLK,     INPUT);
-    //pinMode(PI_ICE_CDONE,   INPUT);
-    //pinMode(PI_ICE_MOSI,    INPUT);
-    //pinMode(PI_ICE_MISO,    INPUT);
-    pinMode(PI_ICE_CRESET,  INPUT);
-    pinMode(PI_ICE_CS,      INPUT);
 }
 
 int get_time_ms()
@@ -210,17 +197,6 @@ void prog_flashmem(int pageoffset)
     
     // read flash id
     read_flash_id();
-
-    /*
-    // load prog data into buffer
-    std::vector<uint8_t> prog_data;
-    while (1) {
-        int byte = fp.read();
-        if (byte < 0)
-            break;
-        prog_data.push_back(byte);
-    }
-    */
     
     int ms_timer = 0;
     Serial.printf("writing %.2fkB..", double(fp.size()) / 1024);
@@ -297,13 +273,76 @@ void init_spi()
 
 void display_menu() {
     Serial.printf("\n--------------\n");
-    Serial.printf("p to program\n");
-    Serial.printf("r to read\n");
-    Serial.printf("b to reset\n");
+    if (_mode == MENU)
+    {
+        Serial.printf("p for programming mode\n");
+        Serial.printf("d for debug mode\n");
+    }
+    else if (_mode == PROGRAMMING)
+    {
+        Serial.printf("p to program\n");
+        Serial.printf("r to read\n");
+        Serial.printf("b to reset\n");
+        Serial.printf("m to return to menu\n");
+    }
+    else if (_mode == DEBUG)
+    {
+        if (_cpuHalted)
+        {
+            Serial.printf("CPU Halted.\n");
+            Serial.printf("r to read data\n");
+            Serial.printf("w to write data\n");
+            Serial.printf("v to read vram\n");
+            Serial.printf("h to run cpu\n");
+        }
+        else
+        {
+            Serial.printf("h to halt cpu\n");
+            Serial.printf("m to return to menu\n");
+        }
+    }
     Serial.printf("--------------\n");
 }
 
-void do_command(unsigned char opt)
+void debug_command(unsigned char opt)
+{
+    if (_cpuHalted)
+    {
+        switch (opt)
+        {
+            case 'r':
+                // read data
+                break;
+            case 'w':
+                // write data
+                break;
+            case 'v':
+                // read vram
+                break;
+            case 'h':
+                // run cpu
+                break;
+            default:
+                break;
+        }
+    }
+    else
+    {
+        switch (opt)
+        {
+            case 'h':
+                // halt cpu
+                break;
+            case 'm':
+                _mode = MENU;
+                return;
+            default:
+                break;
+        }
+    }
+}
+
+void programming_command(unsigned char opt)
 {
     bool program = true;
     bool reset = false;
@@ -323,6 +362,9 @@ void do_command(unsigned char opt)
             reset = true;
             program = false;
             break;
+        case 'm':
+            _mode = MENU;
+            return;
         default:
             break;
     }
@@ -349,23 +391,53 @@ void do_command(unsigned char opt)
         Serial.printf("read\n");
         read_flashmem(size);
     }
-    reset_inout();
+    romulatorSetInput();
 
     Serial.printf("done.\n");
 }
 
+void menu_command(unsigned char opt)
+{
+    switch (opt)
+    {
+        case 'p':
+            _mode = PROGRAMMING;
+            return;
+        case 'd':
+            _mode = DEBUG;
+            return;
+        default:
+            break;
+    }
+}
+
+void do_command(unsigned char opt)
+{
+    if (_mode == MENU)
+    {
+
+    }
+    else if (_mode == PROGRAMMING)
+    {
+        programming_command(opt);
+    }
+    else if (_mode == DEBUG)
+    {
+        debug_command(opt);
+    }
+}
 
 void setup() {
     Serial.begin(115200);
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, 0);
-
+    romulatorSetInput();
     LittleFS.begin();
-    display_menu();
+    _cpuHalted = false;
+    _mode = MENU;
 
-    // display start and end addresses
-    //Serial.printf("start: %X\n", (uint32_t)romulator_start);
-    //Serial.printf("end: %X\n", (uint32_t)romulator_end);
+    startServer();
+    display_menu();
 }
 
 void loop() {
