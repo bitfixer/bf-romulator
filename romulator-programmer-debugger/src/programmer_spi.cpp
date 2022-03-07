@@ -501,7 +501,7 @@ void setup() {
     _cpuHalted = false;
     _mode = MENU;
 
-    //startServer();
+    startServer();
     display_menu();
 }
 
