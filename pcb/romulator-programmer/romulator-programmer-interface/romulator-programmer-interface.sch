@@ -98,8 +98,6 @@ Text GLabel 2950 2150 2    50   Input ~ 0
 MISO
 Text GLabel 2950 2250 2    50   Input ~ 0
 MOSI
-Text GLabel 2950 2350 2    50   Input ~ 0
-CS
 Text GLabel 2950 2050 2    50   Input ~ 0
 SCK
 Text GLabel 2950 1550 2    50   Input ~ 0
@@ -109,7 +107,7 @@ RST
 Text GLabel 4500 1350 2    50   Input ~ 0
 CDONE
 Text GLabel 2950 1750 2    50   Input ~ 0
-CDONE
+CS
 $Comp
 L Connector_Generic:Conn_02x08_Odd_Even J3
 U 1 1 621EB698
@@ -162,4 +160,36 @@ Text GLabel 4000 3150 2    50   Input ~ 0
 5VIN
 Wire Wire Line
 	4000 3050 4350 3050
+Text GLabel 2950 1950 2    50   Input ~ 0
+LED
+$Comp
+L Connector:Conn_01x02_Male J4
+U 1 1 6226476B
+P 6000 1100
+F 0 "J4" H 6108 1281 50  0000 C CNN
+F 1 "Conn_01x02_Male" H 6108 1190 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 6000 1100 50  0001 C CNN
+F 3 "~" H 6000 1100 50  0001 C CNN
+	1    6000 1100
+	1    0    0    -1  
+$EndComp
+Text GLabel 6200 1100 2    50   Input ~ 0
+CDONE
+Text GLabel 2950 1850 2    50   Input ~ 0
+GPIO0
+Text GLabel 6200 1200 2    50   Input ~ 0
+GPIO0
+$Comp
+L power:GND #PWR?
+U 1 1 6226851A
+P 2550 3050
+F 0 "#PWR?" H 2550 2800 50  0001 C CNN
+F 1 "GND" H 2555 2877 50  0000 C CNN
+F 2 "" H 2550 3050 50  0001 C CNN
+F 3 "" H 2550 3050 50  0001 C CNN
+	1    2550 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2550 2750 2550 3050
 $EndSCHEMATC
