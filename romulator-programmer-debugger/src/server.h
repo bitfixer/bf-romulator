@@ -2,5 +2,6 @@
 #define __SERVER_H__
 
 void startServer();
+void handleClient();
 
 #endif

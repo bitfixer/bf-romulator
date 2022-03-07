@@ -298,10 +298,69 @@ void display_menu() {
         else
         {
             Serial.printf("h to halt cpu\n");
+            Serial.printf("c to read config\n");
             Serial.printf("m to return to menu\n");
         }
     }
     Serial.printf("--------------\n");
+}
+
+void halt_cpu()
+{
+    Serial.printf("halting\n");
+    romulatorInitDebug();
+    romulatorHaltCpu();
+    _cpuHalted = true;
+}
+
+void run_cpu()
+{
+    romulatorStartCpu();
+    _cpuHalted = false;
+}
+
+void read_config()
+{
+    romulatorInitDebug();
+    uint8_t config = romulatorReadConfig();
+    Serial.printf("config: %X\n", config);
+}
+
+void debug_read_data()
+{
+    uint8_t buffer[1024];
+
+    Serial.printf("start read\n");
+    File fp = LittleFS.open("/memory.bin", "w");
+    romulatorStartReadMemory();
+
+    uint32_t crc = 0;
+    // read full memory map
+    for (int i = 0; i < 64; i++)
+    {
+        Serial.printf("%d..", i);
+        romulatorReadMemoryBlock(buffer, 1024);
+
+        crc32(buffer, 1024, &crc);
+        fp.write(buffer, 1024);
+    }
+    fp.close();
+
+    Serial.printf("\n");
+    uint32_t recv_crc = romulatorReadMemoryCRC(buffer);
+    Serial.printf("finished read, CRC %X\n", recv_crc);
+    Serial.printf("calculated crc: %X\n", crc);
+    //fp = LittleFS.open("/memory.bin", "r");
+    //fp.seek(0xF000);
+    //fp.readBytes((char*)buffer, 1024);
+
+    /*
+    for (int j = 0; j < 256; j++)
+    {
+        Serial.printf("%d: %X\n", j, buffer[j]);
+    }
+    */
+    
 }
 
 void debug_command(unsigned char opt)
@@ -312,6 +371,7 @@ void debug_command(unsigned char opt)
         {
             case 'r':
                 // read data
+                debug_read_data();
                 break;
             case 'w':
                 // write data
@@ -321,6 +381,7 @@ void debug_command(unsigned char opt)
                 break;
             case 'h':
                 // run cpu
+                run_cpu();
                 break;
             default:
                 break;
@@ -332,6 +393,10 @@ void debug_command(unsigned char opt)
         {
             case 'h':
                 // halt cpu
+                halt_cpu();
+                break;
+            case 'c':
+                read_config();
                 break;
             case 'm':
                 _mode = MENU;
@@ -367,32 +432,31 @@ void programming_command(unsigned char opt)
             return;
         default:
             break;
-    }
-
-
-    init_spi(); // set mode of SPI pins
-    // setup wiring pi SPI
-    Serial.printf("resetting\n");
-    ice_reset();
+    } 
 
     if (program)
     {
         Serial.printf("program\n");
+        init_spi(); // set mode of SPI pins
         prog_flashmem(0);
+        SPI.end();
     }
     else if (reset)
     {
         // reset fpga
         Serial.printf("reset\n");
+        ice_reset();
         delay(100);
     }
     else
     {
         Serial.printf("read\n");
+        init_spi();
         read_flashmem(size);
+        SPI.end();
     }
+    
     romulatorSetInput();
-
     Serial.printf("done.\n");
 }
 
@@ -415,7 +479,7 @@ void do_command(unsigned char opt)
 {
     if (_mode == MENU)
     {
-
+        menu_command(opt);
     }
     else if (_mode == PROGRAMMING)
     {
@@ -428,19 +492,21 @@ void do_command(unsigned char opt)
 }
 
 void setup() {
+    romulatorSetInput();
     Serial.begin(115200);
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, 0);
-    romulatorSetInput();
+    
     LittleFS.begin();
     _cpuHalted = false;
     _mode = MENU;
 
-    startServer();
+    //startServer();
     display_menu();
 }
 
 void loop() {
+    handleClient();
     unsigned char b;
     if (Serial.readBytes(&b, 1) > 0) {
         // check for command

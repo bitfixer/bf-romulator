@@ -14,7 +14,7 @@ void romulatorSetInput()
     digitalWrite(PI_DEBUG_CS, HIGH);
 
     pinMode(PI_ICE_CLK,     INPUT);
-    pinMode(PI_ICE_CDONE,   INPUT);
+    //pinMode(PI_ICE_CDONE,   INPUT);
     pinMode(PI_ICE_MOSI,    INPUT);
     pinMode(PI_ICE_MISO,    INPUT);
     pinMode(PI_ICE_CRESET,  INPUT);
@@ -166,6 +166,40 @@ void romulatorWriteMemory(uint8_t* send_buffer, bool verify)
     }
 
     romulatorStartCpu();
+}
+
+void romulatorStartReadMemory()
+{
+    xfer(0x66);
+
+    // read dummy byte
+    uint8_t b = xfer(0);
+    fprintf(stderr, "dummy byte: %X\n", b);
+}
+
+void romulatorReadMemoryBlock(uint8_t* buf, int size)
+{
+    for (uint32_t i = 0; i < size; i++)
+    {
+        uint8_t byte = xfer(i);
+        buf[i] = byte;
+    }
+}
+
+uint32_t romulatorReadMemoryCRC(uint8_t* buf)
+{
+    // crc32
+    uint32_t crc = 0;
+    for (uint32_t i = 0; i < 4; i++)
+    {
+        crc <<= 8;
+        uint8_t byte = xfer(i);
+        //fprintf(stderr, "r %d %X\n", i, byte);
+        crc += (uint32_t)byte;
+    }
+
+    //fprintf(stderr, "crc32: %X\n", crc);
+    return crc;
 }
 
 bool romulatorReadMemory(uint8_t* buffer, int retries)

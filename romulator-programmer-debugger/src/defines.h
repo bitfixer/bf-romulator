@@ -1,15 +1,17 @@
 #ifndef __DEFINES_H__
 #define __DEFINES_H__
 
-// hardware SPI pins
+// pins for connection of wemos d1 mini to romulator
 
-#define  PI_ICE_MISO    12
+// when programming, MISO and MOSI are reversed wrt debug mode.
+// these pins designations are for debug mode
+#define  PI_ICE_MISO    13  // hardware MOSI on esp
+#define  PI_ICE_MOSI    12  // hardware MISO on esp
+
 #define  PI_ICE_CLK     14
-#define  PI_ICE_CDONE   4
-#define  PI_ICE_MOSI    13
 #define  PI_ICE_CRESET  5
-#define  PI_ICE_CS      15
-#define  PI_DEBUG_CS    16
+#define  PI_ICE_CS      4
+#define  PI_DEBUG_CS     16
 
 #define  LED_PIN        2
 
