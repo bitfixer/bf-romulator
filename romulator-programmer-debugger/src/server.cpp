@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include <LittleFS.h>
+#include "libRomulatorProgrammer.h"
 
 const char *ssid = "romulator";
 const char *password = "password";
@@ -11,8 +12,11 @@ const char* hostname = "romulator.local";
 
 bool AP;
 File fsUploadFile;
-
 ESP8266WebServer server(80);
+extern RomulatorProgrammer _programmer;
+bool _connected;
+int _programBufferSize = 0;
+uint8_t _programBuffer[256];
 
 extern void programFirmware();
 
@@ -46,11 +50,6 @@ void handlePortal() {
     {
         // handle incoming file upload
         if (server.method() == HTTP_POST) {
-            HTTPUpload& upload = server.upload();
-
-
-
-
             server.send(200, "text/html", "is a post");
         } else {
             File fp = LittleFS.open("/romulator.html", "r");
@@ -73,18 +72,48 @@ void handleFileUpload()
             filename = "/"+filename;
         }
         Serial.print("handleFileUpload Name: "); Serial.println(filename);
-        fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
-        filename = String();
+        //fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
+        //filename = String();
+        _programmer.beginProgramming(upload.totalSize);
     } 
     else if (upload.status == UPLOAD_FILE_WRITE)
     {
+        /*
         if(fsUploadFile)
         {
             fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
         }
+        */
+        //_programmer.programBlock(upload.buf, upload.currentSize);
+
+        //Serial.printf("upload got %d bytes\n", upload.currentSize);
+        int currentByte = 0;
+        while (currentByte < upload.currentSize)
+        {
+            int bytesToCopy = 256 - _programBufferSize;
+            if (bytesToCopy > (upload.currentSize - currentByte))
+            {
+                bytesToCopy = upload.currentSize - currentByte;
+            }
+
+            // copy from upload to programming buffer
+            //Serial.printf("copying %d bytes\n", bytesToCopy);
+            memcpy(&_programBuffer[_programBufferSize], &upload.buf[currentByte], bytesToCopy);
+            currentByte += bytesToCopy;
+            _programBufferSize += bytesToCopy;
+
+            if (_programBufferSize == 256)
+            {
+                //Serial.printf("programming\n");
+                _programmer.programBlock(_programBuffer, _programBufferSize);
+                _programBufferSize = 0;
+            }
+        }
+
     } 
     else if(upload.status == UPLOAD_FILE_END) 
     {
+        /*
         if(fsUploadFile) 
         {                                    // If the file was successfully created
             fsUploadFile.close();                               // Close the file again
@@ -96,6 +125,16 @@ void handleFileUpload()
         {
             server.send(500, "text/plain", "500: couldn't create file");
         }
+        */
+
+        if (_programBufferSize > 0)
+        {
+            Serial.printf("programming last block %d\n", _programBufferSize);
+            _programmer.programBlock(_programBuffer, _programBufferSize);
+        }
+
+        _programmer.endProgramming();
+        server.send(200, "text/html", "done programming!");
     }
 }
 
@@ -115,16 +154,22 @@ void startServer()
 
     WiFi.mode(WIFI_STA);
     WiFi.hostname("romulator");
-    WiFi.begin(user_wifi.ssid, user_wifi.password);
-    
 
-    byte tries = 0;
+    delay(1000);
+    Serial.printf("connecting %s %s\n", user_wifi.ssid, user_wifi.password);
+    WiFi.begin(user_wifi.ssid, user_wifi.password);
+    _connected = false;
+    _programBufferSize = 0;
+
+    //byte tries = 0;
     AP = false;
+
+    /*
     while (WiFi.status() != WL_CONNECTED) 
     {
         Serial.printf(".");
         delay(1000);
-        if (tries++ > 10) 
+        if (tries++ > 20) 
         {
             Serial.printf("Starting access point.\n");
             AP = true;
@@ -145,9 +190,28 @@ void startServer()
     server.on("/upload", HTTP_POST, [](){server.send(200);}, handleFileUpload);
     server.begin();
     Serial.println("HTTP server started.\n");
+    */
 }
 
 void handleClient()
 {
+    if (!_connected)
+    {
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            Serial.printf("connected, ip address %s\n", WiFi.localIP().toString().c_str());
+            server.on("/",  handlePortal);
+            server.on("/program", handleProgram);
+            server.on("/upload", HTTP_POST, [](){server.send(200);}, handleFileUpload);
+            server.begin();
+            Serial.println("HTTP server started.\n");
+            _connected = true;
+        }
+        else
+        {
+            Serial.printf(".");
+            return;
+        }
+    }
     server.handleClient();
 }

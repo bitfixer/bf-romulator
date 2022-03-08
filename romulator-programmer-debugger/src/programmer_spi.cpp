@@ -418,7 +418,6 @@ void programFirmware()
     size_t bytesRead = fp.readBytes((char*)buffer, 256);
     while (bytesRead > 0)
     {
-        Serial.printf("read %d bytes.\n", bytesRead);
         _programmer.programBlock(buffer, bytesRead);
         bytesRead = fp.readBytes((char*)buffer, 256);
     }

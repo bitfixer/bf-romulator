@@ -131,6 +131,11 @@ void RomulatorProgrammer::beginProgramming(int totalSize)
     powerUp();
     readFlashID();
 
+    if (totalSize == 0)
+    {
+        totalSize = 1179648;
+    }
+
     Serial.printf("writing %.2fkB..", double(totalSize) / 1024);
     _size = totalSize;
     _addr = 0;
