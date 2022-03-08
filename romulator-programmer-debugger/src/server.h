@@ -4,4 +4,6 @@
 void startServer();
 void handleClient();
 
+void outputString(char* str);
+
 #endif

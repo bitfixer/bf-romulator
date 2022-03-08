@@ -10,13 +10,20 @@ const char *password = "password";
 const char* hostname = "romulator.local";
 
 bool AP;
+File fsUploadFile;
 
 ESP8266WebServer server(80);
+
+extern void programFirmware();
 
 struct settings {
     char ssid[30];
     char password[30];
 } user_wifi = {};
+
+void outputString(char* string) {
+    
+}
 
 void handlePortal() {
     if (AP) 
@@ -39,16 +46,52 @@ void handlePortal() {
     {
         // handle incoming file upload
         if (server.method() == HTTP_POST) {
+            HTTPUpload& upload = server.upload();
+
+
+
+
             server.send(200, "text/html", "is a post");
         } else {
-            server.send(200, "text/html", "not a post!");
+            File fp = LittleFS.open("/romulator.html", "r");
+            String s = fp.readString();
+            server.send(200, "text/html", s);
         }
 
     }
 }
 
+void handleFileUpload(){ // upload a new file to the SPIFFS
+  HTTPUpload& upload = server.upload();
+  if(upload.status == UPLOAD_FILE_START){
+    String filename = upload.filename;
+    Serial.printf("upload filename: %s\n", filename.c_str());
+    if(!filename.startsWith("/")) filename = "/"+filename;
+    Serial.print("handleFileUpload Name: "); Serial.println(filename);
+    fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
+    filename = String();
+  } else if(upload.status == UPLOAD_FILE_WRITE){
+    if(fsUploadFile)
+      fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
+  } else if(upload.status == UPLOAD_FILE_END){
+    if(fsUploadFile) {                                    // If the file was successfully created
+      fsUploadFile.close();                               // Close the file again
+      Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
+      server.sendHeader("Location","/program");      // Redirect the client to the success page
+      server.send(303);
+    } else {
+      server.send(500, "text/plain", "500: couldn't create file");
+    }
+  }
+}
+
 void handleRoot() {
     server.send(200, "text/html", "<h1>You are connected</h1>");
+}
+
+void handleProgram() {
+    programFirmware();
+    server.send(200, "text/html", "programmed succesfully.");
 }
 
 void startServer()
@@ -59,7 +102,8 @@ void startServer()
     WiFi.mode(WIFI_STA);
     WiFi.hostname("romulator");
     WiFi.begin(user_wifi.ssid, user_wifi.password);
-  
+    
+
     byte tries = 0;
     AP = false;
     while (WiFi.status() != WL_CONNECTED) 
@@ -83,6 +127,8 @@ void startServer()
     }
 
     server.on("/",  handlePortal);
+    server.on("/program", handleProgram);
+    server.on("/upload", HTTP_POST, [](){server.send(200);}, handleFileUpload);
     server.begin();
     Serial.println("HTTP server started.\n");
 }

@@ -350,17 +350,6 @@ void debug_read_data()
     uint32_t recv_crc = romulatorReadMemoryCRC(buffer);
     Serial.printf("finished read, CRC %X\n", recv_crc);
     Serial.printf("calculated crc: %X\n", crc);
-    //fp = LittleFS.open("/memory.bin", "r");
-    //fp.seek(0xF000);
-    //fp.readBytes((char*)buffer, 1024);
-
-    /*
-    for (int j = 0; j < 256; j++)
-    {
-        Serial.printf("%d: %X\n", j, buffer[j]);
-    }
-    */
-    
 }
 
 void debug_command(unsigned char opt)
@@ -407,6 +396,14 @@ void debug_command(unsigned char opt)
     }
 }
 
+void programFirmware()
+{
+    init_spi();
+    ice_reset();
+    prog_flashmem(0);
+    SPI.end();
+}
+
 void programming_command(unsigned char opt)
 {
     bool program = true;
@@ -437,9 +434,10 @@ void programming_command(unsigned char opt)
     if (program)
     {
         Serial.printf("program\n");
-        init_spi(); // set mode of SPI pins
-        prog_flashmem(0);
-        SPI.end();
+        programFirmware();
+        //init_spi(); // set mode of SPI pins
+        //prog_flashmem(0);
+        //SPI.end();
     }
     else if (reset)
     {
