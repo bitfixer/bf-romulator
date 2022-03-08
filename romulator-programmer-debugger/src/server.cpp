@@ -61,28 +61,42 @@ void handlePortal() {
     }
 }
 
-void handleFileUpload(){ // upload a new file to the SPIFFS
-  HTTPUpload& upload = server.upload();
-  if(upload.status == UPLOAD_FILE_START){
-    String filename = upload.filename;
-    Serial.printf("upload filename: %s\n", filename.c_str());
-    if(!filename.startsWith("/")) filename = "/"+filename;
-    Serial.print("handleFileUpload Name: "); Serial.println(filename);
-    fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
-    filename = String();
-  } else if(upload.status == UPLOAD_FILE_WRITE){
-    if(fsUploadFile)
-      fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
-  } else if(upload.status == UPLOAD_FILE_END){
-    if(fsUploadFile) {                                    // If the file was successfully created
-      fsUploadFile.close();                               // Close the file again
-      Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
-      server.sendHeader("Location","/program");      // Redirect the client to the success page
-      server.send(303);
-    } else {
-      server.send(500, "text/plain", "500: couldn't create file");
+void handleFileUpload()
+{
+    HTTPUpload& upload = server.upload();
+    if(upload.status == UPLOAD_FILE_START)
+    {
+        String filename = upload.filename;
+        Serial.printf("upload filename: %s\n", filename.c_str());
+        if (!filename.startsWith("/")) 
+        {
+            filename = "/"+filename;
+        }
+        Serial.print("handleFileUpload Name: "); Serial.println(filename);
+        fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
+        filename = String();
+    } 
+    else if (upload.status == UPLOAD_FILE_WRITE)
+    {
+        if(fsUploadFile)
+        {
+            fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
+        }
+    } 
+    else if(upload.status == UPLOAD_FILE_END) 
+    {
+        if(fsUploadFile) 
+        {                                    // If the file was successfully created
+            fsUploadFile.close();                               // Close the file again
+            Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
+            server.sendHeader("Location","/program");      // Redirect the client to the success page
+            server.send(303);
+        } 
+        else 
+        {
+            server.send(500, "text/plain", "500: couldn't create file");
+        }
     }
-  }
 }
 
 void handleRoot() {

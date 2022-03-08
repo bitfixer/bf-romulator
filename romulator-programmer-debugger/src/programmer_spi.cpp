@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include "defines.h"
 #include "libRomulatorDebug.h"
+#include "libRomulatorProgrammer.h"
 #include "server.h"
 #include <vector>
 #include <Arduino.h>
@@ -40,6 +41,7 @@ typedef enum mode
 
 Mode _mode;
 bool _cpuHalted;
+RomulatorProgrammer _programmer;
 
 void ice_reset()
 {
@@ -396,12 +398,32 @@ void debug_command(unsigned char opt)
     }
 }
 
+// 
+
+
 void programFirmware()
 {
-    init_spi();
-    ice_reset();
-    prog_flashmem(0);
-    SPI.end();
+   // first try to open data file
+    File fp = LittleFS.open("/romulator.bin", "r");
+    if (!fp)
+    {
+        Serial.printf("error: could not open romulator.bin\n");
+        return;
+    }
+
+
+    _programmer.beginProgramming(fp.size());
+
+    uint8_t buffer[256];
+    size_t bytesRead = fp.readBytes((char*)buffer, 256);
+    while (bytesRead > 0)
+    {
+        Serial.printf("read %d bytes.\n", bytesRead);
+        _programmer.programBlock(buffer, bytesRead);
+        bytesRead = fp.readBytes((char*)buffer, 256);
+    }
+
+    _programmer.endProgramming();
 }
 
 void programming_command(unsigned char opt)
