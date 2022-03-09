@@ -72,20 +72,20 @@ void handleFileUpload()
             filename = "/"+filename;
         }
         Serial.print("handleFileUpload Name: "); Serial.println(filename);
-        //fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
-        //filename = String();
-        _programmer.beginProgramming(upload.totalSize);
+        fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
+        filename = String();
+        //_programmer.beginProgramming(upload.totalSize);
     } 
     else if (upload.status == UPLOAD_FILE_WRITE)
     {
-        /*
         if(fsUploadFile)
         {
             fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
         }
-        */
+        
         //_programmer.programBlock(upload.buf, upload.currentSize);
 
+        /*
         //Serial.printf("upload got %d bytes\n", upload.currentSize);
         int currentByte = 0;
         while (currentByte < upload.currentSize)
@@ -108,25 +108,32 @@ void handleFileUpload()
                 _programmer.programBlock(_programBuffer, _programBufferSize);
                 _programBufferSize = 0;
             }
-        }
 
+            server.sendContent("block programmed<br>\n");
+        }
+        */
     } 
     else if(upload.status == UPLOAD_FILE_END) 
     {
-        /*
+        
         if(fsUploadFile) 
         {                                    // If the file was successfully created
             fsUploadFile.close();                               // Close the file again
             Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
-            server.sendHeader("Location","/program");      // Redirect the client to the success page
-            server.send(303);
+            //server.sendHeader("Location","/program");      // Redirect the client to the success page
+            //server.send(303);
+
+            // start programming from uploaded file
+            _programmer.beginProgrammingFromFile((char*)upload.filename.c_str());
+            server.send(200, "text/html", "done uploading!");
         } 
         else 
         {
             server.send(500, "text/plain", "500: couldn't create file");
         }
-        */
+        
 
+        /*
         if (_programBufferSize > 0)
         {
             Serial.printf("programming last block %d\n", _programBufferSize);
@@ -134,7 +141,10 @@ void handleFileUpload()
         }
 
         _programmer.endProgramming();
-        server.send(200, "text/html", "done programming!");
+        
+        server.sendContent("done<br>\n");
+        */
+       
     }
 }
 
@@ -145,6 +155,13 @@ void handleRoot() {
 void handleProgram() {
     programFirmware();
     server.send(200, "text/html", "programmed succesfully.");
+}
+
+void handleProgress() {
+    char progressStr[32];
+    int progressPct = _programmer.getProgrammingPercentage();
+    sprintf(progressStr, "%d%%", progressPct);
+    server.send(200, "text/html", progressStr);
 }
 
 void startServer()
@@ -203,6 +220,7 @@ void handleClient()
             server.on("/",  handlePortal);
             server.on("/program", handleProgram);
             server.on("/upload", HTTP_POST, [](){server.send(200);}, handleFileUpload);
+            server.on("/progress", handleProgress);
             server.begin();
             Serial.println("HTTP server started.\n");
             _connected = true;

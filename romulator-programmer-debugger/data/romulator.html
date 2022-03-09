@@ -1,0 +1,65 @@
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1'>
+        <title>Wifi Setup</title> 
+        <style>*,::after,::before{box-sizing:border-box;}body{margin:0;font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans','Liberation Sans';font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#f5f5f5;}.form-control{display:block;width:100%;height:calc(1.5em + .75rem + 2px);border:1px solid #ced4da;}button{cursor: pointer;border:1px solid transparent;color:#fff;background-color:#007bff;border-color:#007bff;padding:.5rem 1rem;font-size:1.25rem;line-height:1.5;border-radius:.3rem;width:100%}.form-signin{width:100%;max-width:400px;padding:15px;margin:auto;}h1{text-align: center}</style> 
+    </head> 
+    <body>
+        <main class='form-signin'> 
+            <form action='/upload' method='post' id='firmwareForm' enctype="multipart/form-data"> 
+                <h1 class=''>Upload Firmware</h1>
+                <br/>
+                <div class='form-floating'>
+                    <label>Firmware</label>
+                    <input type='file' id='firmwareFile' class='form-control' name='firmware'> 
+                </div>
+                <br/>
+                <br/>
+            </form>
+            <button onclick="uploadFile();">Upload</button>
+            <div id='progressArea'></div>
+        </main> 
+
+
+        <script>
+            function uploadFile() {
+                form = document.getElementById("firmwareForm");
+                fw = document.getElementById("firmwareFile");
+                prog = document.getElementById("progressArea");
+                let xhr = new XMLHttpRequest();
+                let programRequest = new XMLHttpRequest();
+                let progressRequest = new XMLHttpRequest();
+                xhr.open("POST", "/upload");
+                xhr.upload.addEventListener("progress", ({loaded, total}) =>{
+                    progressArea.innerHTML = loaded.toString();
+                });
+                xhr.upload.addEventListener("loadend", event => { 
+                    //programRequest.open("GET", "/program");
+                    //programRequest.send();
+                    progressArea.innerHTML = "done uploading.";
+                    setTimeout(getProgress, 1000);
+                });
+                let data = new FormData(form);
+                xhr.send(data);
+            }
+
+            function getProgress() {
+                let progressRequest = new XMLHttpRequest();
+                progressRequest.open("GET", "/progress");
+                progressRequest.addEventListener("loadend", event => {
+                    progressArea.innerHTML = progressRequest.responseText;
+                    if (progressRequest.responseText == "100%")
+                    {
+                        alert("done");
+                    }
+                    else
+                    {
+                        setTimeout(getProgress, 1000);
+                    }
+                });
+                progressRequest.send();
+            }
+        </script>
+    </body>
+</html>

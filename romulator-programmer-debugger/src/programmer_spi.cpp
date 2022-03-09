@@ -526,10 +526,13 @@ void setup() {
 
 void loop() {
     handleClient();
-    unsigned char b;
-    if (Serial.readBytes(&b, 1) > 0) {
-        // check for command
-        do_command(b);
-        display_menu();
+    if (!_programmer.updateProgrammingFromFile())
+    {
+        unsigned char b;
+        if (Serial.readBytes(&b, 1) > 0) {
+            // check for command
+            do_command(b);
+            display_menu();
+        }
     }
 }

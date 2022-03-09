@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include "defines.h"
+#include <LittleFS.h>
 #include <vector>
 
 void RomulatorProgrammer::initSPI()
@@ -123,6 +124,54 @@ int RomulatorProgrammer::flashWait()
     return millis() - ms_start;
 }
 
+void RomulatorProgrammer::beginProgrammingFromFile(char* filename)
+{
+    // start programming from specified file
+    String fname = String(filename);
+    Serial.printf("programming filename: %s\n", fname.c_str());
+    if (!fname.startsWith("/")) 
+    {
+        fname = "/"+fname;
+    }
+    _fp = LittleFS.open(fname, "r");
+    if (_fp)
+    {
+        beginProgramming(_fp.size());
+        _programmingFromFile = true;
+    }
+}
+
+bool RomulatorProgrammer::updateProgrammingFromFile()
+{
+    if (!_programmingFromFile)
+    {
+        return false;
+    }
+
+    if (!_fp)
+    {
+        return false;
+    }
+
+    uint8_t block[256];
+    size_t bytesRead = _fp.readBytes((char*)block, 256);
+    if (bytesRead == 0)
+    {
+        // done programming
+        Serial.printf("done.\n");
+        endProgramming();
+        _programmingFromFile = false;
+        _fp.close();
+
+        _fp = File();
+        return false;
+    }
+
+    // program this block
+    programBlock(block, bytesRead);
+    return true;
+}
+
 void RomulatorProgrammer::beginProgramming(int totalSize)
 {
     initSPI();
@@ -189,6 +238,21 @@ bool RomulatorProgrammer::programBlock(uint8_t* block, int blockSize)
 
     _addr += 256;
     return true;
+}
+
+int RomulatorProgrammer::getProgrammingPercentage()
+{
+    if (_size == 0)
+    {
+        return 0;
+    }
+    
+    if (_programmingFromFile == false)
+    {
+        return 100;
+    }
+
+    return 100*_addr/_size;
 }
 
 void RomulatorProgrammer::endProgramming()

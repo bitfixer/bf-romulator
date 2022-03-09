@@ -2,16 +2,27 @@
 #define __LIB_ROMULATOR_PROGRAMMER_H__
 
 #include <stdint.h>
+#include <LittleFS.h>
 
 class RomulatorProgrammer 
 {
 public:
-    RomulatorProgrammer() {};
+    RomulatorProgrammer() 
+    : _size(0)
+    , _addr(0)
+    , _pageOffset(0)
+    , _msTimer(0)
+    , _programmingFromFile(false)
+    {};
+
     ~RomulatorProgrammer() {};
 
     void reset();
+    void beginProgrammingFromFile(char* filename);
+    bool updateProgrammingFromFile();
     void beginProgramming(int totalSize);
     bool programBlock(uint8_t* block, int blockSize);
+    int getProgrammingPercentage();
     void endProgramming();
 
 private:
@@ -33,7 +44,8 @@ private:
     int _addr;
     int _pageOffset;
     int _msTimer;
-
+    bool _programmingFromFile;
+    File _fp;
 };
 
 
