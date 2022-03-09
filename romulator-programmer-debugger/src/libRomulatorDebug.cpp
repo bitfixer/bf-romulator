@@ -40,6 +40,12 @@ void romulatorReset()
     digitalWrite(PI_ICE_CRESET, LOW);
 }
 
+void romulatorResetDevice()
+{
+    romulatorReset();
+    delay(100);
+    romulatorSetInput();
+}
 
 void spi_begin()
 {

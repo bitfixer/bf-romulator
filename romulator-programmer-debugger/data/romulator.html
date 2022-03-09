@@ -7,37 +7,41 @@
     </head> 
     <body>
         <main class='form-signin'> 
+            <h1 class=''>Programming</h1>
             <form action='/upload' method='post' id='firmwareForm' enctype="multipart/form-data"> 
-                <h1 class=''>Upload Firmware</h1>
-                <br/>
+                <h2 class=''>Upload Firmware</h1>
                 <div class='form-floating'>
                     <label>Firmware</label>
                     <input type='file' id='firmwareFile' class='form-control' name='firmware'> 
                 </div>
-                <br/>
-                <br/>
             </form>
-            <button onclick="uploadFile();">Upload</button>
+            <button onclick="uploadFile();">Program</button>
             <div id='progressArea'></div>
-         
-            <button onclick="haltCpu();">Halt CPU</button>
+            <br/>
+            <button onclick="reset();">Reset Device</button>
+            <div id='resetResult'></div>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class=''>Debugging</h1>
+            <button onclick="haltCpu();" id='haltCpuButton'>Halt CPU</button>
             <div id='haltResult'></div>
-            <button onclick="runCpu();">Run CPU</button>
+            <br/>
+            <button onclick="runCpu();" id='runCpuButton' disabled>Run CPU</button>
             <div id='runResult'></div>
-
-
+            <br/>
+            <button onclick="readmemory();" id='readMemoryButton' disabled>Read Memory</button>
+            <br/>
             <form action='/writememory' method='post' id='writeMemoryForm' enctype="multipart/form-data"> 
-                <h1 class=''>Upload Memory Contents</h1>
-                <br/>
+                <h2 class=''>Upload Memory Contents</h1>
                 <div class='form-floating'>
                     <label>Memory Contents</label>
                     <input type='file' id='memoryFile' class='form-control' name='memory'> 
                 </div>
             </form>
 
-            <button onclick="writeMemory();">Write Memory</button>
+            <button onclick="writeMemory();" id='writeMemoryButton' disabled>Write Memory</button>
             <div id='writememoryResult'></div>
-            <a href="/readmemory">Read Memory</a>
         </main>
 
         <script>
@@ -45,6 +49,11 @@
             // endpoints for romulator functions
             function reset() {
                 getRequestWithEndpoint("reset");
+            }
+
+            function readmemory() {
+                //readMemoryLink.click();
+                window.location.href='/readmemory';
             }
 
             function writeMemory() {
@@ -61,7 +70,6 @@
 
             function uploadFile() {
                 form = document.getElementById("firmwareForm");
-                //fw = document.getElementById("firmwareFile");
                 prog = document.getElementById("progressArea");
                 let xhr = new XMLHttpRequest();
                 xhr.open("POST", "/upload");
@@ -94,25 +102,27 @@
                 progressRequest.send();
             }
 
-            /*
-            function haltCpu() {
-                haltRequest = new XMLHttpRequest();
-                haltRequest.open("GET", "/halt");
-                haltRequest.addEventListener("loadend", event => {
-                    haltResult.innerHTML = "halted.";
-                });
-                haltRequest.send();
-            }
-            */
-
             function haltCpu()
             {
                 getRequestWithEndpoint("halt");
+                runCpuButton.disabled = false;
+                readMemoryButton.disabled = false;
+                writeMemoryButton.disabled = false;
+                haltCpuButton.disabled = true;
             }
 
             function runCpu()
             {
                 getRequestWithEndpoint("run");
+                haltCpuButton.disabled = false;
+                readMemoryButton.disabled = true;
+                writeMemoryButton.disabled = true;
+                runCpuButton.disabled = true;
+            }
+
+            function reset()
+            {
+                getRequestWithEndpoint("reset");
             }
 
             function getRequestWithEndpoint(endpoint) {
@@ -125,16 +135,6 @@
                 });
                 req.send();
             }
-
-            /*
-            function readMemory() {
-                readmemRequest = new XMLHttpRequest();
-                readmemRequest.open("GET", "/read");
-                readmemRequest.addEventListener("loadend", event => {
-                    
-                });
-            }
-            */
         </script>
     </body>
 </html>

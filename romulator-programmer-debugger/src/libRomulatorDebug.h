@@ -8,6 +8,7 @@ void romulatorInitDebug();
 void romulatorClose();
 
 void romulatorReset();
+void romulatorResetDevice();
 
 bool romulatorReadMemoryToFile();
 //void romulatorWriteMemory(uint8_t* send_buffer, bool verify);

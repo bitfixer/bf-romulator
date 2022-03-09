@@ -165,8 +165,14 @@ void handleReadMemory() {
     romulatorStartCpu();
 
     File fp = LittleFS.open("/memory.bin", "r");
+    server.sendHeader("content-disposition", "attachment; filename=\"memory.bin\"");
     server.send(200, "application/octet-stream", &fp, fp.size());
     fp.close();
+}
+
+void handleReset() {
+    romulatorResetDevice();
+    server.send(200, "text/html", "device reset.");
 }
 
 void startServer()
@@ -228,6 +234,7 @@ void handleClient()
             server.on("/halt", handleHalt);
             server.on("/run", handleRun);
             server.on("/readmemory", handleReadMemory);
+            server.on("/reset", handleReset);
             server.on("/writememory", HTTP_POST, [](){server.send(200);}, handleWriteMemory);
             server.begin();
             Serial.println("HTTP server started.\n");
