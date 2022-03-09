@@ -19,6 +19,9 @@ int _programBufferSize = 0;
 uint8_t _programBuffer[256];
 
 extern void programFirmware();
+extern void halt_cpu();
+extern void run_cpu();
+extern void debug_read_data();
 
 struct settings {
     char ssid[30];
@@ -160,8 +163,23 @@ void handleProgram() {
 void handleProgress() {
     char progressStr[32];
     int progressPct = _programmer.getProgrammingPercentage();
-    sprintf(progressStr, "%d%%", progressPct);
+    sprintf(progressStr, "%d", progressPct);
     server.send(200, "text/html", progressStr);
+}
+
+void handleHalt() {
+    halt_cpu();
+    server.send(200, "text/html", "halted");
+}
+
+void handleReadMemory() {
+    halt_cpu();
+    debug_read_data();
+    run_cpu();
+
+    File fp = LittleFS.open("/memory.bin", "r");
+    server.send(200, "application/octet-stream", &fp, fp.size());
+    fp.close();
 }
 
 void startServer()
@@ -221,6 +239,8 @@ void handleClient()
             server.on("/program", handleProgram);
             server.on("/upload", HTTP_POST, [](){server.send(200);}, handleFileUpload);
             server.on("/progress", handleProgress);
+            server.on("/halt", handleHalt);
+            server.on("/readmemory", handleReadMemory);
             server.begin();
             Serial.println("HTTP server started.\n");
             _connected = true;

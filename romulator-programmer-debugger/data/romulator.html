@@ -21,6 +21,9 @@
             <div id='progressArea'></div>
         </main> 
 
+        <button onclick="haltCpu();">Halt CPU</button>
+        <div id='haltResult'></div>
+        <a href="/readmemory">Read Memory</a>
 
         <script>
             function uploadFile() {
@@ -28,15 +31,12 @@
                 fw = document.getElementById("firmwareFile");
                 prog = document.getElementById("progressArea");
                 let xhr = new XMLHttpRequest();
-                let programRequest = new XMLHttpRequest();
-                let progressRequest = new XMLHttpRequest();
                 xhr.open("POST", "/upload");
                 xhr.upload.addEventListener("progress", ({loaded, total}) =>{
-                    progressArea.innerHTML = loaded.toString();
+                    pct = 100*loaded/total;
+                    progressArea.innerHTML = "uploading: " + pct.toString() + "%";
                 });
                 xhr.upload.addEventListener("loadend", event => { 
-                    //programRequest.open("GET", "/program");
-                    //programRequest.send();
                     progressArea.innerHTML = "done uploading.";
                     setTimeout(getProgress, 1000);
                 });
@@ -48,18 +48,37 @@
                 let progressRequest = new XMLHttpRequest();
                 progressRequest.open("GET", "/progress");
                 progressRequest.addEventListener("loadend", event => {
-                    progressArea.innerHTML = progressRequest.responseText;
-                    if (progressRequest.responseText == "100%")
+                    if (progressRequest.responseText === "100")
                     {
-                        alert("done");
+                        progressArea.innerHTML = "programming: done.";
                     }
                     else
                     {
+                        progressArea.innerHTML = "programming: " + progressRequest.responseText + "%";
                         setTimeout(getProgress, 1000);
                     }
                 });
                 progressRequest.send();
             }
+
+            function haltCpu() {
+                haltRequest = new XMLHttpRequest();
+                haltRequest.open("GET", "/halt");
+                haltRequest.addEventListener("loadend", event => {
+                    haltResult.innerHTML = "halted.";
+                });
+                haltRequest.send();
+            }
+
+            /*
+            function readMemory() {
+                readmemRequest = new XMLHttpRequest();
+                readmemRequest.open("GET", "/read");
+                readmemRequest.addEventListener("loadend", event => {
+                    
+                });
+            }
+            */
         </script>
     </body>
 </html>
