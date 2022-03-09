@@ -43,12 +43,6 @@ Mode _mode;
 bool _cpuHalted;
 RomulatorProgrammer _programmer;
 
-void ice_reset()
-{
-    pinMode(PI_ICE_CRESET,      OUTPUT);
-    digitalWrite(PI_ICE_CRESET, LOW);
-}
-
 int get_time_ms()
 {
     return millis();
@@ -330,6 +324,7 @@ void read_config()
 
 void debug_read_data()
 {
+    /*
     uint8_t buffer[1024];
 
     Serial.printf("start read\n");
@@ -352,6 +347,9 @@ void debug_read_data()
     uint32_t recv_crc = romulatorReadMemoryCRC(buffer);
     Serial.printf("finished read, CRC %X\n", recv_crc);
     Serial.printf("calculated crc: %X\n", crc);
+    */
+
+    romulatorReadMemoryToFile();
 }
 
 void debug_command(unsigned char opt)
@@ -397,9 +395,6 @@ void debug_command(unsigned char opt)
         }
     }
 }
-
-// 
-
 
 void programFirmware()
 {
@@ -464,7 +459,7 @@ void programming_command(unsigned char opt)
     {
         // reset fpga
         Serial.printf("reset\n");
-        ice_reset();
+        romulatorReset();
         delay(100);
     }
     else

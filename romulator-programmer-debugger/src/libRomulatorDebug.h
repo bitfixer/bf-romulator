@@ -7,8 +7,11 @@ void romulatorSetInput();
 void romulatorInitDebug();
 void romulatorClose();
 
-bool romulatorReadMemory(uint8_t* buffer, int retries);
-void romulatorWriteMemory(uint8_t* send_buffer, bool verify);
+void romulatorReset();
+
+bool romulatorReadMemoryToFile();
+//void romulatorWriteMemory(uint8_t* send_buffer, bool verify);
+bool romulatorWriteMemoryFromFile();
 bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries);
 uint8_t romulatorReadConfig();
 void romulatorHaltCpu();

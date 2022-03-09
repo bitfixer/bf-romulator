@@ -5,6 +5,7 @@
 #include <EEPROM.h>
 #include <LittleFS.h>
 #include "libRomulatorProgrammer.h"
+#include "libRomulatorDebug.h"
 
 const char *ssid = "romulator";
 const char *password = "password";
@@ -19,9 +20,6 @@ int _programBufferSize = 0;
 uint8_t _programBuffer[256];
 
 extern void programFirmware();
-extern void halt_cpu();
-extern void run_cpu();
-extern void debug_read_data();
 
 struct settings {
     char ssid[30];
@@ -77,7 +75,6 @@ void handleFileUpload()
         Serial.print("handleFileUpload Name: "); Serial.println(filename);
         fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
         filename = String();
-        //_programmer.beginProgramming(upload.totalSize);
     } 
     else if (upload.status == UPLOAD_FILE_WRITE)
     {
@@ -85,47 +82,13 @@ void handleFileUpload()
         {
             fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
         }
-        
-        //_programmer.programBlock(upload.buf, upload.currentSize);
-
-        /*
-        //Serial.printf("upload got %d bytes\n", upload.currentSize);
-        int currentByte = 0;
-        while (currentByte < upload.currentSize)
-        {
-            int bytesToCopy = 256 - _programBufferSize;
-            if (bytesToCopy > (upload.currentSize - currentByte))
-            {
-                bytesToCopy = upload.currentSize - currentByte;
-            }
-
-            // copy from upload to programming buffer
-            //Serial.printf("copying %d bytes\n", bytesToCopy);
-            memcpy(&_programBuffer[_programBufferSize], &upload.buf[currentByte], bytesToCopy);
-            currentByte += bytesToCopy;
-            _programBufferSize += bytesToCopy;
-
-            if (_programBufferSize == 256)
-            {
-                //Serial.printf("programming\n");
-                _programmer.programBlock(_programBuffer, _programBufferSize);
-                _programBufferSize = 0;
-            }
-
-            server.sendContent("block programmed<br>\n");
-        }
-        */
     } 
     else if(upload.status == UPLOAD_FILE_END) 
     {
-        
         if(fsUploadFile) 
         {                                    // If the file was successfully created
             fsUploadFile.close();                               // Close the file again
             Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
-            //server.sendHeader("Location","/program");      // Redirect the client to the success page
-            //server.send(303);
-
             // start programming from uploaded file
             _programmer.beginProgrammingFromFile((char*)upload.filename.c_str());
             server.send(200, "text/html", "done uploading!");
@@ -134,30 +97,44 @@ void handleFileUpload()
         {
             server.send(500, "text/plain", "500: couldn't create file");
         }
-        
+    }
+}
 
-        /*
-        if (_programBufferSize > 0)
+void handleWriteMemory()
+{
+    Serial.printf("handleWriteMemory\n");
+    HTTPUpload& upload = server.upload();
+    if(upload.status == UPLOAD_FILE_START)
+    {
+        Serial.printf("start memory upload.\n");
+        fsUploadFile = LittleFS.open("/memory.bin", "w");
+    } 
+    else if (upload.status == UPLOAD_FILE_WRITE)
+    {
+        if(fsUploadFile)
         {
-            Serial.printf("programming last block %d\n", _programBufferSize);
-            _programmer.programBlock(_programBuffer, _programBufferSize);
+            fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
         }
-
-        _programmer.endProgramming();
-        
-        server.sendContent("done<br>\n");
-        */
-       
+    } 
+    else if(upload.status == UPLOAD_FILE_END) 
+    {
+        if(fsUploadFile) 
+        {                                    // If the file was successfully created
+            fsUploadFile.close();                               // Close the file again
+            Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
+            // start programming from uploaded file
+            romulatorWriteMemoryFromFile();
+            server.send(200, "text/html", "done writing!");
+        } 
+        else 
+        {
+            server.send(500, "text/plain", "500: couldn't create file");
+        }
     }
 }
 
 void handleRoot() {
     server.send(200, "text/html", "<h1>You are connected</h1>");
-}
-
-void handleProgram() {
-    programFirmware();
-    server.send(200, "text/html", "programmed succesfully.");
 }
 
 void handleProgress() {
@@ -168,14 +145,24 @@ void handleProgress() {
 }
 
 void handleHalt() {
-    halt_cpu();
+    Serial.printf("halt\n");
+    romulatorInitDebug();
+    romulatorHaltCpu();
     server.send(200, "text/html", "halted");
 }
 
+void handleRun() {
+    Serial.printf("run\n");
+    romulatorStartCpu();
+    romulatorSetInput();
+    server.send(200, "text/html", "cpu running");
+}
+
 void handleReadMemory() {
-    halt_cpu();
-    debug_read_data();
-    run_cpu();
+    romulatorInitDebug();
+    romulatorHaltCpu();
+    romulatorReadMemoryToFile();
+    romulatorStartCpu();
 
     File fp = LittleFS.open("/memory.bin", "r");
     server.send(200, "application/octet-stream", &fp, fp.size());
@@ -236,11 +223,12 @@ void handleClient()
         {
             Serial.printf("connected, ip address %s\n", WiFi.localIP().toString().c_str());
             server.on("/",  handlePortal);
-            server.on("/program", handleProgram);
             server.on("/upload", HTTP_POST, [](){server.send(200);}, handleFileUpload);
             server.on("/progress", handleProgress);
             server.on("/halt", handleHalt);
+            server.on("/run", handleRun);
             server.on("/readmemory", handleReadMemory);
+            server.on("/writememory", HTTP_POST, [](){server.send(200);}, handleWriteMemory);
             server.begin();
             Serial.println("HTTP server started.\n");
             _connected = true;

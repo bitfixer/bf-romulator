@@ -19,16 +19,49 @@
             </form>
             <button onclick="uploadFile();">Upload</button>
             <div id='progressArea'></div>
-        </main> 
+         
+            <button onclick="haltCpu();">Halt CPU</button>
+            <div id='haltResult'></div>
+            <button onclick="runCpu();">Run CPU</button>
+            <div id='runResult'></div>
 
-        <button onclick="haltCpu();">Halt CPU</button>
-        <div id='haltResult'></div>
-        <a href="/readmemory">Read Memory</a>
+
+            <form action='/writememory' method='post' id='writeMemoryForm' enctype="multipart/form-data"> 
+                <h1 class=''>Upload Memory Contents</h1>
+                <br/>
+                <div class='form-floating'>
+                    <label>Memory Contents</label>
+                    <input type='file' id='memoryFile' class='form-control' name='memory'> 
+                </div>
+            </form>
+
+            <button onclick="writeMemory();">Write Memory</button>
+            <div id='writememoryResult'></div>
+            <a href="/readmemory">Read Memory</a>
+        </main>
 
         <script>
+
+            // endpoints for romulator functions
+            function reset() {
+                getRequestWithEndpoint("reset");
+            }
+
+            function writeMemory() {
+                form = document.getElementById("writeMemoryForm");
+                res = document.getElementById("writememoryResult");
+                let req = new XMLHttpRequest();
+                req.open("POST", "/writememory");
+                req.upload.addEventListener("loadend", event => {
+                    res.innerHTML = "write memory complete.";
+                });
+                let data = new FormData(form);
+                req.send(data);
+            }
+
             function uploadFile() {
                 form = document.getElementById("firmwareForm");
-                fw = document.getElementById("firmwareFile");
+                //fw = document.getElementById("firmwareFile");
                 prog = document.getElementById("progressArea");
                 let xhr = new XMLHttpRequest();
                 xhr.open("POST", "/upload");
@@ -61,6 +94,7 @@
                 progressRequest.send();
             }
 
+            /*
             function haltCpu() {
                 haltRequest = new XMLHttpRequest();
                 haltRequest.open("GET", "/halt");
@@ -68,6 +102,28 @@
                     haltResult.innerHTML = "halted.";
                 });
                 haltRequest.send();
+            }
+            */
+
+            function haltCpu()
+            {
+                getRequestWithEndpoint("halt");
+            }
+
+            function runCpu()
+            {
+                getRequestWithEndpoint("run");
+            }
+
+            function getRequestWithEndpoint(endpoint) {
+                endpointName = "/" + endpoint;
+                resultArea = document.getElementById(endpoint + "Result");
+                req = new XMLHttpRequest();
+                req.open("GET", endpointName);
+                req.addEventListener("loadend", event => {
+                    resultArea.innerHTML = req.responseText;
+                });
+                req.send();
             }
 
             /*

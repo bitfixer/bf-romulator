@@ -5,6 +5,7 @@
 #include <string.h>
 #include <time.h>
 #include <Arduino.h>
+#include <LittleFS.h>
 
 // set everything to input. Also deassert debug line,
 // so romulator is not stuck in debug mode
@@ -32,6 +33,13 @@ void romulatorClose()
 {
     romulatorSetInput();
 }
+
+void romulatorReset()
+{
+    pinMode(PI_ICE_CRESET,      OUTPUT);
+    digitalWrite(PI_ICE_CRESET, LOW);
+}
+
 
 void spi_begin()
 {
@@ -131,14 +139,31 @@ void start_vram_read()
     xfer(0x88);
 }
 
-void romulatorWriteMemory(uint8_t* send_buffer, bool verify)
+uint32_t crcFromFile(File fp)
 {
-    uint32_t calc_crc = 0;
-    crc32(send_buffer, 65536, &calc_crc);
-    fprintf(stderr, "send calc crc: %X\n", calc_crc);
+    uint8_t buffer[1024];
+    uint32_t crc = 0;
+    int bytesRead = fp.readBytes((char*)buffer, 1024);
+    while (bytesRead > 0)
+    {
+        crc32(buffer, bytesRead, &crc);
+        bytesRead = fp.readBytes((char*)buffer, 1024);
+    }
 
-    // send command to halt CPU
-    romulatorHaltCpu();
+    fp.seek(0);
+    return crc;
+}
+
+bool romulatorWriteMemoryFromFile()
+{
+    File fp = LittleFS.open("/memory.bin", "r");
+    if (!fp)
+    {
+        return false;
+    }
+
+    uint32_t calc_crc = crcFromFile(fp);
+    fprintf(stderr, "send calc crc: %X\n", calc_crc);
 
     // write memory map
     xfer(0x99);
@@ -146,11 +171,15 @@ void romulatorWriteMemory(uint8_t* send_buffer, bool verify)
     uint8_t send_byte;
     for (uint32_t i = 0; i < 65536; i++)
     {
-        send_byte = send_buffer[i];
+        //send_byte = send_buffer[i];
+        send_byte = fp.read();
         uint8_t byte = xfer(send_byte);
     }
 
+    fp.seek(0);
     xfer(0x55);
+
+    /*
     if (verify)
     {
         uint8_t buffer[65536];
@@ -164,8 +193,8 @@ void romulatorWriteMemory(uint8_t* send_buffer, bool verify)
             fprintf(stderr, "write error, mismatch.\n");
         }
     }
-
-    romulatorStartCpu();
+    */
+   return true;
 }
 
 void romulatorStartReadMemory()
@@ -194,56 +223,39 @@ uint32_t romulatorReadMemoryCRC(uint8_t* buf)
     {
         crc <<= 8;
         uint8_t byte = xfer(i);
-        //fprintf(stderr, "r %d %X\n", i, byte);
         crc += (uint32_t)byte;
     }
-
-    //fprintf(stderr, "crc32: %X\n", crc);
     return crc;
 }
 
-bool romulatorReadMemory(uint8_t* buffer, int retries)
+bool romulatorReadMemoryToFile()
 {
-    for (int attempt = 0; attempt < retries; attempt++)
+    uint8_t buffer[1024];
+    Serial.printf("start read\n");
+    File fp = LittleFS.open("/memory.bin", "w");
+    if (!fp)
     {
-        // send command to read memory map
-        xfer(0x66);
-
-        // read dummy byte
-        uint8_t b = xfer(0);
-        fprintf(stderr, "dummy byte: %X\n", b);
-
-        for (uint32_t i = 0; i < 65536; i++)
-        {
-            uint8_t byte = xfer(i);
-            buffer[i] = byte;
-        }
-
-        // crc32
-        uint32_t crc = 0;
-        for (uint32_t i = 0; i < 4; i++)
-        {
-            crc <<= 8;
-            uint8_t byte = xfer(i);
-            fprintf(stderr, "r %d %X\n", i, byte);
-            crc += (uint32_t)byte;
-        }
-
-        fprintf(stderr, "crc32: %X\n", crc);
-
-        // calculate crc32 of received buffer
-        uint32_t calc_crc = 0;
-        crc32(buffer, 65536, &calc_crc);
-        fprintf(stderr, "calc crc: %X\n", calc_crc);
-
-        if (crc == calc_crc)
-        {
-            return true;
-        }
-
-        fprintf(stderr, "attempt %d read failure, crc mismatch\n", attempt);
+        return false;
     }
-    return false;
+    romulatorStartReadMemory();
+
+    uint32_t crc = 0;
+    // read full memory map
+    for (int i = 0; i < 64; i++)
+    {
+        Serial.printf("%d..", i);
+        romulatorReadMemoryBlock(buffer, 1024);
+
+        crc32(buffer, 1024, &crc);
+        fp.write(buffer, 1024);
+    }
+    fp.close();
+
+    Serial.printf("\n");
+    uint32_t recv_crc = romulatorReadMemoryCRC(buffer);
+    Serial.printf("finished read, CRC %X\n", recv_crc);
+    Serial.printf("calculated crc: %X\n", crc);
+    return true;
 }
 
 bool romulatorReadVramBlock(uint8_t* vram)
