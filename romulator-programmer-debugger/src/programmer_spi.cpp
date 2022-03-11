@@ -30,6 +30,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <LittleFS.h>
+#include "XmodemCRC.h"
 
 unsigned char _inBuffer[512];
 typedef enum mode
@@ -324,32 +325,14 @@ void read_config()
 
 void debug_read_data()
 {
-    /*
-    uint8_t buffer[1024];
-
-    Serial.printf("start read\n");
-    File fp = LittleFS.open("/memory.bin", "w");
-    romulatorStartReadMemory();
-
-    uint32_t crc = 0;
-    // read full memory map
-    for (int i = 0; i < 64; i++)
-    {
-        Serial.printf("%d..", i);
-        romulatorReadMemoryBlock(buffer, 1024);
-
-        crc32(buffer, 1024, &crc);
-        fp.write(buffer, 1024);
-    }
-    fp.close();
-
-    Serial.printf("\n");
-    uint32_t recv_crc = romulatorReadMemoryCRC(buffer);
-    Serial.printf("finished read, CRC %X\n", recv_crc);
-    Serial.printf("calculated crc: %X\n", crc);
-    */
-
+    Serial.printf("reading data..\n");
+    romulatorInitDebug();
+    romulatorHaltCpu();
     romulatorReadMemoryToFile();
+    romulatorStartCpu();
+
+    Serial.printf("start receive with xmodem-crc.\n");
+    xmodemSendFile("/memory.bin");
 }
 
 void debug_command(unsigned char opt)
