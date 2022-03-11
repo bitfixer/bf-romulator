@@ -145,31 +145,31 @@ void read_flash_id()
     Serial.printf("flash id:");
     for (int i = 0; i < 20; i++)
         Serial.printf(" %02x", buffer[i]);
-    Serial.printf("\n");
+    Serial.printf("\r\n");
 }
 
 void read_flashmem(int n)
 {
-    Serial.printf("read flash mem, max size %d\n", n);
+    Serial.printf("read flash mem, max size %d\r\n", n);
     // connect flash to Raspi
     delayMicroseconds(100);
     
-    Serial.printf("power up\n");
+    Serial.printf("power up\r\n");
     // power_up
     power_up();
 
-    Serial.printf("read flash id\n");
+    Serial.printf("read flash id\r\n");
     // read flash id
     read_flash_id();
     
-    Serial.printf("reading %.2fkB..\n", double(n) / 1024);
+    Serial.printf("reading %.2fkB..\r\n", double(n) / 1024);
     for (int addr = 0; addr < n; addr += 256) {
         uint8_t buffer[256];
         flash_read(addr, buffer, std::min(256, n - addr));
         //fwrite(buffer, std::min(256, n - addr), 1, stdout);
 
         for (int i = 0; i < 32; i++) {
-            Serial.printf("%d: %X\n", addr+i, buffer[i]);
+            Serial.printf("%d: %X\r\n", addr+i, buffer[i]);
         }
     }
     
@@ -183,7 +183,7 @@ void prog_flashmem(int pageoffset)
     File fp = LittleFS.open("/romulator.bin", "r");
     if (!fp)
     {
-        Serial.printf("error: could not open romulator.bin\n");
+        Serial.printf("error: could not open romulator.bin\r\n");
         return;
     }
 
@@ -218,7 +218,7 @@ void prog_flashmem(int pageoffset)
         uint8_t buffer[256];
         uint8_t file_buffer[256];
 
-        //Serial.printf("write address %06x\n", addr);
+        //Serial.printf("write address %06x\r\n", addr);
 
         // read into file buffer
         for (int i = 0; i < n; i++) {
@@ -256,7 +256,7 @@ void prog_flashmem(int pageoffset)
         }
     }
     
-    Serial.printf("\n100%% total wait time: %d ms\n", ms_timer);
+    Serial.printf("\n100%% total wait time: %d ms\r\n", ms_timer);
     power_down();
 }
 
@@ -269,42 +269,42 @@ void init_spi()
 }
 
 void display_menu() {
-    Serial.printf("\n--------------\n");
+    Serial.printf("\n--------------\r\n");
     if (_mode == MENU)
     {
-        Serial.printf("p for programming mode\n");
-        Serial.printf("d for debug mode\n");
+        Serial.printf("p for programming mode\r\n");
+        Serial.printf("d for debug mode\r\n");
     }
     else if (_mode == PROGRAMMING)
     {
-        Serial.printf("p to program\n");
-        Serial.printf("r to read\n");
-        Serial.printf("b to reset\n");
-        Serial.printf("m to return to menu\n");
+        Serial.printf("p to program\r\n");
+        Serial.printf("r to read\r\n");
+        Serial.printf("b to reset\r\n");
+        Serial.printf("m to return to menu\r\n");
     }
     else if (_mode == DEBUG)
     {
         if (_cpuHalted)
         {
-            Serial.printf("CPU Halted.\n");
-            Serial.printf("r to read data\n");
-            Serial.printf("w to write data\n");
-            Serial.printf("v to read vram\n");
-            Serial.printf("h to run cpu\n");
+            Serial.printf("CPU Halted.\r\n");
+            Serial.printf("r to read data\r\n");
+            Serial.printf("w to write data\r\n");
+            Serial.printf("v to read vram\r\n");
+            Serial.printf("h to run cpu\r\n");
         }
         else
         {
-            Serial.printf("h to halt cpu\n");
-            Serial.printf("c to read config\n");
-            Serial.printf("m to return to menu\n");
+            Serial.printf("h to halt cpu\r\n");
+            Serial.printf("c to read config\r\n");
+            Serial.printf("m to return to menu\r\n");
         }
     }
-    Serial.printf("--------------\n");
+    Serial.printf("--------------\r\n");
 }
 
 void halt_cpu()
 {
-    Serial.printf("halting\n");
+    Serial.printf("halting\r\n");
     romulatorInitDebug();
     romulatorHaltCpu();
     _cpuHalted = true;
@@ -320,18 +320,18 @@ void read_config()
 {
     romulatorInitDebug();
     uint8_t config = romulatorReadConfig();
-    Serial.printf("config: %X\n", config);
+    Serial.printf("config: %X\r\n", config);
 }
 
 void debug_read_data()
 {
-    Serial.printf("reading data..\n");
-    romulatorInitDebug();
-    romulatorHaltCpu();
+    Serial.printf("reading data..\r\n");
+    //romulatorInitDebug();
+    //romulatorHaltCpu();
     romulatorReadMemoryToFile();
-    romulatorStartCpu();
+    //romulatorStartCpu();
 
-    Serial.printf("start receive with xmodem-crc.\n");
+    Serial.printf("start receive with xmodem-crc.\r\n");
     xmodemSendFile("/memory.bin");
 }
 
@@ -385,7 +385,7 @@ void programFirmware()
     File fp = LittleFS.open("/romulator.bin", "r");
     if (!fp)
     {
-        Serial.printf("error: could not open romulator.bin\n");
+        Serial.printf("error: could not open romulator.bin\r\n");
         return;
     }
 
@@ -432,7 +432,7 @@ void programming_command(unsigned char opt)
 
     if (program)
     {
-        Serial.printf("program\n");
+        Serial.printf("program\r\n");
         programFirmware();
         //init_spi(); // set mode of SPI pins
         //prog_flashmem(0);
@@ -441,20 +441,32 @@ void programming_command(unsigned char opt)
     else if (reset)
     {
         // reset fpga
-        Serial.printf("reset\n");
+        Serial.printf("reset\r\n");
         romulatorReset();
         delay(100);
     }
     else
     {
-        Serial.printf("read\n");
+        Serial.printf("read\r\n");
         init_spi();
         read_flashmem(size);
         SPI.end();
     }
     
     romulatorSetInput();
-    Serial.printf("done.\n");
+    Serial.printf("done.\r\n");
+}
+
+void test_xmodem_recv()
+{
+    Serial.printf("send file with xmodem\r\n");
+    xmodemRecvFile("/memory.bin");
+}
+
+void test_xmodem_send()
+{
+    Serial.printf("receive file with xmodem\r\n");
+    xmodemSendFile("/memory.bin");
 }
 
 void menu_command(unsigned char opt)
@@ -467,6 +479,12 @@ void menu_command(unsigned char opt)
         case 'd':
             _mode = DEBUG;
             return;
+        case 'x':
+            test_xmodem_recv();
+            break;
+        case 'y':
+            test_xmodem_send();
+            break;
         default:
             break;
     }

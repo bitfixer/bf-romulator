@@ -100,7 +100,7 @@ void crc32(const void *data, int n_bytes, uint32_t* crc) {
     static uint32_t table[0x100];
     if(!*table)
     {
-        fprintf(stderr, "generating table\n");
+        fprintf(stderr, "generating table\r\n");
         for(size_t i = 0; i < 0x100; ++i) 
         {
             table[i] = crc32_for_byte(i);
@@ -126,7 +126,7 @@ void xfer_buffer(uint8_t* buffer, int size)
     }
     spi_end();
 
-    fprintf(stderr, "end transfer of %d bytes\n", size);
+    fprintf(stderr, "end transfer of %d bytes\r\n", size);
 }
 
 void romulatorHaltCpu()
@@ -169,7 +169,7 @@ bool romulatorWriteMemoryFromFile()
     }
 
     uint32_t calc_crc = crcFromFile(fp);
-    fprintf(stderr, "send calc crc: %X\n", calc_crc);
+    fprintf(stderr, "send calc crc: %X\r\n", calc_crc);
 
     // write memory map
     xfer(0x99);
@@ -191,12 +191,12 @@ bool romulatorWriteMemoryFromFile()
         uint8_t buffer[65536];
         if (!romulatorReadMemory(buffer, 5))
         {
-            fprintf(stderr, "read error during verify.\n");
+            fprintf(stderr, "read error during verify.\r\n");
         }
 
         if (memcmp(send_buffer, buffer, 65536) != 0)
         {
-            fprintf(stderr, "write error, mismatch.\n");
+            fprintf(stderr, "write error, mismatch.\r\n");
         }
     }
     */
@@ -209,7 +209,7 @@ void romulatorStartReadMemory()
 
     // read dummy byte
     uint8_t b = xfer(0);
-    fprintf(stderr, "dummy byte: %X\n", b);
+    fprintf(stderr, "dummy byte: %X\r\n", b);
 }
 
 void romulatorReadMemoryBlock(uint8_t* buf, int size)
@@ -237,7 +237,7 @@ uint32_t romulatorReadMemoryCRC(uint8_t* buf)
 bool romulatorReadMemoryToFile()
 {
     uint8_t buffer[1024];
-    Serial.printf("start read\n");
+    Serial.printf("start read\r\n");
     File fp = LittleFS.open("/memory.bin", "w");
     if (!fp)
     {
@@ -257,10 +257,10 @@ bool romulatorReadMemoryToFile()
     }
     fp.close();
 
-    Serial.printf("\n");
+    Serial.printf("\r\n");
     uint32_t recv_crc = romulatorReadMemoryCRC(buffer);
-    Serial.printf("finished read, CRC %X\n", recv_crc);
-    Serial.printf("calculated crc: %X\n", crc);
+    Serial.printf("finished read, CRC %X\r\n", recv_crc);
+    Serial.printf("calculated crc: %X\r\n", crc);
     return true;
 }
 
@@ -293,7 +293,7 @@ bool romulatorReadVramBlock(uint8_t* vram)
         local_parity |= ((parity_bit & 0x01) << 7);
     }
 
-    if (verbose) fprintf(stderr, ": P %02X *LP %02X\n", parity_byte, local_parity);
+    if (verbose) fprintf(stderr, ": P %02X *LP %02X\r\n", parity_byte, local_parity);
 
     if (parity_byte != local_parity)
     {
@@ -319,7 +319,7 @@ bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)
     bool read_success = true;
     while (byte < size)
     {
-        //fprintf(stderr, "byte %d\n", byte);
+        //fprintf(stderr, "byte %d\r\n", byte);
         bool success = false;
         // read an 8-byte block from vram
         success = romulatorReadVramBlock(&vram[byte]);
@@ -335,7 +335,7 @@ bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)
             if (retries < 5)
             {
                 retries++;
-                fprintf(stderr, "error byte %d retries %d\n", byte, retries);
+                fprintf(stderr, "error byte %d retries %d\r\n", byte, retries);
                 xfer(0x22);
             }
             else
