@@ -9,27 +9,6 @@
 #define ETB 0x17
 #define CAN 0x18
 
-int calcrc(char *ptr, int count)
-{
-    int  crc;
-    char i;
-
-    crc = 0;
-    while (--count >= 0)
-    {
-        crc = crc ^ (int) *ptr++ << 8;
-        i = 8;
-        do
-        {
-            if (crc & 0x8000)
-                crc = crc << 1 ^ 0x1021;
-            else
-                crc = crc << 1;
-        } while(--i);
-    }
-    return (crc);
-}
-
 uint8_t calc_checksum(char* ptr, int count)
 {
     uint8_t checksum = 0;
@@ -118,6 +97,9 @@ void xmodemRecvFile(const char* fname)
 
     bool done = false;
     int bytesRead = 0;
+    int repeatedPackets = 0;
+    uint8_t prevPacketNumber = 0;
+    uint8_t expectedPacketNumber = 1;
     while (!done)
     {
         if (packet[0] == EOT)
@@ -128,15 +110,31 @@ void xmodemRecvFile(const char* fname)
             continue;
         }
 
+        // first check if expected packet number matches
+        uint8_t packetNum = packet[1];
+        uint8_t invPacketNum = packet[2];
         uint8_t checksum = calc_checksum((char*)&packet[3], 128);
         // check checksum value
-        if (checksum == packet[131])
+        if (checksum == packet[131] && packetNum + invPacketNum == 0xFF)
         {
-            // write to file
-            bytesRead += 128;
-            fp.write(&packet[3], 128);
-            packet[0] = ACK;
-            Serial.write(packet, 1);
+            if (packetNum == expectedPacketNumber)
+            {
+                // write to file
+                bytesRead += 128;
+                fp.write(&packet[3], 128);
+                packet[0] = ACK;
+                Serial.write(packet, 1);
+
+                prevPacketNumber = packetNum;
+                expectedPacketNumber = prevPacketNumber + 1;
+            }
+            else if (packetNum == prevPacketNumber)
+            {
+                // last packet repeated, ack and continue
+                repeatedPackets++;
+                packet[0] = ACK;
+                Serial.write(packet, 1);
+            }
         }
         else
         {
@@ -148,6 +146,6 @@ void xmodemRecvFile(const char* fname)
     }
 
     fp.close();
-    delay(5000);
-    Serial.printf("read %d bytes\n", bytesRead);
+    delay(1000);
+    Serial.printf("read %d bytes, repeated packets %d\r\n", bytesRead, repeatedPackets);
 }
