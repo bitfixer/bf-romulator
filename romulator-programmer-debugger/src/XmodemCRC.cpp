@@ -60,20 +60,14 @@ void sendPacketUntilAck(uint8_t* packet, int size)
 
 void xmodemSendFile(const char* fname)
 {
-    uint8_t packet[133];
+    uint8_t packet[132];
 
-    bool useCRC = false;
     File fp = LittleFS.open(fname, "r");
 
-    // wait until we see a 'C'
+    // wait until we see a NAK
     char b = 0x00;
-    while (b != 'C' && b != NAK) {
+    while (b != NAK) {
         Serial.readBytes(&b, 1);
-    }
-
-    if (b == 'C')
-    {
-        useCRC = true;
     }
 
     // receiver indicated ready to receive
@@ -95,29 +89,15 @@ void xmodemSendFile(const char* fname)
         packet[0] = SOH;
         packet[1] = packetNumber;
         packet[2] = ~packetNumber;
-
-        if (useCRC) 
-        {
-            // generate crc
-            int crc = calcrc((char*)&packet[3], 128);
-            packet[131] = (crc & 0xFF00) >> 8;
-            packet[132] = crc & 0x00FF;
-            sendPacketUntilAck(packet, 133);
-        }
-        else
-        {
-            uint8_t checksum = calc_checksum((char*)&packet[3], 128);
-            packet[131] = checksum;
-            sendPacketUntilAck(packet, 132);
-        }
+       
+        uint8_t checksum = calc_checksum((char*)&packet[3], 128);
+        packet[131] = checksum;
+        sendPacketUntilAck(packet, 132);
         packetNumber++;
     }
 
     // done sending data, now end the transmission
     packet[0] = EOT;
-    sendPacketUntilAck(packet, 1);
-
-    packet[0] = ETB;
     sendPacketUntilAck(packet, 1);
 }
 
@@ -125,34 +105,15 @@ void xmodemRecvFile(const char* fname)
 {
     // testing
     File fp = LittleFS.open(fname, "w");
+    uint8_t packet[132];
+    memset(packet, 0, 132);
 
-    uint8_t packet[133];
-
-    packet[0] = 'C';
-    Serial.write(packet, 1);
-    int tries = 3;
-    bool isCRC = false;
-    while (tries > 0) 
-    {
-        if (Serial.readBytes(packet, 133) == 133)
-        {
-            isCRC = true;
-            break;
-        }
-        else
-        {
-            tries--;
-        }
-    }
-
-    if (!isCRC)
+    // keep sending 
+    while (packet[0] != SOH)
     {
         packet[0] = NAK;
-        while (packet[0] != SOH)
-        {
-            Serial.write(packet, 1);
-            Serial.readBytes(packet, 132);
-        }
+        Serial.write(packet, 1);
+        Serial.readBytes(packet, 132);
     }
 
     bool done = false;
@@ -167,30 +128,23 @@ void xmodemRecvFile(const char* fname)
             continue;
         }
 
-        if (isCRC) 
+        uint8_t checksum = calc_checksum((char*)&packet[3], 128);
+        // check checksum value
+        if (checksum == packet[131])
         {
-            
+            // write to file
+            bytesRead += 128;
+            fp.write(&packet[3], 128);
+            packet[0] = ACK;
+            Serial.write(packet, 1);
         }
         else
         {
-            uint8_t checksum = calc_checksum((char*)&packet[3], 128);
-            // check checksum value
-            if (checksum == packet[131])
-            {
-                // write to file
-                bytesRead += 128;
-                fp.write(&packet[3], 128);
-                packet[0] = ACK;
-                Serial.write(packet, 1);
-            }
-            else
-            {
-                packet[0] = NAK;
-                Serial.write(packet, 1);
-            }
-
-            Serial.readBytes(packet, 132);
+            packet[0] = NAK;
+            Serial.write(packet, 1);
         }
+
+        Serial.readBytes(packet, 132);
     }
 
     fp.close();
