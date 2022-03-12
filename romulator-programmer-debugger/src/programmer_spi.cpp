@@ -381,6 +381,10 @@ void debug_command(unsigned char opt)
 
 void programFirmware()
 {
+    // receive file
+    Serial.printf("send firmware file (romulator.bin) with xmodem.\r\n");
+    xmodemRecvFile("/romulator.bin");
+
    // first try to open data file
     File fp = LittleFS.open("/romulator.bin", "r");
     if (!fp)
@@ -388,7 +392,6 @@ void programFirmware()
         Serial.printf("error: could not open romulator.bin\r\n");
         return;
     }
-
 
     _programmer.beginProgramming(fp.size());
 
@@ -434,9 +437,6 @@ void programming_command(unsigned char opt)
     {
         Serial.printf("program\r\n");
         programFirmware();
-        //init_spi(); // set mode of SPI pins
-        //prog_flashmem(0);
-        //SPI.end();
     }
     else if (reset)
     {

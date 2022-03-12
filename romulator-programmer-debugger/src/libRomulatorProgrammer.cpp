@@ -49,7 +49,7 @@ void RomulatorProgrammer::readFlashID()
     Serial.printf("flash id:");
     for (int i = 0; i < 20; i++)
         Serial.printf(" %02x", buffer[i]);
-    Serial.printf("\n");
+    Serial.printf("\r\n");
 }
 
 void RomulatorProgrammer::reset() 
@@ -128,7 +128,7 @@ void RomulatorProgrammer::beginProgrammingFromFile(char* filename)
 {
     // start programming from specified file
     String fname = String(filename);
-    Serial.printf("programming filename: %s\n", fname.c_str());
+    Serial.printf("programming filename: %s\r\n", fname.c_str());
     if (!fname.startsWith("/")) 
     {
         fname = "/"+fname;
@@ -158,7 +158,7 @@ bool RomulatorProgrammer::updateProgrammingFromFile()
     if (bytesRead == 0)
     {
         // done programming
-        Serial.printf("done.\n");
+        Serial.printf("done.\r\n");
         endProgramming();
         _programmingFromFile = false;
         _fp.close();
@@ -196,7 +196,7 @@ bool RomulatorProgrammer::programBlock(uint8_t* block, int blockSize)
 {
     if (_addr % (64*1024) == 0)
     {
-        Serial.printf("\n%3d%% @%06x ", 100*_addr/_size, _addr);
+        Serial.printf("\r\n%3d%% @%06x ", 100*_addr/_size, _addr);
         Serial.printf("erasing 64kB sector..");
         
         flashWriteEnable();
@@ -206,7 +206,7 @@ bool RomulatorProgrammer::programBlock(uint8_t* block, int blockSize)
 
     if (_addr % (32*256) == 0) 
     {
-        Serial.printf("\n%3d%% @%06x writing: ", 100*_addr/_size, _addr);
+        Serial.printf("\r\n%3d%% @%06x writing: ", 100*_addr/_size, _addr);
     }
 
     int n = std::min(256, _size - _addr);
@@ -257,7 +257,7 @@ int RomulatorProgrammer::getProgrammingPercentage()
 
 void RomulatorProgrammer::endProgramming()
 {
-    Serial.printf("\n100%% total wait time: %d ms\n", _msTimer);
+    Serial.printf("\r\n100%% total wait time: %d ms\r\n", _msTimer);
     powerDown();
     SPI.end();
     romulatorSetInput();
