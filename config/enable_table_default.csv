@@ -9,6 +9,8 @@
 1,0x8000,0x83FF,"vram",characters-2.901447-10.bin
 1,0xE800,0xEFFF,"writethrough"
 
+2,0x8000,0x87FF,"vram",characters-2.901447-10.bin
+
 5,0x8000,0x83FF,"vram",characters-2.901447-10.bin
 5,0xB000,0xBFFF,"passthrough"
 

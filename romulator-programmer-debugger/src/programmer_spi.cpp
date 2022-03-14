@@ -289,13 +289,13 @@ void display_menu() {
             Serial.printf("CPU Halted.\r\n");
             Serial.printf("r to read data\r\n");
             Serial.printf("w to write data\r\n");
-            Serial.printf("v to read vram\r\n");
             Serial.printf("h to run cpu\r\n");
         }
         else
         {
             Serial.printf("h to halt cpu\r\n");
             Serial.printf("c to read config\r\n");
+            Serial.printf("v to read video ram\r\n");
             Serial.printf("m to return to menu\r\n");
         }
     }
@@ -323,6 +323,17 @@ void read_config()
     Serial.printf("config: %X\r\n", config);
 }
 
+void read_vram()
+{
+    /*
+    uint8_t vram[2048];
+    romulatorInitDebug();
+    romulatorReadVram(vram, 2048, 2000, 1);
+
+    File fp = LittleFS.open("/vram.bin");
+    */
+}
+
 void debug_read_data()
 {
     Serial.printf("reading data..\r\n");
@@ -348,9 +359,6 @@ void debug_command(unsigned char opt)
             case 'w':
                 // write data
                 break;
-            case 'v':
-                // read vram
-                break;
             case 'h':
                 // run cpu
                 run_cpu();
@@ -369,6 +377,9 @@ void debug_command(unsigned char opt)
                 break;
             case 'c':
                 read_config();
+                break;
+            case 'v':
+                read_vram();
                 break;
             case 'm':
                 _mode = MENU;

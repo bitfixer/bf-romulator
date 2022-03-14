@@ -16,8 +16,7 @@ File fsUploadFile;
 ESP8266WebServer server(80);
 extern RomulatorProgrammer _programmer;
 bool _connected;
-int _programBufferSize = 0;
-uint8_t _programBuffer[256];
+uint8_t _vram[2048];
 
 extern void programFirmware();
 
@@ -170,6 +169,12 @@ void handleReadMemory() {
     fp.close();
 }
 
+void handleVram() {
+    romulatorInitDebug();
+    romulatorReadVram(_vram, 2048, 2000, 1);
+    server.send(200, "application/octet-stream", _vram, 2000);
+}
+
 void handleReset() {
     romulatorResetDevice();
     server.send(200, "text/html", "device reset.");
@@ -187,7 +192,6 @@ void startServer()
     Serial.printf("connecting %s %s\n", user_wifi.ssid, user_wifi.password);
     WiFi.begin(user_wifi.ssid, user_wifi.password);
     _connected = false;
-    _programBufferSize = 0;
 
     //byte tries = 0;
     AP = false;
@@ -235,6 +239,7 @@ void handleClient()
             server.on("/run", handleRun);
             server.on("/readmemory", handleReadMemory);
             server.on("/reset", handleReset);
+            server.on("/vram", handleVram);
             server.on("/writememory", HTTP_POST, [](){server.send(200);}, handleWriteMemory);
             server.begin();
             Serial.println("HTTP server started.\n");

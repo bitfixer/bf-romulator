@@ -32,6 +32,9 @@
             <br/>
             <button onclick="readmemory();" id='readMemoryButton' disabled>Read Memory</button>
             <br/>
+            <br/>
+            <button onclick="readvram();" id='readVramButton'>Read VRAM</button>
+            <br/>
             <form action='/writememory' method='post' id='writeMemoryForm' enctype="multipart/form-data"> 
                 <h2 class=''>Upload Memory Contents</h1>
                 <div class='form-floating'>
@@ -52,8 +55,11 @@
             }
 
             function readmemory() {
-                //readMemoryLink.click();
                 window.location.href='/readmemory';
+            }
+
+            function readvram() {
+                window.location.href='/vram';
             }
 
             function writeMemory() {
@@ -74,7 +80,7 @@
                 let xhr = new XMLHttpRequest();
                 xhr.open("POST", "/upload");
                 xhr.upload.addEventListener("progress", ({loaded, total}) =>{
-                    pct = 100*loaded/total;
+                    pct = Math.round(100*loaded/total);
                     progressArea.innerHTML = "uploading: " + pct.toString() + "%";
                 });
                 xhr.upload.addEventListener("loadend", event => { 
