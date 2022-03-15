@@ -67,8 +67,10 @@ wire wdataout_enable;
 
 assign wdataout_enable = read_complete & rwbar;
 
+// set up internal clock
 SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
 
+// set up bidirectional data bus. Data pins switch direction based on wdataout_enable signal.
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
     .PULLUP(1'b 0)
@@ -157,9 +159,6 @@ SB_IO #(
     .D_OUT_0(wdataout[7]),
     .D_IN_0(wdatain[7])
   );
-
-// how to instantiate roms living at different addresses?
-// create ROMS and RAMs of different sizes, specify addresses
 
 wire cs_enable;
 wire cs_enable_bus;
@@ -279,11 +278,10 @@ wire [7:0]vram_output;
 wire vram_read_clock;
 wire [3:0]config_byte;
 
-//assign bank_address = vram_end[out_flash_addr] - vram_start[out_flash_addr] - 1;
-assign bank_address = 2000;
-
-
-wire[10:0]vram_write_address = ram_address == 59468 ? bank_address : ram_address - vram_start[out_flash_addr];
+// the address within the VRAM region to write a byte.
+// normally this is the offset from the designated start address for this configuration.
+// on the PET, address 59468 indicates which character bank to use. This is mapped to the last byte in VRAM.
+wire[10:0]vram_write_address = ram_address == 59468 ? (vram_size-1) : ram_address - vram_start[out_flash_addr];
 wire [10:0]vram_size = vram_end[out_flash_addr] - vram_start[out_flash_addr];
 
 // include dual ported ram for the vram section

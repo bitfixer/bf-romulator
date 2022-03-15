@@ -10,6 +10,7 @@ var charHeight = 8;
 
 var rows = 25;
 var columns = 40;
+var currentVramSize = 1024;
 
 var imagedata = ctx.createImageData(canvas.width, canvas.height);
 var bitmapArray = new Uint8Array(bitmapWidth*bitmapHeight);
@@ -52,8 +53,10 @@ function createImage()
 
                 // check columns
                 arrayLen = byteArray.length;
-                if (arrayLen != rows * columns)
+
+                if (arrayLen != currentVramSize)
                 {
+                    currentVramSize = arrayLen;
                     columns = arrayLen / rows;
                     bitmapWidth = columns * charWidth;
                     bitmapHeight = rows * charHeight;

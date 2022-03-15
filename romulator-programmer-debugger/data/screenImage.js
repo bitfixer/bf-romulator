@@ -43,12 +43,13 @@ function romulatorVramToBitmap(
     bitmap)
 {
     var imageWidth = columns * charWidth;
-    var imageHeight = rows * charHeight;
+    //var imageHeight = rows * charHeight;
 
     // pick which character set to use
-    // for PET, this is mapped to character in vram at index 1000
+    // for PET, this is mapped to character in the last byte of vram
     // TODO: generalize for other platforms
-    var bankByte = vram[2000];
+    var vramSize = vram.length;
+    var bankByte = vram[vramSize-1];
     var bankMask = 0;
     if ((bankByte & 0x0E) == 0x0E)
     {
