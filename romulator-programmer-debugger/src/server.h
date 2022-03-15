@@ -4,4 +4,7 @@
 void startServer();
 void handleClient();
 
+// TEST
+void handleCharacterRom();
+
 #endif

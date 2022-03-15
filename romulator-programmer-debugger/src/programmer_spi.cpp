@@ -30,7 +30,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <LittleFS.h>
-#include "XmodemCRC.h"
+#include "xmodem.h"
 #include <EEPROM.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -537,6 +537,9 @@ void menu_command(unsigned char opt)
         case 'y':
             test_xmodem_send();
             break;
+        case 'z':
+            handleCharacterRom();
+            break;
         default:
             break;
     }
@@ -579,7 +582,7 @@ void loop() {
     handleClient();
     if (!_programmer.updateProgrammingFromFile())
     {
-        if (millis() - _lastInputMillis > 1000)
+        if (Serial.available() > 0)
         {
             unsigned char b;
             if (Serial.readBytes(&b, 1) > 0) {
@@ -587,7 +590,6 @@ void loop() {
                 do_command(b);
                 display_menu();
             }
-            _lastInputMillis = millis();
         }
     }
 }

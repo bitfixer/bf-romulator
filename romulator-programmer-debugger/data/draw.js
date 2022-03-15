@@ -129,6 +129,11 @@ function resize()
     var yScale = Math.floor(height / (bitmapHeight * yxRatio));
     var newScale = Math.min(xScale, yScale);
 
+    if (newScale < 0)
+    {
+        newScale = 1;
+    }
+
     if (newScale != scale)
     {
         scale = newScale;

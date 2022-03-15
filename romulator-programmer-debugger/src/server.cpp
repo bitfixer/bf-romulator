@@ -158,8 +158,11 @@ void handleReadMemory() {
 }
 
 void handleVram() {
+    int startMillis = millis();
     romulatorInitDebug();
     romulatorReadVram(_vram, 2048, 2000, 1);
+    int endMillis = millis();
+    //Serial.printf("vram %d\r\n", endMillis-startMillis);
     server.send(200, "application/octet-stream", _vram, 2000);
 }
 
@@ -168,30 +171,109 @@ void handleReset() {
     server.send(200, "text/html", "device reset.");
 }
 
+
+
 void handleCharacterRom()
 {
-    File fp = LittleFS.open("romulator.rom", "r");
-    server.send(200, "application/octet-stream", &fp);
+    // determine what character rom to use based on configuration
+    // first get configuration byte
+    romulatorInitDebug();
+    uint8_t configByte = romulatorReadConfig();
+
+    Serial.printf("configbyte is: %X\r\n", configByte);
+
+    // get name of character rom indicated by this config byte
+    File fp = LittleFS.open("/enable_table.csv", "r");
+    if (!fp)
+    {
+        Serial.printf("no enable table.\r\n");
+        return;
+    }
+
+    String enableTable = fp.readString();
     fp.close();
+    int enableTableLen = enableTable.length();
+    
+    bool found = false;
+    char* start; 
+    char* end;
+    char line[128];
+    char* tableBegin = (char*)enableTable.c_str();
+    start = tableBegin;
+    end = start;
+
+    int configIndex;
+    unsigned int startAddr;
+    unsigned int endAddr;
+    char romName[64];
+    romName[0] = '/';
+
+    while (!found)
+    {
+        while (*end != '\n' && *end != 0 && end - tableBegin < enableTableLen) {
+            end++;
+        }
+    
+        int numchars = end-start;
+        strncpy(line, start, numchars);
+        line[numchars] = 0;
+
+        // try to read in vram line for this config
+        if (sscanf(line, "%d,0x%X,0x%X,\"vram\",%s", &configIndex, &startAddr, &endAddr, &romName[1]) == 4)
+        {
+            if (configIndex == configByte)
+            {
+                // found the name of the character rom
+                found = true;
+                break;
+            }
+        }
+
+        if (end == 0 || end-tableBegin >= enableTableLen)
+        {
+            break;
+        }
+
+        start = end+1;
+        end = start;
+    }
+
+    if (found)
+    {
+        fp = LittleFS.open(romName, "r");
+        if (!fp)
+        {
+            Serial.printf("could not open: %s\r\n", romName);
+            return;
+        }
+
+        Serial.printf("opened %s\r\n", romName);
+        server.send(200, "application/octet-stream", &fp);
+        fp.close();
+    }
+    else
+    {
+        Serial.printf("could not find vram entry for config %d\r\n", configByte);
+    }
 }
 
 void handleCanvas()
 {
-    File fp = LittleFS.open("canvas.html", "r");
+    File fp = LittleFS.open("/canvas.html", "r");
     server.send(200, "text/html", &fp);
     fp.close();
 }
 
 void handleDraw()
 {
-    File fp = LittleFS.open("draw.js", "r");
+    File fp = LittleFS.open("/draw.js", "r");
     server.send(200, "application/javascript", &fp);
     fp.close();
 }
 
 void handleScreenImage()
 {
-    File fp = LittleFS.open("screenImage.js", "r");
+    File fp = LittleFS.open("/screenImage.js", "r");
     server.send(200, "application/javascript", &fp);
     fp.close();
 }
