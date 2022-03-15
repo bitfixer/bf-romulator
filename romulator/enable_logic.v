@@ -279,7 +279,11 @@ wire [7:0]vram_output;
 wire vram_read_clock;
 wire [3:0]config_byte;
 
-wire[10:0]vram_write_address = ram_address == 59468 ? 1000 : ram_address - vram_start[out_flash_addr];
+//assign bank_address = vram_end[out_flash_addr] - vram_start[out_flash_addr] - 1;
+assign bank_address = 2000;
+
+
+wire[10:0]vram_write_address = ram_address == 59468 ? bank_address : ram_address - vram_start[out_flash_addr];
 wire [10:0]vram_size = vram_end[out_flash_addr] - vram_start[out_flash_addr];
 
 // include dual ported ram for the vram section

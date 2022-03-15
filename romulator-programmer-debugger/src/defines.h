@@ -11,8 +11,15 @@
 #define  PI_ICE_CLK     14
 #define  PI_ICE_CRESET  5
 #define  PI_ICE_CS      4
-#define  PI_DEBUG_CS     16
+#define  PI_DEBUG_CS    16
 
 #define  LED_PIN        2
+#define  LED_ON         0
+#define  LED_OFF        1
+
+typedef struct wifiSettings {
+    char ssid[30];
+    char password[30];
+} WiFiSettings;
 
 #endif

@@ -3,7 +3,15 @@
         <meta charset='utf-8'>
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <title>Wifi Setup</title> 
-        <style>*,::after,::before{box-sizing:border-box;}body{margin:0;font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans','Liberation Sans';font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#f5f5f5;}.form-control{display:block;width:100%;height:calc(1.5em + .75rem + 2px);border:1px solid #ced4da;}button{cursor: pointer;border:1px solid transparent;color:#fff;background-color:#007bff;border-color:#007bff;padding:.5rem 1rem;font-size:1.25rem;line-height:1.5;border-radius:.3rem;width:100%}.form-signin{width:100%;max-width:400px;padding:15px;margin:auto;}h1{text-align: center}</style> 
+        <style>*,::after,::before{box-sizing:border-box;}
+            body{margin:0;font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans','Liberation Sans';font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#f5f5f5;}
+            .form-control{display:block;width:100%;height:calc(1.5em + .75rem + 2px);border:1px solid #ced4da;}button{cursor: pointer;border:1px solid transparent;color:#fff;background-color:#007bff;border-color:#007bff;padding:.5rem 1rem;font-size:1.25rem;line-height:1.5;border-radius:.3rem;width:100%}
+            .form-signin{width:100%;max-width:400px;padding:15px;margin:auto;}
+            h1{text-align: center}
+            button:disabled{
+                background-color:grey;
+            }
+            </style> 
     </head> 
     <body>
         <main class='form-signin'> 
@@ -24,6 +32,9 @@
             <br/>
             <br/>
             <h1 class=''>Debugging</h1>
+            <button onclick="readvram();" id='readVramButton'>Read VRAM</button>
+            <br/>
+            <br/>
             <button onclick="haltCpu();" id='haltCpuButton'>Halt CPU</button>
             <div id='haltResult'></div>
             <br/>
@@ -32,8 +43,6 @@
             <br/>
             <button onclick="readmemory();" id='readMemoryButton' disabled>Read Memory</button>
             <br/>
-            <br/>
-            <button onclick="readvram();" id='readVramButton'>Read VRAM</button>
             <br/>
             <form action='/writememory' method='post' id='writeMemoryForm' enctype="multipart/form-data"> 
                 <h2 class=''>Upload Memory Contents</h1>
@@ -110,34 +119,48 @@
 
             function haltCpu()
             {
-                getRequestWithEndpoint("halt");
+                getRequestWithEndpoint("halt", haltCpuDone);
+            }
+
+            function haltCpuDone()
+            {
                 runCpuButton.disabled = false;
                 readMemoryButton.disabled = false;
                 writeMemoryButton.disabled = false;
                 haltCpuButton.disabled = true;
+                document.getElementById("runResult").innerHTML = "";
             }
 
             function runCpu()
             {
-                getRequestWithEndpoint("run");
+                getRequestWithEndpoint("run", runCpuDone);
+            }
+
+            function runCpuDone()
+            {
                 haltCpuButton.disabled = false;
                 readMemoryButton.disabled = true;
                 writeMemoryButton.disabled = true;
                 runCpuButton.disabled = true;
+                document.getElementById("haltResult").innerHTML = "";
             }
 
             function reset()
             {
-                getRequestWithEndpoint("reset");
+                getRequestWithEndpoint("reset", null);
             }
 
-            function getRequestWithEndpoint(endpoint) {
+            function getRequestWithEndpoint(endpoint, done) {
                 endpointName = "/" + endpoint;
                 resultArea = document.getElementById(endpoint + "Result");
                 req = new XMLHttpRequest();
                 req.open("GET", endpointName);
                 req.addEventListener("loadend", event => {
                     resultArea.innerHTML = req.responseText;
+                    if (done != null) 
+                    {
+                        done();
+                    }
                 });
                 req.send();
             }

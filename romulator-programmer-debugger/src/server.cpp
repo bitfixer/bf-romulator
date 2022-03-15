@@ -6,28 +6,22 @@
 #include <LittleFS.h>
 #include "libRomulatorProgrammer.h"
 #include "libRomulatorDebug.h"
+#include "defines.h"
 
 const char *ssid = "romulator";
-const char *password = "password";
-const char* hostname = "romulator.local";
+const char *password = "bitfixer";
 
 bool AP;
 File fsUploadFile;
 ESP8266WebServer server(80);
 extern RomulatorProgrammer _programmer;
-bool _connected;
 uint8_t _vram[2048];
+uint8_t _led;
 
+int _lastMillis;
 extern void programFirmware();
 
-struct settings {
-    char ssid[30];
-    char password[30];
-} user_wifi = {};
-
-void outputString(char* string) {
-    
-}
+WiFiSettings user_wifi;
 
 void handlePortal() {
     if (AP) 
@@ -41,22 +35,16 @@ void handlePortal() {
             server.send(200,   "text/html",  "<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Wifi Setup</title><style>*,::after,::before{box-sizing:border-box;}body{margin:0;font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans','Liberation Sans';font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#f5f5f5;}.form-control{display:block;width:100%;height:calc(1.5em + .75rem + 2px);border:1px solid #ced4da;}button{border:1px solid transparent;color:#fff;background-color:#007bff;border-color:#007bff;padding:.5rem 1rem;font-size:1.25rem;line-height:1.5;border-radius:.3rem;width:100%}.form-signin{width:100%;max-width:400px;padding:15px;margin:auto;}h1,p{text-align: center}</style> </head> <body><main class='form-signin'> <h1>Wifi Setup</h1> <br/> <p>Your settings have been saved successfully!<br />Please restart the device.</p></main></body></html>" );
         } else {
             File fp = LittleFS.open("/wifi.html", "r");
-            String s = fp.readString();
-            //server.send(200,   "text/html", "<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Wifi Setup</title> <style>*,::after,::before{box-sizing:border-box;}body{margin:0;font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans','Liberation Sans';font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#f5f5f5;}.form-control{display:block;width:100%;height:calc(1.5em + .75rem + 2px);border:1px solid #ced4da;}button{cursor: pointer;border:1px solid transparent;color:#fff;background-color:#007bff;border-color:#007bff;padding:.5rem 1rem;font-size:1.25rem;line-height:1.5;border-radius:.3rem;width:100%}.form-signin{width:100%;max-width:400px;padding:15px;margin:auto;}h1{text-align: center}</style> </head> <body><main class='form-signin'> <form action='/' method='post'> <h1 class=''>Wifi Setup</h1><br/><div class='form-floating'><label>SSID</label><input type='text' class='form-control' name='ssid'> </div><div class='form-floating'><br/><label>Password</label><input type='password' class='form-control' name='password'></div><br/><br/><button type='submit'>Save</button><p style='text-align: right'><a href='https://www.mrdiy.ca' style='color: #32C5FF'>mrdiy.ca</a></p></form></main> </body></html>" );
-            server.send(200, "text/html", s);
+            server.send(200, "text/html", &fp);
         }
     }
     else
     {
-        // handle incoming file upload
-        if (server.method() == HTTP_POST) {
-            server.send(200, "text/html", "is a post");
-        } else {
-            File fp = LittleFS.open("/romulator.html", "r");
-            String s = fp.readString();
-            server.send(200, "text/html", s);
-        }
-
+        Serial.printf("request.\r\n");
+        File fp = LittleFS.open("/romulator.html", "r");
+        server.send(200, "text/html", &fp);
+        fp.close();
+        Serial.printf("done sending\r\n");
     }
 }
 
@@ -180,76 +168,120 @@ void handleReset() {
     server.send(200, "text/html", "device reset.");
 }
 
+void handleCharacterRom()
+{
+    File fp = LittleFS.open("romulator.rom", "r");
+    server.send(200, "application/octet-stream", &fp);
+    fp.close();
+}
+
+void handleCanvas()
+{
+    File fp = LittleFS.open("canvas.html", "r");
+    server.send(200, "text/html", &fp);
+    fp.close();
+}
+
+void handleDraw()
+{
+    File fp = LittleFS.open("draw.js", "r");
+    server.send(200, "application/javascript", &fp);
+    fp.close();
+}
+
+void handleScreenImage()
+{
+    File fp = LittleFS.open("screenImage.js", "r");
+    server.send(200, "application/javascript", &fp);
+    fp.close();
+}
+
 void startServer()
 {
-    EEPROM.begin(sizeof(struct settings));
     EEPROM.get(0, user_wifi);
 
-    WiFi.mode(WIFI_STA);
-    WiFi.hostname("romulator");
-
     delay(1000);
+    WiFi.mode(WIFI_STA);
+    //WiFi.setHostname("romulator");
     Serial.printf("connecting %s %s\n", user_wifi.ssid, user_wifi.password);
     WiFi.begin(user_wifi.ssid, user_wifi.password);
-    _connected = false;
 
-    //byte tries = 0;
+    byte tries = 0;
     AP = false;
-
-    /*
+    _led = LED_ON;
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, _led);
     while (WiFi.status() != WL_CONNECTED) 
     {
         Serial.printf(".");
-        delay(1000);
-        if (tries++ > 20) 
+        if (tries++ > 20 || user_wifi.ssid[0] == 0) 
         {
             Serial.printf("Starting access point.\n");
             AP = true;
             WiFi.mode(WIFI_AP);
-            WiFi.softAP(ssid, "");
+            WiFi.softAP(ssid, password);
             break;
         }
+
+        if (_led == LED_OFF)
+        {
+            _led = LED_ON;
+        }
+        else
+        {
+            _led = LED_OFF;
+        }
+
+        delay(500);
+        digitalWrite(LED_PIN, _led);
     }
 
     if (AP) {
         Serial.printf("AP mode, ip address is %s\n", WiFi.softAPIP().toString().c_str());
     } else {
+        digitalWrite(LED_PIN, LED_ON);
         Serial.printf("connected, ip address %s\n", WiFi.localIP().toString().c_str());
     }
 
     server.on("/",  handlePortal);
-    server.on("/program", handleProgram);
     server.on("/upload", HTTP_POST, [](){server.send(200);}, handleFileUpload);
+    server.on("/progress", handleProgress);
+    server.on("/halt", handleHalt);
+    server.on("/run", handleRun);
+    server.on("/readmemory", handleReadMemory);
+    server.on("/reset", handleReset);
+    server.on("/vram", handleVram);
+    server.on("/writememory", HTTP_POST, [](){server.send(200);}, handleWriteMemory);
+    server.on("/romulator.rom", handleCharacterRom);
+    server.on("/canvas.html", handleCanvas);
+    server.on("/draw.js", handleDraw);
+    server.on("/screenImage.js", handleScreenImage);
     server.begin();
     Serial.println("HTTP server started.\n");
-    */
+
+    _lastMillis = millis();
 }
 
 void handleClient()
 {
-    if (!_connected)
+    if (AP)
     {
-        if (WiFi.status() == WL_CONNECTED)
+        int nowMillis = millis();
+        if (nowMillis - _lastMillis >= 500)
         {
-            Serial.printf("connected, ip address %s\n", WiFi.localIP().toString().c_str());
-            server.on("/",  handlePortal);
-            server.on("/upload", HTTP_POST, [](){server.send(200);}, handleFileUpload);
-            server.on("/progress", handleProgress);
-            server.on("/halt", handleHalt);
-            server.on("/run", handleRun);
-            server.on("/readmemory", handleReadMemory);
-            server.on("/reset", handleReset);
-            server.on("/vram", handleVram);
-            server.on("/writememory", HTTP_POST, [](){server.send(200);}, handleWriteMemory);
-            server.begin();
-            Serial.println("HTTP server started.\n");
-            _connected = true;
-        }
-        else
-        {
-            Serial.printf(".");
-            return;
+            if (_led == LED_OFF)
+            {
+                _led = LED_ON;
+            }
+            else
+            {
+                _led = LED_OFF;
+            }
+
+            digitalWrite(LED_PIN, _led);
+            _lastMillis += 500;
         }
     }
+
     server.handleClient();
 }

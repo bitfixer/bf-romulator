@@ -31,6 +31,9 @@
 #include <SPI.h>
 #include <LittleFS.h>
 #include "XmodemCRC.h"
+#include <EEPROM.h>
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
 
 unsigned char _inBuffer[512];
 typedef enum mode
@@ -43,6 +46,7 @@ typedef enum mode
 Mode _mode;
 bool _cpuHalted;
 RomulatorProgrammer _programmer;
+int _lastInputMillis;
 
 int get_time_ms()
 {
@@ -274,6 +278,8 @@ void display_menu() {
     {
         Serial.printf("p for programming mode\r\n");
         Serial.printf("d for debug mode\r\n");
+        Serial.printf("c to clear wifi settings\r\n");
+        Serial.printf("w to display wifi settings\r\n");
     }
     else if (_mode == PROGRAMMING)
     {
@@ -480,6 +486,35 @@ void test_xmodem_send()
     xmodemSendFile("/memory.bin");
 }
 
+void clearWifiSettings()
+{
+    WiFiSettings newSettings;
+    memset((void*)&newSettings, 0, sizeof(WiFiSettings));
+    EEPROM.put(0, newSettings);
+    EEPROM.commit();
+
+    Serial.printf("WiFi settings cleared.\r\n");
+}
+
+void displayWifiSettings()
+{
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        if (WiFi.getMode() == WIFI_AP) 
+        {
+            Serial.printf("WiFi in AP mode, IP address is %s\r\n", WiFi.softAPIP().toString().c_str());
+        }
+        else
+        {
+            Serial.printf("WiFi connected to %s, IP address %s\r\n", WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
+        }
+    }
+    else
+    {
+        Serial.printf("WiFi not connected\r\n");
+    }
+}
+
 void menu_command(unsigned char opt)
 {
     switch (opt)
@@ -489,6 +524,12 @@ void menu_command(unsigned char opt)
             return;
         case 'd':
             _mode = DEBUG;
+            return;
+        case 'c':
+            clearWifiSettings();
+            return;
+        case 'w':
+            displayWifiSettings();
             return;
         case 'x':
             test_xmodem_recv();
@@ -518,6 +559,7 @@ void do_command(unsigned char opt)
 }
 
 void setup() {
+    EEPROM.begin(sizeof(WiFiSettings));
     romulatorSetInput();
     Serial.begin(115200);
     pinMode(LED_PIN, OUTPUT);
@@ -529,17 +571,23 @@ void setup() {
 
     startServer();
     display_menu();
+
+    _lastInputMillis = millis();
 }
 
 void loop() {
     handleClient();
     if (!_programmer.updateProgrammingFromFile())
     {
-        unsigned char b;
-        if (Serial.readBytes(&b, 1) > 0) {
-            // check for command
-            do_command(b);
-            display_menu();
+        if (millis() - _lastInputMillis > 1000)
+        {
+            unsigned char b;
+            if (Serial.readBytes(&b, 1) > 0) {
+                // check for command
+                do_command(b);
+                display_menu();
+            }
+            _lastInputMillis = millis();
         }
     }
 }
