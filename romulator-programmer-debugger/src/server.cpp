@@ -163,7 +163,7 @@ void handleVram() {
     romulatorReadVram(_vram, 2048, 2000, 1);
     int endMillis = millis();
     //Serial.printf("vram %d\r\n", endMillis-startMillis);
-    server.send(200, "application/octet-stream", _vram, 2000);
+    server.send(200, "application/octet-stream", _vram, 2048);
 }
 
 void handleReset() {

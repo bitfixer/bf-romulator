@@ -53,11 +53,12 @@ function createImage()
 
                 // check columns
                 arrayLen = byteArray.length;
-
                 if (arrayLen != currentVramSize)
                 {
                     currentVramSize = arrayLen;
-                    columns = arrayLen / rows;
+                    rem = arrayLen % 1000;
+                    numChars = arrayLen - rem;
+                    columns = numChars / rows;
                     bitmapWidth = columns * charWidth;
                     bitmapHeight = rows * charHeight;
 
