@@ -236,7 +236,7 @@ assign led_red = 1;
 reg [3:0] configuration;
 
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
-ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, configuration, clk);
+ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, config_byte, clk);
 // create spi flash reader
 // this fills RAM with selected ROM images
 spi_flash_reader flashReader(
@@ -269,7 +269,7 @@ reg [15:0] vram_start[15:0];
 reg [15:0] vram_end[15:0];
 wire vram_we;
 
-assign vram_we = ((ram_address >= vram_start[out_flash_addr] && ram_address < vram_end[out_flash_addr]) 
+assign vram_we = ((ram_address >= vram_start[config_byte] && ram_address < vram_end[config_byte]) 
     || ram_address == 59468)
     && ram_we;
 
@@ -281,8 +281,8 @@ wire [3:0]config_byte;
 // the address within the VRAM region to write a byte.
 // normally this is the offset from the designated start address for this configuration.
 // on the PET, address 59468 indicates which character bank to use. This is mapped to the last byte in VRAM.
-wire[10:0]vram_write_address = ram_address == 59468 ? (vram_size-1) : ram_address - vram_start[out_flash_addr];
-wire [10:0]vram_size = vram_end[out_flash_addr] - vram_start[out_flash_addr];
+wire[10:0]vram_write_address = ram_address == 59468 ? (vram_size-1) : ram_address - vram_start[config_byte];
+wire [10:0]vram_size = vram_end[config_byte] - vram_start[config_byte];
 
 // include dual ported ram for the vram section
 simple_ram_dual_clock #(8, 11)
@@ -324,8 +324,6 @@ diagnostics diag(
   vram_read_clock,
 
   config_byte,
-  out_flash_addr,
-
   vram_size
 );
 

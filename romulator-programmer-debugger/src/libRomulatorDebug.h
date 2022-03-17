@@ -14,6 +14,7 @@ bool romulatorReadMemoryToFile();
 bool romulatorWriteMemoryFromFile();
 bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries);
 uint8_t romulatorReadConfig();
+void romulatorWriteConfig(int config);
 void romulatorHaltCpu();
 void romulatorStartCpu();
 

@@ -312,6 +312,13 @@ uint8_t romulatorReadConfig()
     return byte;
 }
 
+void romulatorWriteConfig(int config)
+{
+    uint8_t cfgByte = 0xE0 | (uint8_t)config;
+    Serial.printf("cfg byte: %X\r\n", cfgByte);
+    xfer(cfgByte);
+}
+
 bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)
 {
     int byte = 0;

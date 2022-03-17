@@ -40,8 +40,6 @@ module diagnostics(
      output reg vram_read_clock,
 
      output reg [3:0] config_byte,
-     input  wire [3:0] flash_addr,
-
      input      [10:0] vram_size
 );
 
@@ -71,7 +69,7 @@ localparam END_VRAM_BYTE = 20;
 localparam SEND_PARITY_BYTE = 21;
 localparam DONE_SEND_PARITY_BYTE = 22;
 localparam VERIFY_PARITY_BYTE = 23;
-reg [7:0] state = RUNNING;
+reg [7:0] state = STARTUP;
 
 // spi slave setup
 wire rx_dv;
@@ -95,6 +93,7 @@ localparam HALT_CPU = 8'haa;
 localparam RESUME_CPU = 8'h55;
 localparam READ_MEMORY = 8'h66;
 localparam READ_CONFIG = 8'h77;
+localparam WRITE_CONFIG = 8'he0;
 localparam READ_VRAM = 8'h88;
 localparam WRITE_MEMORY = 8'h99;
 localparam PARITY_ERROR = 8'h22;
@@ -135,8 +134,7 @@ begin
             else if (rx_byte == READ_CONFIG)
             begin
                 tx_dv <= 1;
-                //tx_byte <= config_byte;
-                tx_byte <= flash_addr;
+                tx_byte <= config_byte;
                 state <= WRITE_CONFIG_BYTE;
             end
             else if (rx_byte == READ_VRAM) // start reading back from video ram
@@ -238,6 +236,12 @@ begin
           begin
             halt <= 0;
             state <= RUNNING;
+          end
+          else if (rx_byte >= WRITE_CONFIG)
+          begin
+              // get new configuration byte
+              config_byte <= rx_byte[3:0];
+              //config_byte <= 4;
           end
           else if (rx_byte == READ_MEMORY) // read out a full memory map
           begin

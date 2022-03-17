@@ -295,6 +295,7 @@ void display_menu() {
             Serial.printf("CPU Halted.\r\n");
             Serial.printf("r to read data\r\n");
             Serial.printf("w to write data\r\n");
+            Serial.printf("c to write configuration\r\n");
             Serial.printf("h to run cpu\r\n");
         }
         else
@@ -327,6 +328,31 @@ void read_config()
     romulatorInitDebug();
     uint8_t config = romulatorReadConfig();
     Serial.printf("config: %X\r\n", config);
+}
+
+void write_config()
+{
+    Serial.printf("enter new configuration number:\r\n");
+    int l = 0;
+    char c[16];
+    char b = 0;
+    Serial.setTimeout(30000);
+    while (b != '\n')
+    {
+        Serial.readBytes(&b, 1);
+        Serial.write(b);
+        if (b != '\n')
+        {
+            c[l++] = b;
+        }
+    }
+    c[l] = 0;
+    Serial.setTimeout(1000);
+    Serial.printf("writing configuration: %s\r\n", c);
+    int configIndex = atoi(c);
+
+    romulatorInitDebug();
+    romulatorWriteConfig(configIndex);
 }
 
 void read_vram()
@@ -368,6 +394,9 @@ void debug_command(unsigned char opt)
             case 'h':
                 // run cpu
                 run_cpu();
+                break;
+            case 'c':
+                write_config();
                 break;
             default:
                 break;

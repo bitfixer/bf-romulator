@@ -50,7 +50,7 @@ begin
 end
 
 assign we = phi2 & (!rwbar);
-assign enable_addr = {config_byte, rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
+assign enable_addr = {configuration, rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
 
 assign cs_ram = phi2 & enable_table[enable_addr][1];
 assign cs_bus = phi2 & enable_table[enable_addr][0];
