@@ -256,12 +256,8 @@ spi_flash_reader flashReader(
     clk,
 
     read_complete,
-    configuration,
-
-    out_flash_addr
+    configuration
 );
-
-wire [3:0] out_flash_addr;
 
 // write enable for video ram section
 // use regular we signal, also check that this is the right section of memory
@@ -302,6 +298,8 @@ wire reset;
 assign reset = 1;
 
 // connect diagnostics module for halting cpu and reading ram
+// diagnostics also has the register for config_byte which is used to select
+// which memory configuration to use.
 diagnostics diag(
   halt,
   reset,
