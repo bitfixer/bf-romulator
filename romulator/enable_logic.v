@@ -233,7 +233,11 @@ assign led_blue = read_complete && rdy;
 assign led_green = 1;
 assign led_red = 1;
 
-reg [3:0] configuration;
+// number of bits in configuration
+localparam CONFIG_BITS = 5;
+
+reg [CONFIG_BITS-1:0] configuration;
+wire [CONFIG_BITS-1:0] config_byte;
 
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
 ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, config_byte, clk);
@@ -272,7 +276,7 @@ assign vram_we = ((ram_address >= vram_start[config_byte] && ram_address < vram_
 wire [10:0]vram_read_address;
 wire [7:0]vram_output;
 wire vram_read_clock;
-wire [3:0]config_byte;
+
 
 // the address within the VRAM region to write a byte.
 // normally this is the offset from the designated start address for this configuration.
@@ -327,7 +331,7 @@ diagnostics diag(
 
 initial
 begin
-  configuration <= ~wdatain[3:0];
+  configuration <= ~wdatain[CONFIG_BITS-1:0];
   $readmemh("../bin/vram_start_addr.txt", vram_start);
   $readmemh("../bin/vram_end_addr.txt", vram_end);
 end

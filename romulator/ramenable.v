@@ -5,7 +5,7 @@ module ramenable(
     output cs_ram,
     output cs_bus,
     output we,
-    input [3:0] configuration,
+    input [4:0] configuration,
     input fpga_clk);
 
 // table of ram and bus enable signals, 64 entries per table
@@ -21,7 +21,7 @@ localparam ADDR_NUM_ENTRIES = 2**16 / ADDR_GRANULARITY_SIZE;
 localparam ADDR_ENTRY_BITS = $clog2(ADDR_NUM_ENTRIES); // number of bits to use for address granularity.
 
 // number of bits in configuration
-localparam CONFIG_BITS = 4;
+localparam CONFIG_BITS = 5;
 
 // enable address is composed of:
 // number of bits for address entry

@@ -278,6 +278,17 @@ void handleScreenImage()
     fp.close();
 }
 
+void handleSetConfig()
+{
+    String confStr = server.arg(0);
+    int c = atoi(confStr.c_str());
+    Serial.printf("setting config %d\r\n", c);
+
+    romulatorInitDebug();
+    romulatorWriteConfig(c);
+    server.send(200, "text/html", "config set");
+}
+
 void startServer()
 {
     EEPROM.get(0, user_wifi);
@@ -334,6 +345,7 @@ void startServer()
     server.on("/reset", handleReset);
     server.on("/vram", handleVram);
     server.on("/writememory", HTTP_POST, [](){server.send(200);}, handleWriteMemory);
+    server.on("/setConfig", handleSetConfig);
     server.on("/romulator.rom", handleCharacterRom);
     server.on("/canvas.html", handleCanvas);
     server.on("/draw.js", handleDraw);
