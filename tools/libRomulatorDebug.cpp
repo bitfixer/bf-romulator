@@ -155,9 +155,6 @@ void romulatorWriteMemory(uint8_t* send_buffer, bool verify)
     crc32(send_buffer, 65536, &calc_crc);
     fprintf(stderr, "send calc crc: %X\n", calc_crc);
 
-    // send command to halt CPU
-    romulatorHaltCpu();
-
     // write memory map
     xfer(0x99);
     
@@ -182,8 +179,6 @@ void romulatorWriteMemory(uint8_t* send_buffer, bool verify)
             fprintf(stderr, "write error, mismatch.\n");
         }
     }
-
-    romulatorStartCpu();
 }
 
 bool romulatorReadMemory(uint8_t* buffer, int retries)
@@ -276,6 +271,14 @@ uint8_t romulatorReadConfig()
     delay(1);
     uint8_t byte = xfer(0);
     return byte;
+}
+
+void romulatorWriteConfig(int configSetting)
+{
+    uint8_t configByte = 0xE0 | (uint8_t)configSetting;
+    fprintf(stderr, "writing %X\n", configByte);
+    xfer(configByte);
+    delay(1);
 }
 
 bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)

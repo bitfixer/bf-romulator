@@ -32,14 +32,14 @@ module diagnostics(
      output reg we,
      output reg cs,
 
-     input      [3:0] configuration,
+     input      [4:0] configuration,
 
      // video ram
      output reg [10:0] vram_address,
      input      [7:0] vram_data,
      output reg vram_read_clock,
 
-     output reg [3:0] config_byte,
+     output reg [4:0] config_byte,
      input      [10:0] vram_size
 );
 
@@ -240,7 +240,7 @@ begin
           else if (rx_byte >= WRITE_CONFIG)
           begin
               // get new configuration byte
-              config_byte <= rx_byte[3:0];
+              config_byte <= rx_byte[4:0];
               //config_byte <= 4;
           end
           else if (rx_byte == READ_MEMORY) // read out a full memory map
