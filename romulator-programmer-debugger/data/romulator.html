@@ -1,0 +1,199 @@
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1'>
+        <title>ROMulator</title> 
+        <style>*,::after,::before{box-sizing:border-box;}
+            body{margin:0;font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans','Liberation Sans';font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#f5f5f5;}
+            .form-control{display:block;width:100%;height:calc(1.5em + .75rem + 2px);border:1px solid #ced4da;}button{cursor: pointer;border:1px solid transparent;color:#fff;background-color:#007bff;border-color:#007bff;padding:.5rem 1rem;font-size:1.25rem;line-height:1.5;border-radius:.3rem;width:100%}
+            .form-signin{width:100%;max-width:400px;padding:15px;margin:auto;}
+            h1{text-align: center}
+            button:disabled{
+                background-color:grey;
+            }
+            </style> 
+    </head> 
+    <body>
+        <main class='form-signin'> 
+            <h1 class=''>Programming</h1>
+            <form action='/upload' method='post' id='firmwareForm' enctype="multipart/form-data"> 
+                <h2 class=''>Upload Firmware</h1>
+                <div class='form-floating'>
+                    <label>Firmware</label>
+                    <input type='file' id='firmwareFile' class='form-control' name='firmware'> 
+                </div>
+            </form>
+            <button onclick="uploadFile();">Program</button>
+            <div id='progressArea'></div>
+            <br/>
+            <button onclick="reset();">Reset Device</button>
+            <div id='resetResult'></div>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class=''>Debugging</h1>
+            <button onclick="readvram();" id='readVramButton'>Read VRAM</button>
+            <br/>
+            <br/>
+            <button onclick="haltCpu();" id='haltCpuButton'>Halt CPU</button>
+            <div id='haltResult'></div>
+            <br/>
+            <button onclick="runCpu();" id='runCpuButton' disabled>Run CPU</button>
+            <div id='runResult'></div>
+            <br/>
+            <button onclick="readmemory();" id='readMemoryButton' disabled>Read Memory</button>
+            <br/>
+            <br/>
+            <form action='/writememory' method='post' id='writeMemoryForm' enctype="multipart/form-data"> 
+                <h2 class=''>Upload Memory Contents</h1>
+                <div class='form-floating'>
+                    <label>Memory Contents</label>
+                    <input type='file' id='memoryFile' class='form-control' name='memory'> 
+                </div>
+            </form>
+
+            <button onclick="writeMemory();" id='writeMemoryButton' disabled>Write Memory</button>
+            <div id='writememoryResult'></div>
+            <br/>
+            <button onclick="setconfig();" id='setConfigButton' disabled>Set Configuration</button>
+            <select id="configSetting">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+            </select>
+            <div id='setConfigResult'></div>
+        </main>
+
+        <script>
+
+            function setconfig()
+            {
+                confSelect = document.getElementById("configSetting");
+                var c = confSelect.options[confSelect.selectedIndex].value;
+                getRequestWithEndpoint("setConfig", "?c="+c, null);
+            }
+
+            // endpoints for romulator functions
+            function reset() {
+                getRequestWithEndpoint("reset", "", null);
+            }
+
+            function readmemory() {
+                window.location.href='/readmemory';
+            }
+
+            function readvram() {
+                window.location.href='/vram';
+            }
+
+            function writeMemory() {
+                form = document.getElementById("writeMemoryForm");
+                res = document.getElementById("writememoryResult");
+                let req = new XMLHttpRequest();
+                req.open("POST", "/writememory");
+                req.upload.addEventListener("loadend", event => {
+                    res.innerHTML = "write memory complete.";
+                });
+                let data = new FormData(form);
+                req.send(data);
+            }
+
+            function uploadFile() {
+                form = document.getElementById("firmwareForm");
+                prog = document.getElementById("progressArea");
+                let xhr = new XMLHttpRequest();
+                xhr.open("POST", "/upload");
+                xhr.upload.addEventListener("progress", ({loaded, total}) =>{
+                    pct = Math.round(100*loaded/total);
+                    progressArea.innerHTML = "uploading: " + pct.toString() + "%";
+                });
+                xhr.upload.addEventListener("loadend", event => { 
+                    progressArea.innerHTML = "programming:";
+                    setTimeout(getProgress, 1000);
+                });
+                let data = new FormData(form);
+                xhr.send(data);
+            }
+
+            function getProgress() {
+                let progressRequest = new XMLHttpRequest();
+                progressRequest.open("GET", "/progress");
+                progressRequest.addEventListener("loadend", event => {
+                    if (progressRequest.responseText === "100")
+                    {
+                        progressArea.innerHTML = "programming: done.";
+                    }
+                    else
+                    {
+                        progressArea.innerHTML = "programming: " + progressRequest.responseText + "%";
+                        setTimeout(getProgress, 1000);
+                    }
+                });
+                progressRequest.send();
+            }
+
+            function haltCpu()
+            {
+                getRequestWithEndpoint("halt", "", haltCpuDone);
+            }
+
+            function haltCpuDone()
+            {
+                runCpuButton.disabled = false;
+                readMemoryButton.disabled = false;
+                writeMemoryButton.disabled = false;
+                haltCpuButton.disabled = true;
+                setConfigButton.disabled = false;
+                document.getElementById("runResult").innerHTML = "";
+            }
+
+            function runCpu()
+            {
+                getRequestWithEndpoint("run", "", runCpuDone);
+            }
+
+            function runCpuDone()
+            {
+                haltCpuButton.disabled = false;
+                readMemoryButton.disabled = true;
+                writeMemoryButton.disabled = true;
+                runCpuButton.disabled = true;
+                setConfigButton.disabled = false;
+                document.getElementById("haltResult").innerHTML = "";
+            }
+
+            function reset()
+            {
+                getRequestWithEndpoint("reset", "", null);
+            }
+
+            function getRequestWithEndpoint(endpoint, args, done) {
+                endpointName = "/" + endpoint;
+                resultArea = document.getElementById(endpoint + "Result");
+                req = new XMLHttpRequest();
+                req.open("GET", endpointName + args);
+                req.addEventListener("loadend", event => {
+                    resultArea.innerHTML = req.responseText;
+                    if (done != null) 
+                    {
+                        done();
+                    }
+                });
+                req.send();
+            }
+        </script>
+    </body>
+</html>

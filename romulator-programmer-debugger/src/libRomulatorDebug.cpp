@@ -1,43 +1,50 @@
 #include "libRomulatorDebug.h"
-#include <wiringPi.h>
+#include "defines.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <Arduino.h>
+#include <LittleFS.h>
 
-// hardware SPI pins
-#define PI_ICE_MISO         19
-#define PI_ICE_CLK          23
-#define PI_ICE_CDONE        11
-
-#define PI_ICE_CRESET       22
-#define PI_ICE_MOSI         21
-#define PI_DEBUG_CS         36
-
-void reset_inout()
+// set everything to input. Also deassert debug line,
+// so romulator is not stuck in debug mode
+void romulatorSetInput()
 {
-    pinMode(PI_ICE_CLK,         INPUT);
-    pinMode(PI_ICE_MOSI,        INPUT);
-    pinMode(PI_ICE_MISO,        INPUT);
-    pinMode(PI_DEBUG_CS,        OUTPUT);
+    pinMode(PI_DEBUG_CS,    OUTPUT);
+    digitalWrite(PI_DEBUG_CS, HIGH);
+
+    pinMode(PI_ICE_CLK,     INPUT);
+    //pinMode(PI_ICE_CDONE,   INPUT);
+    pinMode(PI_ICE_MOSI,    INPUT);
+    pinMode(PI_ICE_MISO,    INPUT);
+    pinMode(PI_ICE_CRESET,  INPUT);
+    pinMode(PI_ICE_CS,      INPUT);
 }
 
-void romulatorInit()
+void romulatorInitDebug()
 {
-    wiringPiSetupPhys();
-    reset_inout();
-
-    int start = millis();
-
-    pinMode(PI_DEBUG_CS,        OUTPUT);
-    digitalWrite(PI_DEBUG_CS,   HIGH);
+    romulatorSetInput();
     pinMode(PI_ICE_CLK,         OUTPUT);
     digitalWrite(PI_ICE_CLK,    LOW);
 }
 
 void romulatorClose()
 {
-    reset_inout();
+    romulatorSetInput();
+}
+
+void romulatorReset()
+{
+    pinMode(PI_ICE_CRESET,      OUTPUT);
+    digitalWrite(PI_ICE_CRESET, LOW);
+}
+
+void romulatorResetDevice()
+{
+    romulatorReset();
+    delay(100);
+    romulatorSetInput();
 }
 
 void spi_begin()
@@ -48,17 +55,6 @@ void spi_begin()
 void spi_end()
 {
     digitalWrite(PI_DEBUG_CS, HIGH);
-}
-
-void delay_nanos(long nanos)
-{
-    timespec ts1, ts2;
-    long diff_ns;
-    clock_gettime(CLOCK_REALTIME, &ts1);
-    do {
-        clock_gettime(CLOCK_REALTIME, &ts2);
-        diff_ns = (ts2.tv_sec - ts1.tv_sec)*1000000000l + (ts2.tv_nsec - ts1.tv_nsec);
-    } while (diff_ns < nanos);
 }
 
 uint32_t spi_xfer(uint32_t data, int nbits = 8)
@@ -73,7 +69,7 @@ uint32_t spi_xfer(uint32_t data, int nbits = 8)
             rdata |= 1 << i;
         
         digitalWrite(PI_ICE_CLK, HIGH);
-        delayMicroseconds(1);
+        //delayMicroseconds(1);
         digitalWrite(PI_ICE_CLK, LOW);
     }
     
@@ -104,7 +100,7 @@ void crc32(const void *data, int n_bytes, uint32_t* crc) {
     static uint32_t table[0x100];
     if(!*table)
     {
-        fprintf(stderr, "generating table\n");
+        fprintf(stderr, "generating table\r\n");
         for(size_t i = 0; i < 0x100; ++i) 
         {
             table[i] = crc32_for_byte(i);
@@ -130,7 +126,7 @@ void xfer_buffer(uint8_t* buffer, int size)
     }
     spi_end();
 
-    fprintf(stderr, "end transfer of %d bytes\n", size);
+    fprintf(stderr, "end transfer of %d bytes\r\n", size);
 }
 
 void romulatorHaltCpu()
@@ -149,11 +145,31 @@ void start_vram_read()
     xfer(0x88);
 }
 
-void romulatorWriteMemory(uint8_t* send_buffer, bool verify)
+uint32_t crcFromFile(File fp)
 {
-    uint32_t calc_crc = 0;
-    crc32(send_buffer, 65536, &calc_crc);
-    fprintf(stderr, "send calc crc: %X\n", calc_crc);
+    uint8_t buffer[1024];
+    uint32_t crc = 0;
+    int bytesRead = fp.readBytes((char*)buffer, 1024);
+    while (bytesRead > 0)
+    {
+        crc32(buffer, bytesRead, &crc);
+        bytesRead = fp.readBytes((char*)buffer, 1024);
+    }
+
+    fp.seek(0);
+    return crc;
+}
+
+bool romulatorWriteMemoryFromFile()
+{
+    File fp = LittleFS.open("/memory.bin", "r");
+    if (!fp)
+    {
+        return false;
+    }
+
+    uint32_t calc_crc = crcFromFile(fp);
+    fprintf(stderr, "send calc crc: %X\r\n", calc_crc);
 
     // write memory map
     xfer(0x99);
@@ -161,68 +177,91 @@ void romulatorWriteMemory(uint8_t* send_buffer, bool verify)
     uint8_t send_byte;
     for (uint32_t i = 0; i < 65536; i++)
     {
-        send_byte = send_buffer[i];
+        //send_byte = send_buffer[i];
+        send_byte = fp.read();
         uint8_t byte = xfer(send_byte);
     }
 
+    fp.seek(0);
     xfer(0x55);
+
+    /*
     if (verify)
     {
         uint8_t buffer[65536];
         if (!romulatorReadMemory(buffer, 5))
         {
-            fprintf(stderr, "read error during verify.\n");
+            fprintf(stderr, "read error during verify.\r\n");
         }
 
         if (memcmp(send_buffer, buffer, 65536) != 0)
         {
-            fprintf(stderr, "write error, mismatch.\n");
+            fprintf(stderr, "write error, mismatch.\r\n");
         }
+    }
+    */
+   return true;
+}
+
+void romulatorStartReadMemory()
+{
+    xfer(0x66);
+
+    // read dummy byte
+    uint8_t b = xfer(0);
+    fprintf(stderr, "dummy byte: %X\r\n", b);
+}
+
+void romulatorReadMemoryBlock(uint8_t* buf, int size)
+{
+    for (uint32_t i = 0; i < size; i++)
+    {
+        uint8_t byte = xfer(i);
+        buf[i] = byte;
     }
 }
 
-bool romulatorReadMemory(uint8_t* buffer, int retries)
+uint32_t romulatorReadMemoryCRC(uint8_t* buf)
 {
-    for (int attempt = 0; attempt < retries; attempt++)
+    // crc32
+    uint32_t crc = 0;
+    for (uint32_t i = 0; i < 4; i++)
     {
-        // send command to read memory map
-        xfer(0x66);
-
-        // read dummy byte
-        uint8_t b = xfer(0);
-        fprintf(stderr, "dummy byte: %X\n", b);
-
-        for (uint32_t i = 0; i < 65536; i++)
-        {
-            uint8_t byte = xfer(i);
-            buffer[i] = byte;
-        }
-
-        // crc32
-        uint32_t crc = 0;
-        for (uint32_t i = 0; i < 4; i++)
-        {
-            crc <<= 8;
-            uint8_t byte = xfer(i);
-            fprintf(stderr, "r %d %X\n", i, byte);
-            crc += (uint32_t)byte;
-        }
-
-        fprintf(stderr, "crc32: %X\n", crc);
-
-        // calculate crc32 of received buffer
-        uint32_t calc_crc = 0;
-        crc32(buffer, 65536, &calc_crc);
-        fprintf(stderr, "calc crc: %X\n", calc_crc);
-
-        if (crc == calc_crc)
-        {
-            return true;
-        }
-
-        fprintf(stderr, "attempt %d read failure, crc mismatch\n", attempt);
+        crc <<= 8;
+        uint8_t byte = xfer(i);
+        crc += (uint32_t)byte;
     }
-    return false;
+    return crc;
+}
+
+bool romulatorReadMemoryToFile()
+{
+    uint8_t buffer[1024];
+    Serial.printf("start read\r\n");
+    File fp = LittleFS.open("/memory.bin", "w");
+    if (!fp)
+    {
+        return false;
+    }
+    romulatorStartReadMemory();
+
+    uint32_t crc = 0;
+    // read full memory map
+    for (int i = 0; i < 64; i++)
+    {
+        Serial.printf("%d..", i);
+        romulatorReadMemoryBlock(buffer, 1024);
+
+        crc32(buffer, 1024, &crc);
+        fp.write(buffer, 1024);
+    }
+    fp.close();
+
+    Serial.printf("\r\n");
+    uint32_t recv_crc = romulatorReadMemoryCRC(buffer);
+    Serial.printf("finished read, CRC %X\r\n", recv_crc);
+    Serial.printf("calculated crc: %X\r\n", crc);
+    return true;
 }
 
 bool romulatorReadVramBlock(uint8_t* vram)
@@ -254,7 +293,7 @@ bool romulatorReadVramBlock(uint8_t* vram)
         local_parity |= ((parity_bit & 0x01) << 7);
     }
 
-    if (verbose) fprintf(stderr, ": P %02X *LP %02X\n", parity_byte, local_parity);
+    if (verbose) fprintf(stderr, ": P %02X *LP %02X\r\n", parity_byte, local_parity);
 
     if (parity_byte != local_parity)
     {
@@ -273,12 +312,11 @@ uint8_t romulatorReadConfig()
     return byte;
 }
 
-void romulatorWriteConfig(int configSetting)
+void romulatorWriteConfig(int config)
 {
-    uint8_t configByte = 0xE0 | (uint8_t)configSetting;
-    fprintf(stderr, "writing %X\n", configByte);
-    xfer(configByte);
-    delay(1);
+    uint8_t cfgByte = 0xE0 | (uint8_t)config;
+    Serial.printf("cfg byte: %X\r\n", cfgByte);
+    xfer(cfgByte);
 }
 
 bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)
@@ -288,7 +326,7 @@ bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)
     bool read_success = true;
     while (byte < size)
     {
-        //fprintf(stderr, "byte %d\n", byte);
+        //fprintf(stderr, "byte %d\r\n", byte);
         bool success = false;
         // read an 8-byte block from vram
         success = romulatorReadVramBlock(&vram[byte]);
@@ -304,7 +342,7 @@ bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)
             if (retries < 5)
             {
                 retries++;
-                fprintf(stderr, "error byte %d retries %d\n", byte, retries);
+                fprintf(stderr, "error byte %d retries %d\r\n", byte, retries);
                 xfer(0x22);
             }
             else

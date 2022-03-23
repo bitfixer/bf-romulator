@@ -19,6 +19,7 @@
 #include <wiringPi.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
@@ -32,23 +33,284 @@
 #define PI_ICE_MOSI         21
 #define PI_DEBUG_CS         36
 
+bool _halted;
+const char* configDir = "config";
+const char* profile = "default";
+const char* romDir = "roms";
+
 typedef enum _action
 {
     READ,
     WRITE,
     CONFIG,
-    VRAM
+    VRAM,
+    CHANGECONFIG,
+    INTERACTIVE
 } Action;
+
+void printMenu()
+{
+    printf("--ROMULATOR--\n");
+    if (_halted)
+    {
+        printf("r to read memory\n");
+        printf("w to write memory\n");
+        printf("c to change configuration setting\n");
+        printf("h to run cpu\n");
+    }
+    else
+    {
+        printf("h to halt cpu\n");
+        printf("v to read vram\n");
+        printf("c to read config byte\n");
+    }
+    printf("q to quit\n");
+}
+
+char readCommand()
+{
+    printf("-->");
+    char cmd = 0;
+    char tmp = 0;
+    int r = scanf("%c", &cmd);
+    while (cmd == '\n')
+    {
+        r = scanf("%c", &cmd);
+    }
+
+    if (r != 1)
+    {
+        return -1;
+    }
+
+    r = scanf("%c", &tmp);
+
+    return cmd;
+}
+
+void changeConfiguration(int configSetting)
+{
+    if (configSetting > 15)
+    {
+        fprintf(stderr, "invalid setting: %d. Can be between 0 and 15\n", configSetting);
+        exit(1);
+    }
+
+    fprintf(stderr, "changing romulator setting to %d\n", configSetting);
+    
+    // open config file
+    char configFname[256];
+    sprintf(configFname, "%s/memory_set_%s.csv", configDir, profile);
+    fprintf(stderr, "config file: %s\n", configFname);
+
+    FILE* fp = fopen(configFname, "rb");
+    if (!fp)
+    {
+        fprintf(stderr, "could not open %s\n", configFname);
+        exit(1);
+    }
+    
+    uint8_t buffer[65536];
+    // write new configuration byte
+    romulatorWriteConfig(configSetting);
+    
+    // read memory
+    bool read_success = romulatorReadMemory(buffer, 5);
+    if (!read_success)
+    {
+        fprintf(stderr, "could not read memory\n");
+        romulatorStartCpu();
+        romulatorClose();
+        exit(1);
+    }
+    delay(10);
+
+    // change ROM contents for the new setting
+    // read ROM settings from config file
+    char line[256];
+    int setting;
+    char rom[128];
+    int address;
+    char* token;
+    uint8_t romBuffer[65536];
+    while (fgets(line, 256, fp))
+    {
+        setting = -1;
+        rom[0] = 0;
+        address = -1;
+
+        token = strtok(line, ",");
+        if (!token)
+        {
+            continue;
+        }
+
+        setting = atoi(token);
+        if (setting != configSetting)
+        {
+            continue;
+        }
+
+        token = strtok(NULL, ",");
+
+        if (!token)
+        {
+            continue;
+        }
+
+        strcpy(rom, token);
+
+        token = strtok(NULL, ",");
+        if (!token)
+        {
+            continue;
+        }
+
+        fprintf(stderr, "--- %d %s %s\n", setting, rom, token);
+        sscanf(token, "0x%X", &address);
+        fprintf(stderr, "address %d %X\n", address, address);
+
+
+        // check for existence of file
+        char romFname[256];
+        sprintf(romFname, "%s/%s", romDir, rom);
+        fprintf(stderr, "opening %s\n", romFname);
+
+        FILE* fpRom = fopen(romFname, "rb");
+        if (!fpRom)
+        {
+            fprintf(stderr, "could not open %s\n", romFname);
+            romulatorStartCpu();
+            romulatorClose();
+            exit(1);
+        }
+
+
+        int bytesRead = fread(romBuffer, 1, 65536, fpRom);
+        fprintf(stderr, "read %d bytes\n", bytesRead);
+        fclose(fpRom);
+
+        // copy rom contents
+        memcpy(&buffer[address], romBuffer, bytesRead);
+
+        fprintf(stderr, "copied %d bytes to address 0x%X\n", bytesRead, address);
+    }
+    
+    fclose(fp);
+
+    // now copy contents back to romulator
+    fprintf(stderr, "writing memory.. ");
+    romulatorWriteMemory(buffer, true);
+    fprintf(stderr, "done.\n");
+    delay(10);
+}
+
+bool doCommand(char command)
+{
+    if (command == 'q')
+    {
+        return false;
+    }
+
+    if (_halted)
+    {
+        if (command == 'r')
+        {
+            uint8_t memory[65536];
+            bool success = romulatorReadMemory(memory, 5);
+            if (!success)
+            {
+                printf("failed to read memory\n");
+                return true;
+            }
+
+            printf("write contents to file (press enter for 'memory.bin'): ");
+            char fname[256];
+
+            char tmp;
+            int r = scanf("%c", &tmp);
+            if (tmp == '\n')
+            {
+                sprintf(fname, "memory.bin");
+            }
+            else
+            {
+                fname[0] = tmp;
+                r = scanf("%s", &fname[1]);
+            }
+
+            FILE* fp = fopen(fname, "wb");
+            fwrite(memory, 1, 65536, fp);
+            fclose(fp);
+
+            printf("memory written to %s\n", fname);
+        }
+        else if (command == 'w')
+        {
+            printf("TBD\n");
+        }
+        else if (command == 'c')
+        {
+            printf("change to configuration number: ");
+            int conf = 0;
+            int r = scanf("%d", &conf);
+            printf("changing to configuration %d\n", conf);
+            changeConfiguration(conf);
+        }
+        else if (command == 'h')
+        {
+            printf("running cpu\n");
+            romulatorStartCpu();
+            _halted = false;
+        }
+    }
+    else
+    {
+        if (command == 'h')
+        {
+            romulatorHaltCpu();
+            _halted = true;
+            printf("cpu halted.\n");
+        }
+        else if (command == 'v')
+        {
+            printf("todo: implement vram\n");
+        }
+        else if (command == 'c')
+        {
+            uint8_t cfgByte = romulatorReadConfig();
+            printf("config: %d\n", cfgByte);
+        }
+    }
+
+    return true;
+}
+
+void interactive()
+{
+    while(1) 
+    {
+        printMenu();
+        char cmd = readCommand();
+        if (!doCommand(cmd))
+        {
+            break;
+        }
+        printf("\n");
+    }
+}
 
 int main(int argc, char** argv)
 {
     int opt;
-    Action a = READ;
+    Action a = INTERACTIVE;
     FILE* fp = NULL;
     bool xfer_whole_buffer = false;
     bool verify = false;
+    int configSetting = 0;
+    _halted = false;
 
-    while ((opt = getopt(argc, argv, "rcw:bvs")) != -1)
+    while ((opt = getopt(argc, argv, "rcw:bvsg:i")) != -1)
     {
         switch (opt)
         {
@@ -72,11 +334,18 @@ int main(int argc, char** argv)
             case 's':
                 a = VRAM;
                 break;
+            case 'g':
+                a = CHANGECONFIG;
+                configSetting = atoi(optarg);
+                break;
+            case 'i':
+                a = INTERACTIVE;
+                break;
         }
     }
+    
 
     romulatorInit();
-
     int start = millis();
 
     if (a == READ)
@@ -98,7 +367,9 @@ int main(int argc, char** argv)
         uint8_t send_buffer[65536];
         fread(send_buffer, 1, 65536, fp);
 
+        romulatorHaltCpu();
         romulatorWriteMemory(send_buffer, true);
+        romulatorStartCpu();
     }
     else if (a == CONFIG) 
     {
@@ -113,6 +384,16 @@ int main(int argc, char** argv)
         int valid_bytes = 1000;
         romulatorReadVram(vram, 1024, valid_bytes, 5);
         fwrite(vram, 1, valid_bytes, stdout);
+    }
+    else if (a == CHANGECONFIG)
+    {
+        romulatorHaltCpu();
+        changeConfiguration(configSetting);
+        romulatorStartCpu();
+    }
+    else if (a == INTERACTIVE)
+    {
+        interactive();
     }
 
     int end = millis();

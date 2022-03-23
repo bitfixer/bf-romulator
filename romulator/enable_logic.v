@@ -67,8 +67,10 @@ wire wdataout_enable;
 
 assign wdataout_enable = read_complete & rwbar;
 
+// set up internal clock
 SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
 
+// set up bidirectional data bus. Data pins switch direction based on wdataout_enable signal.
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
     .PULLUP(1'b 0)
@@ -158,9 +160,6 @@ SB_IO #(
     .D_IN_0(wdatain[7])
   );
 
-// how to instantiate roms living at different addresses?
-// create ROMS and RAMs of different sizes, specify addresses
-
 wire cs_enable;
 wire cs_enable_bus;
 wire cs;
@@ -234,10 +233,14 @@ assign led_blue = read_complete && rdy;
 assign led_green = 1;
 assign led_red = 1;
 
-reg [3:0] configuration;
+// number of bits in configuration
+localparam CONFIG_BITS = 5;
+
+reg [CONFIG_BITS-1:0] configuration;
+wire [CONFIG_BITS-1:0] config_byte;
 
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
-ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, configuration, clk);
+ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, config_byte, clk);
 // create spi flash reader
 // this fills RAM with selected ROM images
 spi_flash_reader flashReader(
@@ -257,12 +260,8 @@ spi_flash_reader flashReader(
     clk,
 
     read_complete,
-    configuration,
-
-    out_flash_addr
+    configuration
 );
-
-wire [3:0] out_flash_addr;
 
 // write enable for video ram section
 // use regular we signal, also check that this is the right section of memory
@@ -270,17 +269,20 @@ reg [15:0] vram_start[15:0];
 reg [15:0] vram_end[15:0];
 wire vram_we;
 
-assign vram_we = ((ram_address >= vram_start[out_flash_addr] && ram_address < vram_end[out_flash_addr]) 
+assign vram_we = ((ram_address >= vram_start[config_byte] && ram_address < vram_end[config_byte]) 
     || ram_address == 59468)
     && ram_we;
 
 wire [10:0]vram_read_address;
 wire [7:0]vram_output;
 wire vram_read_clock;
-wire [3:0]config_byte;
 
-wire[10:0]vram_write_address = ram_address == 59468 ? 1000 : ram_address - vram_start[out_flash_addr];
-wire [10:0]vram_size = vram_end[out_flash_addr] - vram_start[out_flash_addr];
+
+// the address within the VRAM region to write a byte.
+// normally this is the offset from the designated start address for this configuration.
+// on the PET, address 59468 indicates which character bank to use. This is mapped to the last byte in VRAM.
+wire[10:0]vram_write_address = ram_address == 59468 ? (vram_size-1) : ram_address - vram_start[config_byte];
+wire [10:0]vram_size = vram_end[config_byte] - vram_start[config_byte];
 
 // include dual ported ram for the vram section
 simple_ram_dual_clock #(8, 11)
@@ -300,6 +302,8 @@ wire reset;
 assign reset = 1;
 
 // connect diagnostics module for halting cpu and reading ram
+// diagnostics also has the register for config_byte which is used to select
+// which memory configuration to use.
 diagnostics diag(
   halt,
   reset,
@@ -322,14 +326,12 @@ diagnostics diag(
   vram_read_clock,
 
   config_byte,
-  out_flash_addr,
-
   vram_size
 );
 
 initial
 begin
-  configuration <= ~wdatain[3:0];
+  configuration <= ~wdatain[CONFIG_BITS-1:0];
   $readmemh("../bin/vram_start_addr.txt", vram_start);
   $readmemh("../bin/vram_end_addr.txt", vram_end);
 end

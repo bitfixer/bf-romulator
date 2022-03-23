@@ -31,9 +31,7 @@ module spi_flash_reader(
 
     input clk,
     output reg read_complete,
-    input wire [3:0] flash_read_addr,
-
-    output reg [3:0] out_flash_addr
+    input wire [4:0] flash_read_addr
 );
 
 reg spi_clk_input;
@@ -204,8 +202,6 @@ begin
             xfer_flash_blocks_to_read <= 256;
             flash_address <= 24'h20000 + (flash_read_addr << 16);
 
-            out_flash_addr <= flash_read_addr;
-
             xfer_state = XFER_FLASHREAD_BLOCK;
         end
     end
@@ -351,7 +347,6 @@ begin
     spi_cs_reg <= 1;
     echo_cs <= 1;
     read_complete <= 0;
-    out_flash_addr <= 0;
 end
 
 
