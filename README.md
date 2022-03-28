@@ -94,6 +94,8 @@ This will install the prequisites and fetch the latest version of the code in th
 The one-liner for this on the command line is:\
 ```wget -O - https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup.sh | sudo bash```
 
+Mar 28 2022 - PLEASE NOTE: the 'wiringpi' package, which this setup depends on, has been removed from package managers. Not sure exactly when this happened, but at this moment the setup script is broken and will let you build firmware, but not program the romulator device. Working on a fix for this!
+
 ### Programming
 
 To program a new firmware onto the ROMulator, run\
