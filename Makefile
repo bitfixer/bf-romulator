@@ -38,11 +38,11 @@ CS := 10
 
 $(BIN_DIR)/programmer: $(PROGRAMMER_DIR)/programmer.cc
 	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/programmer -lwiringPi $(PROGRAMMER_DIR)/programmer.cc
+	g++ -o $(BIN_DIR)/programmer $(PROGRAMMER_DIR)/programmer.cc -lwiringPi
 
 $(BIN_DIR)/programmer_spi: $(PROGRAMMER_DIR)/programmer_spi.cpp
 	mkdir -p $(BIN_DIR)
-	g++ -o $(BIN_DIR)/programmer_spi -lwiringPi $(PROGRAMMER_DIR)/programmer_spi.cpp
+	g++ -o $(BIN_DIR)/programmer_spi $(PROGRAMMER_DIR)/programmer_spi.cpp -lwiringPi
 
 $(BIN_DIR)/make_screen_image: $(TOOLS_DIR)/make_screen_image.cpp $(TOOLS_DIR)/libRomulatorVram.cpp
 	mkdir -p $(BIN_DIR)
