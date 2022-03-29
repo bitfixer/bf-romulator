@@ -358,3 +358,126 @@ bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)
 
     return read_success;
 }
+
+int getLine(char* line, int maxChars, File* fp)
+{
+    memset(line, 0, maxChars);
+    for (int p = 0; p < maxChars; p++)
+    {
+        int c = fp->read();
+        if (c == -1)
+        {
+            return -1;
+        }
+
+        line[p] = c;
+        if (c == '\n')
+        {
+            return p;
+        }
+    }
+
+    return maxChars;
+}
+
+bool romulatorChangeConfiguration(int configSetting)
+{
+    if (configSetting > 15)
+    {
+        Serial.printf("invalid setting: %d. Can be between 0 and 15\n", configSetting);
+        return false;
+    }
+
+    Serial.printf("changing romulator setting to %d\n", configSetting);
+    File fp = LittleFS.open("/enable_table.txt", "r");
+    if (!fp)
+    {
+        return false;
+    }
+
+    File fpRomulator = LittleFS.open("/romulator.bin", "r");
+    if (!fpRomulator)
+    {
+        Serial.printf("could not open romulator.bin\n");
+        return false;
+    }
+
+    romulatorInitDebug();
+    romulatorReadMemoryToFile();
+
+    File fpMemory = LittleFS.open("/memory.bin", "r");
+    if (!fpMemory)
+    {
+        Serial.printf("could not open memory.bin\n");
+        return false;
+    }
+
+    File fpNewMemory = LittleFS.open("/memory.tmp", "w");
+    if (!fpNewMemory)
+    {
+        return false;
+    }
+
+    int romulatorFileAddress = 0x20000 + (configSetting * 0x10000);
+
+    // configuration number is the top bits.
+    int numSectionBytes = 65536 / 256;
+    int numEntryBytes = numSectionBytes * 2;
+    int configStart = numEntryBytes * configSetting;
+    int fileAddress = configStart * 2;
+
+    Serial.printf("neb %d cd %d fa %d\n", numEntryBytes, configStart, fileAddress);
+
+    if (!fp.seek(fileAddress))
+    {
+        Serial.printf("could not seek to %d\n", fileAddress);
+    }
+
+    // find every readonly section and copy it from 
+    // romulator memory map for this entry
+    char ent[2];
+    ent[1] = 0;
+    uint8_t enableTable[512];
+    uint8_t chunk[256];
+    for (int i = 0; i < numEntryBytes; i++)
+    {
+        ent[0] = fp.read();
+        int entryByte = atoi(ent);
+        enableTable[i] = entryByte;
+        fp.read();
+    }
+    fp.close();
+
+    for (int i = 0; i < numSectionBytes; i++)
+    {
+        int address = i * numSectionBytes;
+        //Serial.printf("%X: %d %d\n", address, enableTable[i], enableTable[i+numSectionBytes]);
+        if (enableTable[i] == 1 && enableTable[i + numSectionBytes] == 2)
+        {
+            // read only section
+            Serial.printf("%X RO\n", address);
+            fpRomulator.seek(romulatorFileAddress+address);
+            fpRomulator.readBytes((char*)chunk, 256);
+        }
+        else
+        {
+            fpMemory.seek(address);
+            fpMemory.readBytes((char*)chunk, 256);
+        }
+
+        // write chunk to new memory file
+        fpNewMemory.write(chunk, 256);
+    }
+
+    fpNewMemory.close();
+    fpMemory.close();
+    fpRomulator.close();
+
+    LittleFS.remove("/memory.bin");
+    LittleFS.rename("/memory.tmp", "/memory.bin");
+
+    // now copy contents back to romulator
+    romulatorWriteMemoryFromFile();
+    romulatorWriteConfig(configSetting);
+    return true;
+}

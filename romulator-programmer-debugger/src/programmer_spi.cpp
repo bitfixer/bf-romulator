@@ -351,8 +351,7 @@ void write_config()
     Serial.printf("writing configuration: %s\r\n", c);
     int configIndex = atoi(c);
 
-    romulatorInitDebug();
-    romulatorWriteConfig(configIndex);
+    romulatorChangeConfiguration(configIndex);
 }
 
 void read_vram()

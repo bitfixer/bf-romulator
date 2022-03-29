@@ -147,9 +147,9 @@ void handleRun() {
 
 void handleReadMemory() {
     romulatorInitDebug();
-    romulatorHaltCpu();
+    //romulatorHaltCpu();
     romulatorReadMemoryToFile();
-    romulatorStartCpu();
+    //romulatorStartCpu();
 
     File fp = LittleFS.open("/memory.bin", "r");
     server.sendHeader("content-disposition", "attachment; filename=\"memory.bin\"");
@@ -284,9 +284,15 @@ void handleSetConfig()
     int c = atoi(confStr.c_str());
     Serial.printf("setting config %d\r\n", c);
 
-    romulatorInitDebug();
-    romulatorWriteConfig(c);
-    server.send(200, "text/html", "config set");
+    bool success = romulatorChangeConfiguration(c);
+    if (success)
+    {
+        server.send(200, "text/html", "config set");
+    }
+    else
+    {
+        server.send(200, "text/html", "config could not be set");
+    }
 }
 
 void startServer()

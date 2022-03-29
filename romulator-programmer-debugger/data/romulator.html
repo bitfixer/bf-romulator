@@ -79,11 +79,36 @@
 
         <script>
 
+            var updateTimeoutId;
+
             function setconfig()
             {
                 confSelect = document.getElementById("configSetting");
                 var c = confSelect.options[confSelect.selectedIndex].value;
-                getRequestWithEndpoint("setConfig", "?c="+c, null);
+
+                // disable buttons
+                runCpuButton.disabled = true;
+                readMemoryButton.disabled = true;
+                writeMemoryButton.disabled = true;
+                setConfigButton.disabled = true;
+                updateTimeoutId = setTimeout(setconfigprogress, 1000);
+                getRequestWithEndpoint("setConfig", "?c="+c, setconfigdone);
+            }
+
+            function setconfigprogress()
+            {
+                resultArea = document.getElementById("setConfigResult");
+                resultArea.innerHTML += ".";
+                updateTimeoutId = setTimeout(setconfigprogress, 1000);
+            }
+
+            function setconfigdone()
+            {
+                clearTimeout(updateTimeoutId);
+                runCpuButton.disabled = false;
+                readMemoryButton.disabled = false;
+                writeMemoryButton.disabled = false;
+                setConfigButton.disabled = false;
             }
 
             // endpoints for romulator functions

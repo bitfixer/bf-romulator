@@ -21,6 +21,7 @@ void romulatorStartCpu();
 void romulatorStartReadMemory();
 void romulatorReadMemoryBlock(uint8_t* buf, int size);
 uint32_t romulatorReadMemoryCRC(uint8_t* buf);
+bool romulatorChangeConfiguration(int configSetting);
 
 void crc32(const void *data, int n_bytes, uint32_t* crc);
 
