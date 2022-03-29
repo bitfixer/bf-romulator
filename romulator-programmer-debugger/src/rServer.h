@@ -1,5 +1,5 @@
-#ifndef __SERVER_H__
-#define __SERVER_H__
+#ifndef __R_SERVER_H__
+#define __R_SERVER_H__
 
 void startServer();
 void handleClient();

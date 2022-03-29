@@ -25,7 +25,7 @@
 #include "defines.h"
 #include "libRomulatorDebug.h"
 #include "libRomulatorProgrammer.h"
-#include "server.h"
+#include "rServer.h"
 #include <vector>
 #include <Arduino.h>
 #include <SPI.h>
@@ -564,9 +564,6 @@ void menu_command(unsigned char opt)
             break;
         case 'y':
             test_xmodem_send();
-            break;
-        case 'z':
-            handleCharacterRom();
             break;
         default:
             break;
