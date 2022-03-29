@@ -2,7 +2,7 @@
 
   (general
     (thickness 1.6)
-    (drawings 29)
+    (drawings 31)
     (tracks 91)
     (zones 0)
     (modules 5)
@@ -463,6 +463,12 @@
     )
   )
 
+  (gr_text "D1 Mini" (at 134 85.25 270) (layer F.SilkS)
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (gr_text "ROMulator Program/Debug\nc 2022 Michael Hill\nbitfixer.com/romulator" (at 155.75 72.75 270) (layer F.SilkS)
+    (effects (font (size 1 1) (thickness 0.15)) (justify left))
+  )
   (gr_text GND (at 135.75 94 270) (layer F.SilkS)
     (effects (font (size 1 1) (thickness 0.1)))
   )
