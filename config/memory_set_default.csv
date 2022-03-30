@@ -73,6 +73,7 @@
 
 12,../bin/nop.bin,0x0000
 
+# PETTEST
 13,PETTESTE2KV04.bin,0xe000
 13,kernal-4.901465-22.bin,0xf000
 
@@ -80,3 +81,7 @@
 
 # RAM test
 15,../bin/ramtest.bin,0xf000
+
+# PETTEST repeated
+16,PETTESTE2KV04.bin,0xe000
+16,kernal-4.901465-22.bin,0xf000

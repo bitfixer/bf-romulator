@@ -19,8 +19,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#define NUMMAPS 16
+#include "constants.h"
 
 long getSize(FILE* fp)
 {

@@ -20,8 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
-
-#define NUMMAPS 16
+#include "constants.h"
 
 // define size of minimum memory region which can have its own 
 // enable setting.
