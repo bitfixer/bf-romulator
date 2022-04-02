@@ -53,6 +53,13 @@ This topic is big enough to have its own readme, and it is located here:\
 
 ## Program / Debug
 
+Programming and Debugging with the ROMulator can be done in one of two ways:
+- using a Raspberry Pi connected to the ROMulator's 10-pin header, or
+- using a standalone programmer consisting of a D1 Mini Board (dev board for ESP12 wifi microcontroller module) and an interface board for connecting to the ROMulator. This method allows uploading new firmware over a wifi network as well as a direct connection to a Win/Linux/Mac using usb.
+
+Information on programming and debugging using the standalone programmer can be found here:\
+[ROMULATOR_STANDALONE.md](ROMULATOR_STANDALONE.md)
+
 Programming or Debug functionality of the ROMulator uses a Raspberry Pi using a soft SPI implementation. 
 You can use the optional RPI ROMulator programming board, or directly connect the following RPI physical pins to the corresponding pins on the 10-pin header on the ROMulator FPGA board:
 
