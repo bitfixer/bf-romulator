@@ -60,6 +60,7 @@ Programming and Debugging with the ROMulator can be done in one of two ways:
 Information on programming and debugging using the standalone programmer can be found here:\
 [ROMULATOR_STANDALONE.md](ROMULATOR_STANDALONE.md)
 
+### Program / Debug with Raspberry Pi
 Programming or Debug functionality of the ROMulator uses a Raspberry Pi using a soft SPI implementation. 
 You can use the optional RPI ROMulator programming board, or directly connect the following RPI physical pins to the corresponding pins on the 10-pin header on the ROMulator FPGA board:
 
