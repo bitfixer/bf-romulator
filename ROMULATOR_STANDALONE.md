@@ -25,7 +25,7 @@ If not installed already, install homebrew using instructions here:\
 Then open Terminal, change to a directory where you want to install, and download the install script with:\
 ```curl https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_linux.sh > setup_linux.sh```\
 and run the script:\
-```./setup_mac.sh```\
+```./setup_mac.sh```
 
 
 
