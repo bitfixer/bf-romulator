@@ -23,6 +23,6 @@ If not installed already, install homebrew using instructions here.:\
 [homebrew installation](https://brew.sh)\
 Create a directory for your romulator installation.\
 Then open Terminal, change to the install directory, and run this (one line):\
-```curl https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_mac.sh > setup_mac.sh; chmod 755 setup_mac.sh; ./setup_mac.sh```
+```curl https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_mac.sh > setup_mac.sh; chmod 755 setup_mac.sh; ./setup_mac.sh```\
 You will need to enter your password at some point during the installation.
 
