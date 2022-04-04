@@ -23,7 +23,7 @@ You will need to enter your password as some commands in the setup script requir
 If not installed already, install homebrew using instructions here.:\
 [homebrew installation](https://brew.sh)\
 Create a directory for your romulator installation and download the install script there.\
-[setup_mac.sh](setup_mac.sh)\
+[setup_mac.sh](https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_mac.sh)\
 Then open Terminal, change to the install directory, and run the script:\
 ```./setup_mac.sh```
 
