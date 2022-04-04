@@ -12,10 +12,9 @@ Create a directory for your installation somewhere easily accessible to both lin
 
 ## Linux
 
-Fetch the linux setup script from linux command line with\
-```wget https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_linux.sh```\
-then run the script:\
-```./setup_linux.sh```\
+Create a directory for your install.\
+Then fetch and run the linux setup script from linux command line in this directory with (one line)\
+```wget https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_linux.sh; ./setup_linux.sh```\
 You will need to enter your password as some commands in the setup script require sudo.
 
 ## Mac (10.15 or higher)
@@ -25,4 +24,5 @@ If not installed already, install homebrew using instructions here.:\
 Create a directory for your romulator installation.\
 Then open Terminal, change to the install directory, and run this (one line):\
 ```curl https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_mac.sh > setup_mac.sh; chmod 755 setup_mac.sh; ./setup_mac.sh```
+You will need to enter your password at some point during the installation.
 
