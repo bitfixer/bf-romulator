@@ -72,5 +72,16 @@ You can also just check the local IP of the device on your router as well and co
 
 Once connected to the web interface, you can program the ROMulator with the firmware you built, which will be in bin/romulator.bin in the bf-romulator directory. Just select 'Program' on the webpage and then select this file, and wait until the upload and programming completes. That's it!\
 
+## Serial Interface
 
+It is also possible to program the romulator using a serial terminal, without using the web interface at all.
+
+To do this, when connected to the D1 Mini with USB, launch a terminal program that supports serial ports and Xmodem file transfer. Good examples are minicom on mac/linux, or TeraTerm on Windows. Set the baud rate to 115200.
+
+You will need to find the id of the serial port on the D1 Mini. This id varies but has some commonalities. On Mac/Linux, try ```ls /dev/tty.usb*``` or ```ls /dev/tty*```. This will show some possible device names, you can try disconnecting the device, listing, then connecting and listing again to find which id shows up. If there is a better way to do this, please let me know.\
+On Windows, it often shows up as COM6 or COM7, generally the first com port over COM2 is the one. If the terminal shows a name associated with each com port, it will be the one with a name like 'usb-to-serial' something.
+
+Once connected with the right baud rate, hit the reset button on the D1 Mini. A menu should show up in the terminal. To program, type 'p' for the programming menu and then 'p' again to program firmware. You will be prompted to send the file using XMODEM, then go ahead and using the menu on your terminal program, select bin/romulator.bin and start the transfer. This will upload the file to the device and program the romulator.
+
+After connecting
 
