@@ -7,6 +7,7 @@
 #include "libRomulatorProgrammer.h"
 #include "libRomulatorDebug.h"
 #include "defines.h"
+#include <ESP8266HTTPClient.h>
 
 const char *ssid = "romulator";
 const char *password = "bitfixer";
@@ -340,6 +341,19 @@ void startServer()
     } else {
         digitalWrite(LED_PIN, LED_ON);
         Serial.printf("connected, ip address %s\n", WiFi.localIP().toString().c_str());
+
+        // report local ip address to forwarding service
+        // this allows you to find your romulator on your local network easily
+        WiFiClient client;
+        HTTPClient http;
+        char url[256];
+        sprintf(url, "http://bitfixer.com/rmltr/r.php?ip=%s", WiFi.localIP().toString().c_str());
+
+        http.begin(client, url);
+        int httpCode = http.GET();
+        Serial.printf("recv %d\n", httpCode);
+        String payload = http.getString();
+        Serial.printf("payload: %s\n", payload.c_str());
     }
 
     server.on("/",  handlePortal);
