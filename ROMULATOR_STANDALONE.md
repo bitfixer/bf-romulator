@@ -6,9 +6,9 @@ The following images show the assembly of the standalone programming/debugging k
 
 <table>
   <tr>
-    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/standalone_top.jpeg" width="25%" /></td>
-    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/standalone_bottom.jpeg" width="25%" /></td>
-    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/romulator_standalone_connected.jpeg" width="25%" /></td>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/standalone_top.jpeg" width="100%" /></td>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/standalone_bottom.jpeg" width="100%" /></td>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/romulator_standalone_connected.jpeg" width="100%" /></td>
   </tr>
 </table>
 
