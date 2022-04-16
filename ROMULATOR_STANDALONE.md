@@ -4,9 +4,13 @@
 
 The following images show the assembly of the standalone programming/debugging kit, as well as how to connect to the ROMulator.
 
-<img src="https://github.com/bitfixer/bf-romulator/raw/master/images/standalone_top.jpeg" width="450" />
-<img src="https://github.com/bitfixer/bf-romulator/raw/master/images/standalone_bottom.jpeg" width="450" />
-<img src="https://github.com/bitfixer/bf-romulator/raw/master/images/romulator_standalone_connected.jpeg" width="450" />
+<table>
+  <tr>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/standalone_top.jpeg" width="25%" /></td>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/standalone_bottom.jpeg" width="25%" /></td>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/romulator_standalone_connected.jpeg" width="25%" /></td>
+  </tr>
+</table>
 
 The standalone programmer for the ROMulator consists of a D1 Mini board and an interface board to connect the D1 Mini to the ROMulator's 10-pin header.
 First step is to install the build tools on your Win/Mac/Linux machine. You will build new firmware images here. For Mac and Linux the install is fairly straightforward and just requires running a script. On Windows, however, some build dependencies are not natively supported, and requires installing a Linux distro using WSL (windows subsystem for linux). 
