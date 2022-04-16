@@ -4,6 +4,7 @@
 
 The following images show the assembly of the standalone programming/debugging kit, as well as how to connect to the ROMulator.
 
+<img src="https://github.com/bitfixer/bf-romulator/raw/master/images/standalone_top.jpeg" width="500" />
 ![standalone kit top](images/standalone_top.jpeg)
 ![standalone kit bottom](images/standalone_bottom.jpeg)
 ![standalone connection](images/romulator_standalone_connected.jpeg)
