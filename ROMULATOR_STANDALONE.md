@@ -1,5 +1,13 @@
 # Programming/Debug using Standalone Programmer
 
+## Assembly
+
+The following images show the assembly of the standalone programming/debugging kit, as well as how to connect to the ROMulator.
+
+![standalone kit top](images/standalone_top.jpeg)
+![standalone kit bottom](images/standalone_bottom.jpeg)
+![standalone connection](images/romulator_standalone_connected.jpeg)
+
 The standalone programmer for the ROMulator consists of a D1 Mini board and an interface board to connect the D1 Mini to the ROMulator's 10-pin header.
 First step is to install the build tools on your Win/Mac/Linux machine. You will build new firmware images here. For Mac and Linux the install is fairly straightforward and just requires running a script. On Windows, however, some build dependencies are not natively supported, and requires installing a Linux distro using WSL (windows subsystem for linux). 
 Instructions for each OS:
@@ -82,6 +90,3 @@ You will need to find the id of the serial port on the D1 Mini. This id varies b
 On Windows, it often shows up as COM6 or COM7, generally the first com port over COM2 is the one. If the terminal shows a name associated with each com port, it will be the one with a name like 'usb-to-serial' something.
 
 Once connected with the right baud rate, hit the reset button on the D1 Mini. A menu should show up in the terminal. To program, type 'p' for the programming menu and then 'p' again to program firmware. You will be prompted to send the file using XMODEM, then go ahead and using the menu on your terminal program, select bin/romulator.bin and start the transfer. This will upload the file to the device and program the romulator.
-
-After connecting
-
