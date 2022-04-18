@@ -68,9 +68,9 @@ This will upload the needed files to the D1 Mini. Now you are done!
 ## Web Interface
 
 Power up your D1 Mini. On first power-up the LED will start blinking. After a few seconds, on a device of your choice, connect to the wifi network 'romulator'. This will have a password of 'bitfixer'.\
-Then in a browser go to 192.168.4.1. This will bring up a page which allows you to enter the name and password to connect to your wifi router. After doing this, you are prompted to reset the D1 Mini.\
+Then in a browser go to 192.168.4.1. This will bring up a page which allows you to enter the name and password to connect to your wifi router. After doing this, you are prompted to reset the D1 Mini.
 
-At this point, your standalone programmer is ready to go. Connect the D1 Mini to the interface board, and then connect to the ROMulator as shown here.
+At this point, your standalone programmer is ready to go. Connect the D1 Mini to the interface board, and then connect to the ROMulator as shown [here](#assembly).
 
 Now you can power up, and wait for the blinking LED to stop blinking and be solidly on. This indicates that the board has successfully connected to your router and is now on your wifi network.\
 
