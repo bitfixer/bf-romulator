@@ -93,8 +93,8 @@ The optional RPI ROMulator programming board is just a breakout board for SPI an
     <td>Connect it like this.</td>
   </tr>
   <tr>
-    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/ribbon_cable_1.jpeg" width="100%" /></td>
-    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/romulator-rpi-connection.jpg" width="100%" /></td>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/ribbon_cable_1.jpeg" width="1024px" /></td>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/romulator-rpi-connection.jpg" width="1024px" /></td>
   </tr>
 </table>
 
@@ -106,13 +106,10 @@ Or,
     <td>Connect it like this.</td>
   </tr>
   <tr>
-    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/ribbon_cable_2.jpeg" width="100%" /></td>
-    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/romulator-rpi-connection-2.jpeg" width="100%" /></td>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/ribbon_cable_2.jpeg" width="1024px" /></td>
+    <td><img src="https://github.com/bitfixer/bf-romulator/raw/master/images/romulator-rpi-connection-2.jpeg" width="1024px" /></td>
   </tr>
 </table>
-
-![images/rpi romulator connection](/images/romulator-rpi-connection.jpg "images/rpi romulator connection")
-![images/rpi_romulator_connection_2](/images/romulator-rpi-connection-2.jpeg)
 
 Please follow this procedure to enter debug mode on the romulator and read the contents of a running CPU.
 1. run ```make bin/console``` from bf-romulator directory
