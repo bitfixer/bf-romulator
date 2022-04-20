@@ -85,7 +85,7 @@ The optional RPI ROMulator programming board is just a breakout board for SPI an
 2. Solder a 2-pin header onto the header section directly adjacent to SPI0.
 3. Solder the 2x20 socket onto the BOTTOM of the board.
 4. Connect the jumper onto the 2-pin header for programming. Remove for debug.
-5. When attaching the board to the raspberry pi, the headers face away from the body of the raspberry pi. Depending on the orientation of the connectors on the ribbon cable, it may be connected in one of two ways. Just make sure there is no twist in the cable. See these images for reference:
+5. When attaching the board to the raspberry pi, the headers face away from the body of the raspberry pi. Depending on how the connectors are attached to the ribbon cable, it may be connected in one of two ways. Just make sure there is no twist in the cable. See these images for reference:
 
 ![images/rpi romulator connection](/images/romulator-rpi-connection.jpg "images/rpi romulator connection")
 ![images/rpi_romulator_connection_2](/images/romulator-rpi-connection-2.jpeg)
