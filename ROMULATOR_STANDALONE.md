@@ -42,13 +42,13 @@ You will need to enter your password at some point during the installation.
 
 To build firmware, in a terminal run\
 ```make romulator```\
-from the bf-romulator directory. The firmware file will be bin/romulator.bin.\
+from the bf-romulator directory. The firmware file will be bin/romulator.bin.
 
 # Setting up the standalone programmer
 
-Using the standalone programmer, you can program/debug through a web interface once the programmer has connected to your WiFi network, or you can program using a serial terminal program while connected to USB.\
+Using the standalone programmer, you can program/debug through a web interface once the programmer has connected to your WiFi network, or you can program using a serial terminal program while connected to USB.
 
-If you are using your own D1 Mini board, you will first need to program it with debugging/programming firmware which is described here. If you ordered the standalone programmer kit from bitfixer.com, it will come pre-programmed and you can skip ahead, although you will need to do this to install any firmware updates.\
+If you are using your own D1 Mini board, you will first need to program it with debugging/programming firmware which is described here. If you ordered the standalone programmer kit from bitfixer.com, it will come pre-programmed and you can skip ahead, although you will need to do this to install any firmware updates.
 
 ## Programming D1 Mini
 
@@ -59,7 +59,7 @@ After install, launch and then select 'Extensions' (View->Extensions). Search fo
 After this, open the 'romulator-programmer-debugger' directory in File->Open Directory (or Open Folder).\
 PlatformIO will do some installation and eventually ask you to restart VSCode.\
 Do this, then connect to the D1 Mini board with USB and eventually you should see a right arrow on the bottom bar of the IDE (the tooltip is PlatformIO: Upload).\
-Select this. You may see a message to the effect that 'romulator-programmer-debugger.upload' does not exist - in this case just wait and try again, PlatformIO is doing something in the background. Eventually this will work and build and install on your D1 Mini. It is possible you may have to specify a value for 'upload-port', which will be the id of a serial port on your system, but generally it will auto-detect this.\
+Select this. You may see a message to the effect that 'romulator-programmer-debugger.upload' does not exist - in this case just wait and try again, PlatformIO is doing something in the background. Eventually this will work and build and install on your D1 Mini. It is possible you may have to specify a value for 'upload-port', which will be the id of a serial port on your system, but generally it will auto-detect this.
 
 After programming the board, you will also need to upload a filesystem image onto it. This contains some files needed to run the web interface on the D1 Mini.\
 To do this, select the PlatformIO menu (on the toolbar located on the left of the VSCode window, a little alien face) and then Platform->Upload Filesystem Image.\
@@ -72,7 +72,7 @@ Then in a browser go to 192.168.4.1. This will bring up a page which allows you 
 
 At this point, your standalone programmer is ready to go. Connect the D1 Mini to the interface board, and then connect to the ROMulator as shown [here](#assembly).
 
-Now you can power up, and wait for the blinking LED to stop blinking and be solidly on. This indicates that the board has successfully connected to your router and is now on your wifi network.\
+Now you can power up, and wait for the blinking LED to stop blinking and be solidly on. This indicates that the board has successfully connected to your router and is now on your wifi network.
 
 Here is one tricky part. The D1 Mini is supposed to be able to self-report a hostname, much like the raspberry pi does on your local network (raspberrypi.local). This would be convenient, since you could refer to this address rather than needing to know the local IP that your router happens to assign to the device. However, I was not able to get this to work, despite trying sample code exactly which claimed to do this. Possibly a router misconfiguration on my part. Feel free to let me know if you have any insights on this.\
 For this reason, I added a simple redirect service hosted on my site, bitfixer.com.\
@@ -80,9 +80,9 @@ Once the D1 Mini successfully connects to your network, it makes a single reques
 After your D1 Mini connects, you can then reach its web interface by going here:\
 [http://bitfixer.com/myromulator](http://bitfixer.com/myromulator)\
 This reads the IP of the incoming request, which will match the IP of the D1 Mini since they are on the same network, and will redirect you back to the D1 Mini's local IP. This allows you to reach the web interface without knowing the specific local IP.\
-You can also just check the local IP of the device on your router as well and connect directly to it, either method works.\
+You can also just check the local IP of the device on your router as well and connect directly to it, either method works.
 
-Once connected to the web interface, you can program the ROMulator with the firmware you built, which will be in bin/romulator.bin in the bf-romulator directory. Just select 'Program' on the webpage and then select this file, and wait until the upload and programming completes. That's it!\
+Once connected to the web interface, you can program the ROMulator with the firmware you built, which will be in bin/romulator.bin in the bf-romulator directory. Just select 'Program' on the webpage and then select this file, and wait until the upload and programming completes. That's it!
 
 ## Serial Interface
 
