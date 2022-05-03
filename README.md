@@ -42,7 +42,12 @@ The default switch settings are as follows:
 |7          |BASIC 4, PET 4016 60Hz                         |On         |On         |On         |Off        |
 |8          |Apple II plus                                  |Off        |Off        |Off        |On         |
 |9          |BASIC 1, PET 2001-8                            |On         |Off        |Off        |On         |
-
+|10         |VIC-20 PAL                                     |On         |Off        |On         |Off        |
+|11         |VIC-20 NTSC                                    |On         |Off        |On         |On         |
+|12         |NOP Generator                                  |On         |On         |Off        |Off        |
+|13         |PETTESTER                                      |On         |On         |Off        |On         |
+|14         |PET Low RAM Test                               |On         |On         |On         |Off        |
+|15         |PET RAM/ROM/VRAM Test                          |On         |On         |On         |On         |
 The memory maps are defined in [config/memory_set_default.csv](config/memory_set_default.csv).
 This file indicates which ROMs are located at which memory address.
 
