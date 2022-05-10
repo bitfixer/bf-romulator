@@ -26,7 +26,7 @@ module enable_logic(
   input rwbar, 
   output dataoutenable, 
   output busenable,
-  input diag_spi_cs,
+  inout diag_spi_cs,
   output rdy,
   input rst,
 
@@ -57,6 +57,20 @@ SB_IO #(
     .OUTPUT_ENABLE(spi_master_active),
     .D_OUT_0(spi_clk_out),
     .D_IN_0(spi_clk_in)
+);
+
+wire diag_spi_cs_in;
+wire diag_spi_cs_out;
+SB_IO #(
+    .PIN_TYPE(6'b 1010_01),
+    .PULLUP(1'b 1)
+  )
+  iobuf_diag_spi_cs
+  (
+    .PACKAGE_PIN(diag_spi_cs),
+    .OUTPUT_ENABLE(0),
+    .D_OUT_0(diag_spi_cs_out),
+    .D_IN_0(diag_spi_cs_in)
 );
 
 wire[7:0] wdatain;
@@ -308,7 +322,7 @@ diagnostics diag(
   halt,
   reset,
   clk,
-  diag_spi_cs,
+  diag_spi_cs_in,
   spi_clk_in,
   diag_spi_out,
   spi_miso,
