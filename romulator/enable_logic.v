@@ -73,7 +73,7 @@ SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
 // set up bidirectional data bus. Data pins switch direction based on wdataout_enable signal.
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[0]
   (
@@ -84,7 +84,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[1]
   (
@@ -95,7 +95,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[2]
   (
@@ -106,7 +106,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[3]
   (
@@ -117,7 +117,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[4]
   (
@@ -128,7 +128,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[5]
   (
@@ -139,7 +139,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[6]
   (
@@ -150,7 +150,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[7]
   (
