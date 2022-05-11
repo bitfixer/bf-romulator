@@ -20,6 +20,7 @@ PROGRAMMER_DIR := programmer
 TOOLS_DIR := tools
 CONFIG_DIR := config
 ROMULATOR_DIR := romulator
+ROMULATOR_Z80_DIR := romulator_z80
 ROMS_DIR := roms
 SHARED_DIR := bf-shared
 CONFIG := default
@@ -111,6 +112,12 @@ $(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_
 	cd $(ROMULATOR_DIR); rm hardware.*; apio build
 	cp $(ROMULATOR_DIR)/hardware.bin $(BIN_DIR)/hardware.bin
 	rm $(ROMULATOR_DIR)/hardware.*
+
+$(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_Z80_DIR)/*.v
+	mkdir -p $(BIN_DIR)
+	cd $(ROMULATOR_Z80_DIR); rm hardware.*; apio build
+	cp $(ROMULATOR_Z80_DIR)/hardware.bin $(BIN_DIR)/hardware_z80.bin
+	rm $(ROMULATOR_Z80_DIR)/hardware.*
 
 .PHONY: romulator
 romulator: $(BIN_DIR)/romulator.bin
