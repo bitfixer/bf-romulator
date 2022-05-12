@@ -345,6 +345,7 @@ begin
         // deselect RAM
         ram_cs <= 0;
         ram_we <= 0;
+        table_we <= 0;
         ram_address = ram_address + 1;
         xfer_state <= XFER_SEND_BYTES_WAIT;
     end

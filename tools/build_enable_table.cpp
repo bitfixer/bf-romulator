@@ -233,6 +233,10 @@ int main(int argc, char** argv)
         printf("%X\n", table[aa]);
     }
 
+    FILE* fp_table = fopen("bin/enable_table.bin", "wb");
+    fwrite(table, 1, num_entries, fp_table);
+    fclose(fp_table);
+
     FILE* fp_vram = fopen("bin/vram_start_addr.txt", "wb");
     for (int v = 0; v < NUMMAPS; v++)
     {
