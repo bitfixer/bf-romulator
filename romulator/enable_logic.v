@@ -263,13 +263,14 @@ ramenable enable(
     cs_enable,
     cs_enable_bus,
     we,
-    config_byte,
     clk,
     table_we,
     ram_datain[1:0],
-    ram_address[13:0]);
+    ram_address[8:0]);
+
 // create spi flash reader
 // this fills RAM with selected ROM images
+// also loads the enable table from flash
 spi_flash_reader flashReader(
     spi_clk_out,
     spi_miso,

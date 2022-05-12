@@ -5,11 +5,10 @@ module ramenable(
     output wire cs_ram,
     output wire cs_bus,
     output we,
-    input [4:0] configuration,
     input fpga_clk,
     input wire table_we,
     input wire [1:0] table_val,
-    input wire [13:0] table_write_addr);
+    input wire [8:0] table_write_addr);
 
 // table of ram and bus enable signals, 64 entries per table
 // this is selected by the configuration byte
@@ -23,50 +22,31 @@ localparam ADDR_NUM_ENTRIES = 2**16 / ADDR_GRANULARITY_SIZE;
 // number of bits needed for the number of address entries
 localparam ADDR_ENTRY_BITS = $clog2(ADDR_NUM_ENTRIES); // number of bits to use for address granularity.
 
-// number of bits in configuration
-localparam CONFIG_BITS = 5;
-
 // enable address is composed of:
 // number of bits for address entry
 // number of bits for configuration
 // 1 bit for read/write
-localparam ENABLE_ADDR_BITS = ADDR_ENTRY_BITS + CONFIG_BITS + 1;
+//localparam ENABLE_ADDR_BITS = ADDR_ENTRY_BITS + CONFIG_BITS + 1;
+localparam ENABLE_ADDR_BITS = ADDR_ENTRY_BITS + 1;
 
 reg [1:0] enable_table[0:(2**ENABLE_ADDR_BITS) - 1];
 wire[ENABLE_ADDR_BITS-1:0] enable_addr;
-reg [CONFIG_BITS-1:0] config_byte;
-
 reg [1:0] outval;
-
-// module states
-localparam READ_CONFIG = 0;
-localparam DONE = 1;
-reg state = READ_CONFIG;
 
 always @(posedge fpga_clk)
 begin
-    case(state)
-    READ_CONFIG:
+    if (table_we == 1)
     begin
-      config_byte <= configuration;
-      state <= DONE;
+        enable_table[table_write_addr] <= table_val;
     end
-    DONE:
+    else 
     begin
-        if (table_we == 1)
-        begin
-            enable_table[table_write_addr] <= table_val;
-        end
-        else 
-        begin
-            outval <= enable_table[enable_addr];
-        end
+        outval <= enable_table[enable_addr];
     end
-    endcase
 end
 
 assign we = phi2 & (!rwbar);
-assign enable_addr = {configuration, rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
+assign enable_addr = {rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
 
 assign cs_ram = phi2 & outval[1];
 assign cs_bus = phi2 & outval[0];

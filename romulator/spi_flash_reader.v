@@ -232,9 +232,9 @@ begin
             end
             else 
             begin
-                xfer_flash_blocks_to_read = 64;
+                xfer_flash_blocks_to_read = 2;
                 rx_ready <= 1;
-                flash_address <= 24'h220000;
+                flash_address <= 24'h220000 + (flash_read_addr << 9);
                 table_read <= 1;
                 ram_address <= 0;
                 xfer_state <= XFER_FLASHREAD_BLOCK;
@@ -329,7 +329,6 @@ begin
             // address, CS, WE to select RAM
             if (table_read == 1)
             begin
-                //enable_table[ram_address[13:0]] <= spi_recv_byte[1:0];
                 table_we <= 1;
             end
             else 
