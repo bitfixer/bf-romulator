@@ -15,9 +15,13 @@ int main(int argc, char** argv)
     FILE* fp = fopen(fname, "rb");
     long sz = getSize(fp);
 
-    char *rom_fname = argv[2];
+    char* rom_fname = argv[2];
     FILE* fp_rom = fopen(rom_fname, "rb");
     long sz_rom = getSize(fp_rom);
+
+    char* enable_table_fname = argv[3];
+    FILE* fp_et = fopen(enable_table_fname, "rb");
+    long sz_et = getSize(fp_et);
 
     long rom_start = 0x20000;
     long diff = rom_start - sz;
@@ -31,6 +35,10 @@ int main(int argc, char** argv)
     fread(rom, 1, sz_rom, fp_rom);
     fclose(fp_rom);
 
+    unsigned char* enable_table = (unsigned char*)malloc(sizeof(unsigned char) * sz_et);
+    fread(enable_table, 1, sz_et, fp_et);
+    fclose(fp_et);
+
     fprintf(stderr, "fpga size %d, rom size %d\n", sz, sz_rom);
 
     fwrite(first, 1, sz, stdout);
@@ -41,9 +49,11 @@ int main(int argc, char** argv)
     }
 
     fwrite(rom, 1, sz_rom, stdout);
+    fwrite(enable_table, 1, sz_et, stdout);
 
     free(first);
     free(rom);
+    free(enable_table);
 
     return 0;
 }

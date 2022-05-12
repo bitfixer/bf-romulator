@@ -253,8 +253,33 @@ localparam CONFIG_BITS = 5;
 reg [CONFIG_BITS-1:0] configuration;
 wire [CONFIG_BITS-1:0] config_byte;
 
+// connect enable table to SPI reader to initialize
+localparam ADDR_GRANULARITY_SIZE = 256;
+localparam ADDR_NUM_ENTRIES = 2**16 / ADDR_GRANULARITY_SIZE;
+localparam ADDR_ENTRY_BITS = $clog2(ADDR_NUM_ENTRIES); // number of bits to use for address granularity.
+localparam CONFIG_BITS = 5;
+localparam ENABLE_ADDR_BITS = ADDR_ENTRY_BITS + CONFIG_BITS + 1;
+
+// address to write to in enable table
+wire [ENABLE_ADDR_BITS-1:0] enable_table_write_address;
+// data value for enable table
+wire [1:0]enable_table_value;
+// write enable for enable table
+wire enable_table_we;
+
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
-ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, config_byte, clk);
+ramenable enable(
+    address, 
+    phi2, 
+    rwbar, 
+    cs_enable, 
+    cs_enable_bus, 
+    we, 
+    config_byte, 
+    clk,
+    enable_table_write_address,
+    enable_table_value,
+    enable_table_we);
 // create spi flash reader
 // this fills RAM with selected ROM images
 spi_flash_reader flashReader(
@@ -274,7 +299,11 @@ spi_flash_reader flashReader(
     clk,
 
     read_complete,
-    configuration
+    configuration,
+
+    enable_table_write_address,
+    enable_table_value,
+    enable_table_we
 );
 
 // write enable for video ram section

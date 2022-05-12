@@ -31,7 +31,11 @@ module spi_flash_reader(
 
     input clk,
     output reg read_complete,
-    input wire [4:0] flash_read_addr
+    input wire [4:0] flash_read_addr,
+
+    output reg [13:0] enable_table_write_address,
+    output wire [1:0]enable_table_value,
+    output reg enable_table_we
 );
 
 reg spi_clk_input;
@@ -78,13 +82,21 @@ localparam XFER_SEND_BYTES_WAIT = 9;
 localparam XFER_READ_BYTES = 10;
 localparam XFER_RAM_WRITE = 11;
 localparam XFER_RAM_WRITE_DONE = 12;
+localparam XFER_TABLEREAD_NEXT = 13;
+localparam XFER_TABLE_WRITE = 14;
 localparam XFER_DONE = 15;
+localparam XFER_TABLE_WRITE_DONE = 16;
 reg [4:0] xfer_state;
+reg [4:0] next_xfer_state;
+reg [4:0] ram_write_state;
+reg [4:0] next_block_state;
 
-reg [3:0] next_xfer_state;
 reg [7:0] xfer_send_bytes [0:3];
 reg xfer_read = 0;
 reg [8:0] xfer_flash_blocks_to_read;
+
+
+reg [8:0] xfer_table_blocks_to_read;
 
 // memory addresses and signals
 reg [23:0] flash_address = 0;
@@ -96,6 +108,7 @@ wire [7:0] ram_dataout;
 
 assign spi_cs = spi_cs_reg;
 assign ram_datain = spi_recv_byte;
+assign enable_table_value = spi_recv_byte[1:0];
 
 SPI_Master #(0, 3)
 SPIMaster
@@ -211,12 +224,40 @@ begin
         if (xfer_flash_blocks_to_read == 0)
         begin
             //xfer_state <= XFER_DATA_ECHO;
+            //xfer_state <= XFER_DONE;
+
+            // finished reading the memory contents,
+            // now read the enable table
+            rx_ready <= 1;
+            xfer_table_blocks_to_read <= 64;
+            enable_table_write_address <= 0;
+            flash_address <= 24'h220000;
+            ram_write_state <= XFER_TABLE_WRITE;
+            next_block_state <= XFER_TABLEREAD_NEXT;
+            xfer_state <= XFER_FLASHREAD_BLOCK;
+        end
+        else 
+        begin
+            rx_ready <= 1;
+            flash_address <= flash_address + 256;
+            ram_write_state <= XFER_RAM_WRITE;
+            next_block_state <= XFER_FLASHREAD_NEXT;
+            xfer_state <= XFER_FLASHREAD_BLOCK;
+        end
+    end
+    XFER_TABLEREAD_NEXT:
+    begin
+        xfer_table_blocks_to_read = xfer_table_blocks_to_read - 1;
+        if (xfer_table_blocks_to_read == 0)
+        begin
             xfer_state <= XFER_DONE;
         end
         else 
         begin
             rx_ready <= 1;
             flash_address <= flash_address + 256;
+            ram_write_state <= XFER_TABLE_WRITE;
+            next_block_state <= XFER_TABLEREAD_NEXT;
             xfer_state <= XFER_FLASHREAD_BLOCK;
         end
     end
@@ -261,7 +302,7 @@ begin
     XFER_READ_BYTES_DONE:
     begin
         spi_cs_reg <= 1;
-        xfer_state <= XFER_FLASHREAD_NEXT;
+        xfer_state <= next_block_state;
     end
     XFER_SEND_BYTES:
     begin
@@ -280,7 +321,8 @@ begin
                 // send a 0 on SPI, read the MISO byte
                 // after byte read, write it to RAM
                 r_Master_TX_Byte <= 0;
-                xfer_state <= XFER_RAM_WRITE;
+                //xfer_state <= XFER_RAM_WRITE;
+                xfer_state <= ram_write_state;
             end
             else
             begin
@@ -313,6 +355,22 @@ begin
         ram_address = ram_address + 1;
         xfer_state <= XFER_SEND_BYTES_WAIT;
     end
+
+    XFER_TABLE_WRITE:
+    begin
+        if (state == TX_DONE)
+        begin
+            enable_table_we <= 1;
+            xfer_state <= XFER_TABLE_WRITE_DONE;
+        end
+    end
+    XFER_TABLE_WRITE_DONE:
+    begin
+        enable_table_we <= 0;
+        enable_table_write_address = enable_table_write_address + 1;
+        xfer_state <= XFER_SEND_BYTES_WAIT;
+    end
+
     XFER_SEND_BYTES_WAIT:
     begin
         if (state == TX_DONE)
@@ -321,6 +379,7 @@ begin
             xfer_state <= XFER_SEND_BYTES;
         end
     end
+
     XFER_DONE:
     begin
         spi_cs_reg <= 1;
@@ -347,6 +406,8 @@ begin
     spi_cs_reg <= 1;
     echo_cs <= 1;
     read_complete <= 0;
+    enable_table_write_address <= 0;
+    enable_table_we <= 0;
 end
 
 
