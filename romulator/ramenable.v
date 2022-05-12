@@ -2,11 +2,14 @@ module ramenable(
     input [15:0] address,
     input phi2,
     input rwbar,
-    output cs_ram,
-    output cs_bus,
+    output wire cs_ram,
+    output wire cs_bus,
     output we,
     input [4:0] configuration,
-    input fpga_clk);
+    input fpga_clk,
+    input wire table_we,
+    input wire [1:0] table_val,
+    input wire [13:0] table_write_addr);
 
 // table of ram and bus enable signals, 64 entries per table
 // this is selected by the configuration byte
@@ -33,6 +36,8 @@ reg [1:0] enable_table[0:(2**ENABLE_ADDR_BITS) - 1];
 wire[ENABLE_ADDR_BITS-1:0] enable_addr;
 reg [CONFIG_BITS-1:0] config_byte;
 
+reg [1:0] outval;
+
 // module states
 localparam READ_CONFIG = 0;
 localparam DONE = 1;
@@ -46,14 +51,25 @@ begin
       config_byte <= configuration;
       state <= DONE;
     end
+    DONE:
+    begin
+        if (table_we == 1)
+        begin
+            enable_table[table_write_addr] <= table_val;
+        end
+        else 
+        begin
+            outval <= enable_table[enable_addr];
+        end
+    end
     endcase
 end
 
 assign we = phi2 & (!rwbar);
 assign enable_addr = {configuration, rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
 
-assign cs_ram = phi2 & enable_table[enable_addr][1];
-assign cs_bus = phi2 & enable_table[enable_addr][0];
+assign cs_ram = phi2 & outval[1];
+assign cs_bus = phi2 & outval[0];
 
 initial
 begin
