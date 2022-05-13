@@ -38,7 +38,6 @@ function parse_memory_set($fname, $dirname) {
         }
     }
 
-    //file_put_contents($outfname, $memorymaps);
     return $memorymaps;
 }
 
@@ -161,7 +160,6 @@ function parse_enable_table($fname) {
                             $mask_val = (int)base_convert("0b00011", 2, 10);
                             $byteval = $region_val & $mask_val;
                         }
-                        //fprintf(stderr, "address %X, rw %d, ci %d, as %d, table_addr %d %X, r %d %X bv %X\n", address, rw, config_index, addr_shift, table_addr, table_addr, region_type, region_type, byteval);
                         $table[$table_addr] = pack("C", $byteval);
                     }
                 }
@@ -170,20 +168,24 @@ function parse_enable_table($fname) {
     }
 
     // write table to file
-    //file_put_contents($outfname, $table);
     return $table;
 }
 
+function deleteDirectory($path) {
+    $files = array_diff(scandir($path), array('.', '..'));
+    foreach ($files as $file) {
+        unlink("$path/$file");
+    }
+    return rmdir($path);
+}
 
-//if (isset($_POST["submit"])) {
-if (true) {
+if (isset($_POST["submit"])) {
 
     $r = rand();
     $target = sprintf("%d.zip", $r);
-    $dirname = "test";
+    $dirname = $r;
     $uploadok = 1;
 
-    /*
     $filetype = strtolower(pathinfo(basename($_FILES["firmware_zip"]["name"]),PATHINFO_EXTENSION));
     if ($filetype != "zip") {
         echo "error, only zip files allowed.";
@@ -191,9 +193,7 @@ if (true) {
     }
 
     if ($uploadok == 1) {
-        if (move_uploaded_file($_FILES["firmware_zip"]["tmp_name"], $target)) {
-            echo "The file ". htmlspecialchars( basename( $_FILES["firmware_zip"]["name"])). " has been uploaded.";
-        } else {
+        if (!move_uploaded_file($_FILES["firmware_zip"]["tmp_name"], $target)) {
             echo "Problem uploading file.";
             die();
         }
@@ -216,7 +216,6 @@ if (true) {
 
     // remove zip file
     unlink($target);
-    */
 
     // find enable table
     $enable_table = "";
@@ -248,6 +247,7 @@ if (true) {
     
     // create enable table
     $enable_table_bin = parse_enable_table($enable_table);
+    deleteDirectory($dirname);
 
     // join with bitstream and return file
     header('Content-Type: application/octet-stream');
@@ -256,25 +256,25 @@ if (true) {
     // get length
     $bs_len = strlen($bitstream);
     $remainder_len = pow(2, 17) - $bs_len;
-    //printf("remainder len %d<br>\n", $remainder_len);
     $empty = str_repeat(pack("C", "0"), $remainder_len);
 
     echo($bitstream);
     echo($empty);
     echo($mem_set_bin);
     echo($enable_table_bin);
-
-    //printf("bitstream: %d<br>\n", strlen($bitstream));
-    //printf("remainder: %d<br>\n", strlen($empty));
-    //printf("memset: %d<br>\n", strlen($mem_set_bin));
-    //printf("enable: %d<br>\n", strlen($enable_table_bin));
 } else { 
     echo '
 <html>
 <body style="background-color: #000000; color: #00FF00;">
-<form action="upload.php" method="post" enctype="multipart/form-data">
+<h1>ROMulator Build</h1>
+Upload a .zip file containing:<br>
+Memory Set: a file named memory_set*.csv containing references to ROM files.<br>
+Enable Table: a file called enable_table*.csv containing the enable table specs for your build.<br>
+All ROM files referenced in the build.<br>
+You will receive a file called "romulator.bin" which you can directly program onto the device.<br>
+<form action="index.php" method="post" enctype="multipart/form-data">
 Choose file to upload:
-<input type="file" id="firmware_zip" name="firmware_zip" accept=".zip">
+<input type="file" id="firmware_zip" name="firmware_zip" accept=".zip"><br>
 <input type="submit" value="Upload" name="submit">
 </form>
 </body>
