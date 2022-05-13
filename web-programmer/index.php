@@ -1,10 +1,26 @@
 <?php
+
+function deleteDirectory($path) {
+    $files = array_diff(scandir($path), array('.', '..'));
+    foreach ($files as $file) {
+        unlink("$path/$file");
+    }
+    return rmdir($path);
+}
+
+function failOperation($dirname) {
+    deleteDirectory($dirname);
+    die();
+}
+
 function parse_memory_set($fname, $dirname) {
     $nummaps = 32;
     $mapsize = $nummaps * 65536;
     $memorymaps = str_repeat(pack("C", "0"), $mapsize);
     // parse each line
+    $linenum = 0;
     foreach (file($fname) as $line) {
+        $linenum = $linenum + 1;
         if (strlen($line) < 2) {
             continue;
         }
@@ -16,6 +32,12 @@ function parse_memory_set($fname, $dirname) {
 
         // get index
         $parts = explode(",", $line);
+        if (sizeof($parts) != 3)
+        {
+            printf("error in %s line %d: should be %d fields, found %d<br>\n", $fname, $linenum, 3, sizeof($parts));
+            failOperation($dirname);
+        }
+
         $index = $parts[0];
         // get address
         $address = base_convert($parts[2], 16, 10);
@@ -23,6 +45,11 @@ function parse_memory_set($fname, $dirname) {
         if (file_exists($rom_fname))
         {
             $rom_contents = file_get_contents($rom_fname);
+            if ((strlen($rom_contents) + $address) > 65536) {
+                printf("error in %s line %d: rom %s too big (size %d) to fit at address %X<br>\n", 
+                    $fname, $linenum, $parts[1], strlen($rom_contents), $address);
+                failOperation($dirname);
+            }
             // copy contents into memory map
             $start_addr = ($index * 65536) + $address;
             // now copy the data
@@ -33,8 +60,8 @@ function parse_memory_set($fname, $dirname) {
         }
         else
         {
-            printf("could not find %s<br>\n", $rom_fname);
-            die();
+            printf("error in %s line %d: could not find %s<br>\n", $fname, $linenum, $rom_fname);
+            failOperation($dirname);
         }
     }
 
@@ -64,7 +91,7 @@ function get_region_type($region_str) {
     return $INACTIVE;
 }
 
-function parse_enable_table($fname) {
+function parse_enable_table($fname, $dirname) {
     $VRAM = "0b10111";
     $ADDR_GRANULARITY_SIZE = 256;
     $MAX_VRAM_SIZE = 2048;
@@ -93,7 +120,9 @@ function parse_enable_table($fname) {
         $vram_end_addr[$i] = 0;
     }
 
+    $linenum = 0;
     foreach (file($fname) as $line) {
+        $linenum = $linenum + 1;
         if (strlen($line) < 2) {
             continue;
         }
@@ -104,6 +133,10 @@ function parse_enable_table($fname) {
         }
 
         $parts = explode(",", $line);
+        if (sizeof($parts) < 4 || sizeof($parts) > 5) {
+            printf("error in %s line %d: should be 4 or 5 fields, found %d<br>\n", $fname, $linenum, sizeof($parts));
+            failOperation($dirname);
+        }
         
         $start_map_index = -1;
         $end_map_index = -1;
@@ -114,9 +147,25 @@ function parse_enable_table($fname) {
             $end_map_index = $start_map_index;
         }
 
+        if ($end_map_index < $start_map_index) {
+            printf("error in %s line %d: end index %d less than start index %d<br>\n", $fname, $linenum, $end_map_index, $start_map_index);
+            failOperation($dirname);
+        }
+
+        if ($end_map_index >= $NUMMAPS) {
+            printf("error in %s line %d: end index %d greater than max of %d<br>\n", $fname, $linenum, $end_map_index, $NUMMAPS-1);
+            failOperation($dirname);
+        }
+
         // get address
         $addr = base_convert($parts[1], 16, 10);
         $end_addr = base_convert($parts[2], 16, 10);
+
+        if ($end_addr < $addr) {
+            printf("error in %s line %d: end address %X less than start address %X<br>\n", $fname, $linenum, $end_addr, $addr);
+            failOperation($dirname);
+        }
+
         $region_type = get_region_type($parts[3]);
 
         if ($region_type == $VRAM)
@@ -171,14 +220,6 @@ function parse_enable_table($fname) {
     return $table;
 }
 
-function deleteDirectory($path) {
-    $files = array_diff(scandir($path), array('.', '..'));
-    foreach ($files as $file) {
-        unlink("$path/$file");
-    }
-    return rmdir($path);
-}
-
 if (isset($_POST["submit"])) {
 
     $r = rand();
@@ -224,7 +265,6 @@ if (isset($_POST["submit"])) {
 
     if (sizeof($f) == 1) {
         $enable_table = $f[0];
-        //printf("found enable_table: %s\n", $enable_table);
     } else {
         printf("could not find enable table!\n");
         die();
@@ -236,7 +276,6 @@ if (isset($_POST["submit"])) {
 
     if (sizeof($f) == 1) {
         $memory_set = $f[0];
-        //printf("found memory set: %s\n", $memory_set);
     } else {
         printf("could not find memory set!\n");
         die();
@@ -246,7 +285,7 @@ if (isset($_POST["submit"])) {
     $mem_set_bin = parse_memory_set($memory_set, $dirname);
     
     // create enable table
-    $enable_table_bin = parse_enable_table($enable_table);
+    $enable_table_bin = parse_enable_table($enable_table, $dirname);
     deleteDirectory($dirname);
 
     // join with bitstream and return file
