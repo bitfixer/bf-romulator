@@ -7,13 +7,15 @@ function parse_memory_set($fname, $dirname, $outfname) {
 
     $nummaps = 32;
     $mapsize = $nummaps * 65536;
-    $memorymaps = array();
-    for ($i = 0; $i < $mapsize; $i++)
-    {
-        $memorymaps[$i] = 0;
-    }
+    //$memorymaps = array();
+    //for ($i = 0; $i < $mapsize; $i++)
+    //{
+    //    $memorymaps[$i] = 0;
+    //}
 
-    printf("s: %d<br>\n", sizeof($memorymaps));
+    $memorymaps = str_repeat(pack("C", "0"), $mapsize);
+
+    //printf("s: %d<br>\n", sizeof($memorymaps));
     
     // parse each line
     foreach (file($fname) as $line) {
@@ -50,15 +52,17 @@ function parse_memory_set($fname, $dirname, $outfname) {
             for ($b = 0; $b < strlen($rom_contents); $b++)
             {
                 //printf("writing to %d, content %d %s %X<br>\n", $b, $rom_contents[$b]);
-                $a = unpack("Ccontents", $rom_contents[$b]);
-                $memorymaps[$start_addr + $b] = $a["contents"];
+                //$a = unpack("Ccontents", $rom_contents[$b]);
+                //$memorymaps[$start_addr + $b] = $a["contents"];
                 //printf("got %d %d\n", $b, $memorymaps[$start_addr + $b]);
+                $memorymaps[$start_addr + $b] = $rom_contents[$b];
             }
         }
     }
 
-    printf("s: %d<br>\n", sizeof($memorymaps));
+    //printf("s: %d<br>\n", sizeof($memorymaps));
     // now write entire memory map contents to file
+    /*
     $fp = fopen($outfname, "wb");
     for ($b = 0; $b < $mapsize; $b++)
     {
@@ -66,6 +70,9 @@ function parse_memory_set($fname, $dirname, $outfname) {
         fwrite($fp, pack("C*", $memorymaps[$b]));
     }
     fclose($fp);
+    */
+
+    file_put_contents($outfname, $memorymaps);
 }
 
 
