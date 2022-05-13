@@ -1,9 +1,5 @@
-<html>
-<body style="background-color: #000000; color: #00FF00;">
-
 <?php
-
-function parse_memory_set($fname, $dirname, $outfname) {
+function parse_memory_set($fname, $dirname) {
     $nummaps = 32;
     $mapsize = $nummaps * 65536;
     $memorymaps = str_repeat(pack("C", "0"), $mapsize);
@@ -18,11 +14,8 @@ function parse_memory_set($fname, $dirname, $outfname) {
             continue;
         }
 
-        $parts = explode(",", $line);
-        print_r($parts);
-        printf("<br>");
-
         // get index
+        $parts = explode(",", $line);
         $index = $parts[0];
         // get address
         $address = base_convert($parts[2], 16, 10);
@@ -38,9 +31,15 @@ function parse_memory_set($fname, $dirname, $outfname) {
                 $memorymaps[$start_addr + $b] = $rom_contents[$b];
             }
         }
+        else
+        {
+            printf("could not find %s<br>\n", $rom_fname);
+            die();
+        }
     }
 
-    file_put_contents($outfname, $memorymaps);
+    //file_put_contents($outfname, $memorymaps);
+    return $memorymaps;
 }
 
 function get_region_type($region_str) {
@@ -50,8 +49,6 @@ function get_region_type($region_str) {
     $PASSTHROUGH =  "0b00101";
     $VRAM =         "0b10111";
     $INACTIVE =     "0b00000";
-
-    printf("get region: %s<br>", $region_str);
 
     if (strpos($region_str, "readwrite")) {
         return $READWRITE;
@@ -68,7 +65,7 @@ function get_region_type($region_str) {
     return $INACTIVE;
 }
 
-function parse_enable_table($fname, $outfname) {
+function parse_enable_table($fname) {
     $VRAM = "0b10111";
     $ADDR_GRANULARITY_SIZE = 256;
     $MAX_VRAM_SIZE = 2048;
@@ -108,8 +105,7 @@ function parse_enable_table($fname, $outfname) {
         }
 
         $parts = explode(",", $line);
-        print_r($parts);
-
+        
         $start_map_index = -1;
         $end_map_index = -1;
         if (strpos($parts[0], "-")) {
@@ -119,15 +115,10 @@ function parse_enable_table($fname, $outfname) {
             $end_map_index = $start_map_index;
         }
 
-        print_r($line);
-        printf("\n<br>%d %d<br>\n", $start_map_index, $end_map_index);
-
         // get address
         $addr = base_convert($parts[1], 16, 10);
         $end_addr = base_convert($parts[2], 16, 10);
         $region_type = get_region_type($parts[3]);
-
-        printf("%d %d %s<br>\n", $addr, $end_addr, $region_type);
 
         if ($region_type == $VRAM)
         {
@@ -161,8 +152,6 @@ function parse_enable_table($fname, $outfname) {
                         // 2 lower bits are the write value
                         $byteval = 0;
 
-                        printf("table addr %d<br>\n", $table_addr);
-                        printf("region type %s<br>\n", $region_type);
                         if ($rw == 1) {
                             $region_val = (int)base_convert($region_type, 2, 10);
                             $mask_val = (int)base_convert("0b01100", 2, 10);
@@ -181,7 +170,8 @@ function parse_enable_table($fname, $outfname) {
     }
 
     // write table to file
-    file_put_contents($outfname, $table);
+    //file_put_contents($outfname, $table);
+    return $table;
 }
 
 
@@ -191,7 +181,6 @@ if (true) {
     $r = rand();
     $target = sprintf("%d.zip", $r);
     $dirname = "test";
-
     $uploadok = 1;
 
     /*
@@ -236,7 +225,7 @@ if (true) {
 
     if (sizeof($f) == 1) {
         $enable_table = $f[0];
-        printf("found enable_table: %s\n", $enable_table);
+        //printf("found enable_table: %s\n", $enable_table);
     } else {
         printf("could not find enable table!\n");
         die();
@@ -248,28 +237,48 @@ if (true) {
 
     if (sizeof($f) == 1) {
         $memory_set = $f[0];
-        printf("found memory set: %s\n", $memory_set);
+        //printf("found memory set: %s\n", $memory_set);
     } else {
         printf("could not find memory set!\n");
         die();
     }
 
     // start with memory set
-    parse_memory_set($memory_set, $dirname, "test/memoryset.bin");
+    $mem_set_bin = parse_memory_set($memory_set, $dirname);
     
     // create enable table
-    parse_enable_table($enable_table, "test/enable_table.bin");
+    $enable_table_bin = parse_enable_table($enable_table);
 
+    // join with bitstream and return file
+    header('Content-Type: application/octet-stream');
+    header('Content-Disposition: attachment; filename="romulator.bin"');
+    $bitstream = file_get_contents("hardware.bin");
+    // get length
+    $bs_len = strlen($bitstream);
+    $remainder_len = pow(2, 17) - $bs_len;
+    //printf("remainder len %d<br>\n", $remainder_len);
+    $empty = str_repeat(pack("C", "0"), $remainder_len);
+
+    echo($bitstream);
+    echo($empty);
+    echo($mem_set_bin);
+    echo($enable_table_bin);
+
+    //printf("bitstream: %d<br>\n", strlen($bitstream));
+    //printf("remainder: %d<br>\n", strlen($empty));
+    //printf("memset: %d<br>\n", strlen($mem_set_bin));
+    //printf("enable: %d<br>\n", strlen($enable_table_bin));
 } else { 
     echo '
+<html>
+<body style="background-color: #000000; color: #00FF00;">
 <form action="upload.php" method="post" enctype="multipart/form-data">
 Choose file to upload:
 <input type="file" id="firmware_zip" name="firmware_zip" accept=".zip">
 <input type="submit" value="Upload" name="submit">
 </form>
+</body>
+</html>
     ';
 }
 ?>
-
-</body>
-</html>
