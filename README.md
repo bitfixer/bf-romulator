@@ -27,7 +27,7 @@ Just make sure to double check:
 
 ## Default Switch Settings
 
-The ROMulator supports up to 16 memory maps. The default memory maps shipped with the ROMulator are currently mostly related to the Commodore PET, but you can add any maps you want via the programming interface. Over time more configurations for common 6502 computers will be added. Please note that these settings reflect the head commit of the repository, and may differ from the default settings on your ROMulator depending on when it was programmed. Building the latest version with `make program` after a `git pull` will generate the settings as described.
+The ROMulator supports up to 32 memory maps. The default memory maps shipped with the ROMulator are currently mostly related to the Commodore PET, but you can add any maps you want via the programming interface. Over time more configurations for common 6502 computers will be added. Please note that these settings reflect the head commit of the repository, and may differ from the default settings on your ROMulator depending on when it was programmed. Building the latest version with `make program` after a `git pull` will generate the settings as described.
 The default switch settings are as follows:
 
 |Set Index  |Setting                                        |Switch 1   |Switch 2   |Switch 3   |Switch 4   |

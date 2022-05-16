@@ -35,9 +35,9 @@ So index 4 equals binary 0100. The 1s digit maps to switch 1, the 2s digit maps 
 
 The second column in the entry is the name of a binary file with the contents of a ROM that should be loaded. These files should be located in the #roms# directory.
 
-the third column is a memory address in hex indicating the start addres of this particular ROM.\
+The third column is a memory address in hex indicating the start addres of this particular ROM.
 
-Currently the ROMulator supports up to 16 memory maps (indices 0-15). With an upcoming firmware update, ROMulators with 8 switches on the board will be able to select up to 32. 
+Currently the ROMulator supports up to 32 memory maps (indices 0-31).
 
 To support a new 6502 machine, first get a list of the ROMs for that machine, and the memory locations where they should be placed. Then you can add an entry to memory_set_default.csv for your configuration. You can also make an entirely separate csv file, this is covered a bit later.
 
