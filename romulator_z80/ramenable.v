@@ -55,6 +55,9 @@ assign enable_addr = {configuration, rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]
 assign cs_ram = phi2 & enable_table[enable_addr][1];
 assign cs_bus = phi2 & enable_table[enable_addr][0];
 
+//assign cs_ram = 0;
+//assign cs_bus = phi2;
+
 initial
 begin
     $readmemh("../bin/enable_table.txt", enable_table);

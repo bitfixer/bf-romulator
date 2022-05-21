@@ -137,13 +137,35 @@ assign ram_datain = wdatain;
 
 //assign ram_cs = (address >= 18432) && (address <= 18434) && (!wr || !rd);
 //assign ram_cs = (address >= 18432 && address <= 18444) && !rd;
-assign ram_cs = (address >= 16'h0100 && address < 16'ha000) && (!rd || !wr);
+//assign ram_cs = (address >= 16'h0100 && address < 16'ha000) && (!rd || !wr);
+//assign ram_cs = (address >= 16'h0100 && address < 16'ha000);
+//assign bus_cs = !ram_cs;
+
+wire phi2;
+assign phi2 = (!rd || !wr);
+
+wire rwbar;
+assign rwbar = wr;
+
+wire cs_enable;
+wire cs_enable_bus;
+wire we;
+
+//assign dataoutenable = !ram_cs && phi2;
+//assign busenable = !dataoutenable && phi2;
+
+//assign dataoutenable = !(ram_cs && phi2);
+//assign busenable = !(bus_cs && phi2);
+//assign ram_we = !wr;
+
+assign ram_cs = cs_enable;
+assign ram_we = we;
 
 assign dataoutenable = !ram_cs;
-assign busenable = !dataoutenable;
+assign busenable = !cs_enable_bus;
 
-assign ram_we = !wr;
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
+ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, 4'h0, clk);
 
 
 endmodule
