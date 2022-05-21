@@ -32,8 +32,8 @@ module enable_logic(
   input m1,
 
   output wire led_blue,
-  output wire mreq,
-  output wire ioreq
+  input wire mreq,
+  input wire ioreq
   );
 
 integer i;
@@ -80,9 +80,13 @@ wire[7:0] wdataout;
 wire clk;
 wire wdataout_enable;
 
+wire rwbar;
+wire phi2;
 assign rwbar = wr;
 assign wdataout_enable = read_complete & rwbar;
-assign phi2 = (!wr || !rd) && !mreq;
+
+// todo: use mreq
+assign phi2 = (!wr || !rd);
 
 // set up internal clock
 SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
@@ -247,7 +251,7 @@ wire echo_cs;
 //assign rdy = !halt && read_complete;
 assign rwait = bwait || !(!halt && read_complete);
 
-assign led_blue = read_complete && rdy;
+assign led_blue = read_complete && !rwait;
 
 // number of bits in configuration
 localparam CONFIG_BITS = 5;

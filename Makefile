@@ -113,9 +113,9 @@ $(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_
 	cp $(ROMULATOR_DIR)/hardware.bin $(BIN_DIR)/hardware.bin
 	rm $(ROMULATOR_DIR)/hardware.*
 
-$(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_Z80_DIR)/*.v
+$(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_Z80_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
 	mkdir -p $(BIN_DIR)
-	cd $(ROMULATOR_Z80_DIR); rm hardware.*; apio build
+	cd $(ROMULATOR_Z80_DIR); rm hardware*.*; apio build
 	cp $(ROMULATOR_Z80_DIR)/hardware.bin $(BIN_DIR)/hardware_z80.bin
 	rm $(ROMULATOR_Z80_DIR)/hardware.*
 
@@ -126,7 +126,7 @@ $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin > $(BIN_DIR)/romulator.bin
 
-$(BIN_DIR)/romulator_z80.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware_z80.bin $(BIN_DIR)/memorymap.BIN_DIR
+$(BIN_DIR)/romulator_z80.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware_z80.bin $(BIN_DIR)/memorymap.bin
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/makerom $(BIN_DIR)/hardware_z80.bin $(BIN_DIR)/memorymap.bin > $(BIN_DIR)/romulator_z80.bin
 
