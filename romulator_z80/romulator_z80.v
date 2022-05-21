@@ -35,7 +35,7 @@ SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
 // set up bidirectional data bus. Data pins switch direction based on wdataout_enable signal.
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[0]
   (
@@ -46,7 +46,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[1]
   (
@@ -57,7 +57,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[2]
   (
@@ -68,7 +68,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[3]
   (
@@ -79,7 +79,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[4]
   (
@@ -90,7 +90,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[5]
   (
@@ -101,7 +101,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[6]
   (
@@ -112,7 +112,7 @@ SB_IO #(
   );
 SB_IO #(
     .PIN_TYPE(6'b 1010_01), // PIN_OUTPUT_TRISTATE - PIN_INPUT
-    .PULLUP(1'b 0)
+    .PULLUP(1'b 1)
   )
   iobuf_data[7]
   (
@@ -122,8 +122,17 @@ SB_IO #(
     .D_IN_0(wdatain[7])
   );
 
-assign led_blue = 0;
-assign rwait = bwait;
+assign led_blue = read_complete;
+//assign led_blue = !read_complete;
+//assign rwait = bwait;
+
+//assign rwait = !read_complete;
+assign rwait = read_complete;
+
+// TEMP
+reg [25:0] counter;
+reg read_complete;
+
 
 wire [15:0] ram_address;
 wire ram_cs;
@@ -135,12 +144,6 @@ assign ram_address = address;
 assign wdataout = ram_dataout;
 assign ram_datain = wdatain;
 
-//assign ram_cs = (address >= 18432) && (address <= 18434) && (!wr || !rd);
-//assign ram_cs = (address >= 18432 && address <= 18444) && !rd;
-//assign ram_cs = (address >= 16'h0100 && address < 16'ha000) && (!rd || !wr);
-//assign ram_cs = (address >= 16'h0100 && address < 16'ha000);
-//assign bus_cs = !ram_cs;
-
 wire phi2;
 assign phi2 = (!rd || !wr);
 
@@ -151,13 +154,6 @@ wire cs_enable;
 wire cs_enable_bus;
 wire we;
 
-//assign dataoutenable = !ram_cs && phi2;
-//assign busenable = !dataoutenable && phi2;
-
-//assign dataoutenable = !(ram_cs && phi2);
-//assign busenable = !(bus_cs && phi2);
-//assign ram_we = !wr;
-
 assign ram_cs = cs_enable;
 assign ram_we = we;
 
@@ -166,6 +162,24 @@ assign busenable = !cs_enable_bus;
 
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
 ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, 4'h0, clk);
+
+always @(posedge clk)
+begin
+    counter <= counter+1;
+    if (read_complete == 0)
+    begin
+        if (counter == 0)
+        begin
+            read_complete <= 1;
+        end
+    end
+end
+
+initial
+begin
+    read_complete <= 0;
+    counter <= 1;
+end
 
 
 endmodule
