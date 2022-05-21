@@ -126,6 +126,10 @@ $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin > $(BIN_DIR)/romulator.bin
 
+$(BIN_DIR)/romulator_z80.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware_z80.bin $(BIN_DIR)/memorymap.BIN_DIR
+	mkdir -p $(BIN_DIR)
+	$(BIN_DIR)/makerom $(BIN_DIR)/hardware_z80.bin $(BIN_DIR)/memorymap.bin > $(BIN_DIR)/romulator_z80.bin
+
 # General
 
 .PHONY: program
