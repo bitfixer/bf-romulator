@@ -22,28 +22,24 @@ module enable_logic(
 
   input[15:0] address, 
   inout [7:0] data, 
-  input rd, 
-  input wr, 
+  input rwbar,
+  input phi2,
   output dataoutenable, 
   output busenable,
   inout diag_spi_cs,
   output rwait,
-  input bwait,
-  input m1,
-
   output wire led_blue,
   input wire mreq,
-  input wire ioreq
   );
 
 integer i;
 wire read_complete;
 
-wire rwbar;
-wire phi2;
+//wire rwbar;
+//wire phi2;
 
-assign rwbar = wr;
-assign phi2 = (!wr || !rd);
+//assign rwbar = wr;
+//assign phi2 = (!wr || !rd);
 
 // set up in/out for SPI interface
 // SPI Master active until RAM image loaded from flash
