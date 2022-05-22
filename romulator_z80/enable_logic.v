@@ -39,6 +39,12 @@ module enable_logic(
 integer i;
 wire read_complete;
 
+wire rwbar;
+wire phi2;
+
+assign rwbar = wr;
+assign phi2 = (!wr || !rd);
+
 // set up in/out for SPI interface
 // SPI Master active until RAM image loaded from flash
 // then SPI slave waits for commands
@@ -80,13 +86,7 @@ wire[7:0] wdataout;
 wire clk;
 wire wdataout_enable;
 
-wire rwbar;
-wire phi2;
-assign rwbar = wr;
 assign wdataout_enable = read_complete & rwbar;
-
-// todo: use mreq
-assign phi2 = (!wr || !rd);
 
 // set up internal clock
 SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
@@ -249,9 +249,12 @@ assign spi_out = (spi_master_active) ? flash_spi_out : diag_spi_out;
 
 wire echo_cs;
 //assign rdy = !halt && read_complete;
-assign rwait = bwait || !(!halt && read_complete);
+assign rwait = !halt && read_complete;
 
-assign led_blue = read_complete && !rwait;
+//assign led_blue = read_complete && rdy;
+assign led_blue = read_complete && rwait;
+//assign led_green = 1;
+//assign led_red = 1;
 
 // number of bits in configuration
 localparam CONFIG_BITS = 5;
