@@ -27,6 +27,8 @@ CONFIG := default
 WEBSERVER_DIR := webserver
 MEMORY_SET := $(shell pwd)/$(CONFIG_DIR)/memory_set_$(CONFIG).csv
 ENABLE_TABLE := $(shell pwd)/$(CONFIG_DIR)/enable_table_$(CONFIG).csv
+MEMORY_SET_Z80 := $(shell pwd)/$(CONFIG_DIR)/memory_set_$(CONFIG)_z80.csv
+ENABLE_TABLE_Z80 := $(shell pwd)/$(CONFIG_DIR)/enable_table_$(CONFIG)_z80.csv
 BIN_DIR := bin
 REMOTE := raspberrypi.local
 
@@ -103,6 +105,10 @@ $(BIN_DIR)/memorymap.bin: $(MEMORY_SET) $(BIN_DIR)/build_memory_map_set $(BIN_DI
 $(BIN_DIR)/enable_table.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE)
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/build_enable_table $(ENABLE_TABLE) > $(BIN_DIR)/enable_table.txt
+
+$(BIN_DIR)/enable_table_z80.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE_Z80)
+	mkdir -p $(BIN_DIR)
+	$(BIN_DIR)/build_enable_table $(ENABLE_TABLE_Z80) > $(BIN_DIR)/enable_table_z80.txt
 
 $(BIN_DIR)/crc32_table.txt: $(BIN_DIR)/crc32
 	$(BIN_DIR)/crc32 -t -x > $(BIN_DIR)/crc32_table.txt
