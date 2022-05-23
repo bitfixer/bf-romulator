@@ -132,9 +132,9 @@ $(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/z80/*.v $(BIN
 .PHONY: romulator
 romulator: $(BIN_DIR)/romulator.bin
 
-$(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin
+$(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin $(BIN_DIR)/enable_table.txt
 	mkdir -p $(BIN_DIR)
-	$(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin > $(BIN_DIR)/romulator.bin
+	$(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin $(BIN_DIR)/enable_table.bin > $(BIN_DIR)/romulator.bin
 
 $(BIN_DIR)/romulator_z80.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware_z80.bin $(BIN_DIR)/memorymap_z80.bin
 	mkdir -p $(BIN_DIR)
