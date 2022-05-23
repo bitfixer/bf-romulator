@@ -1,0 +1,3 @@
+# digital group
+0,0x0000,0x00FF,"readonly"
+0,0x0100,0xFFFF,"readwrite"

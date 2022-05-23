@@ -52,9 +52,4 @@ assign enable_addr = {rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
 assign cs_ram = (phi2 & outval[1]) & mreq;
 assign cs_bus = (phi2 & outval[0]) || !mreq;
 
-initial
-begin
-    $readmemh("../bin/enable_table.txt", enable_table);
-end
-
 endmodule

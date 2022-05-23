@@ -96,6 +96,8 @@ int main(int argc, char** argv)
     FILE* fp = fopen(infile, "rb");
     char line[256];
 
+    char* binfile = argv[2];
+
     // create table for all memory maps
     uint8_t* table = new uint8_t[num_entries];
     memset(table, 0, num_entries);
@@ -233,7 +235,7 @@ int main(int argc, char** argv)
         printf("%X\n", table[aa]);
     }
 
-    FILE* fp_table = fopen("bin/enable_table.bin", "wb");
+    FILE* fp_table = fopen(binfile, "wb");
     fwrite(table, 1, num_entries, fp_table);
     fclose(fp_table);
 
