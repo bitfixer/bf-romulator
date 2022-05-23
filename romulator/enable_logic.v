@@ -22,17 +22,17 @@ module enable_logic(
 
   input[15:0] address, 
   inout [7:0] data, 
-  input phi2, 
+  input mem_access_active, 
   input rwbar, 
   output dataoutenable, 
   output busenable,
   inout diag_spi_cs,
   output rdy,
+  input rdyin,
   input rst,
 
   output wire led_blue,
-  output wire led_green,
-  output wire led_red
+  input wire mreq
   );
 
 integer i;
@@ -241,11 +241,12 @@ wire diag_spi_out;
 assign spi_out = (spi_master_active) ? flash_spi_out : diag_spi_out;
 
 wire echo_cs;
-assign rdy = !halt && read_complete;
 
-assign led_blue = read_complete && rdy;
-assign led_green = 1;
-assign led_red = 1;
+//assign rdy = !halt && read_complete;
+//assign led_blue = read_complete && rdy;
+wire cpu_rdy = !halt && read_complete;
+assign rdy = cpu_rdy && rdyin;
+assign led_blue = cpu_rdy;
 
 // number of bits in configuration
 localparam CONFIG_BITS = 5;
@@ -254,7 +255,7 @@ reg [CONFIG_BITS-1:0] configuration;
 wire [CONFIG_BITS-1:0] config_byte;
 
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
-ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, config_byte, clk);
+ramenable enable(address, mem_access_active, rwbar, mreq, cs_enable, cs_enable_bus, we, config_byte, clk);
 // create spi flash reader
 // this fills RAM with selected ROM images
 spi_flash_reader flashReader(

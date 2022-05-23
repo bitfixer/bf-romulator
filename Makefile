@@ -113,17 +113,21 @@ $(BIN_DIR)/enable_table_z80.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE_Z8
 $(BIN_DIR)/crc32_table.txt: $(BIN_DIR)/crc32
 	$(BIN_DIR)/crc32 -t -x > $(BIN_DIR)/crc32_table.txt
 
-$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
+$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/6502/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
 	mkdir -p $(BIN_DIR)
+	cp $(ROMULATOR_DIR)/6502/* $(ROMULATOR_DIR)
 	cd $(ROMULATOR_DIR); rm hardware.*; apio build
 	cp $(ROMULATOR_DIR)/hardware.bin $(BIN_DIR)/hardware.bin
 	rm $(ROMULATOR_DIR)/hardware.*
+	rm $(ROMULATOR_DIR)/input6502.v; rm $(ROMULATOR_DIR)/up5k.pcf
 
-$(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_Z80_DIR)/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
+$(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/z80/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
 	mkdir -p $(BIN_DIR)
-	cd $(ROMULATOR_Z80_DIR); rm hardware*.*; apio build
-	cp $(ROMULATOR_Z80_DIR)/hardware.bin $(BIN_DIR)/hardware_z80.bin
-	rm $(ROMULATOR_Z80_DIR)/hardware.*
+	cp $(ROMULATOR_DIR)/z80/* $(ROMULATOR_DIR)
+	cd $(ROMULATOR_DIR); rm hardware*.*; apio build
+	cp $(ROMULATOR_DIR)/hardware.bin $(BIN_DIR)/hardware_z80.bin
+	rm $(ROMULATOR_DIR)/hardware.*
+	rm $(ROMULATOR_DIR)/inputZ80.v; rm $(ROMULATOR_DIR)/up5k.pcf
 
 .PHONY: romulator
 romulator: $(BIN_DIR)/romulator.bin

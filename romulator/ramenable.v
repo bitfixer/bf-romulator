@@ -2,6 +2,7 @@ module ramenable(
     input [15:0] address,
     input phi2,
     input rwbar,
+    input mreq,
     output cs_ram,
     output cs_bus,
     output we,
@@ -52,8 +53,8 @@ end
 assign we = phi2 & (!rwbar);
 assign enable_addr = {configuration, rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
 
-assign cs_ram = phi2 & enable_table[enable_addr][1];
-assign cs_bus = phi2 & enable_table[enable_addr][0];
+assign cs_ram = mreq & phi2 & enable_table[enable_addr][1];
+assign cs_bus = (phi2 & enable_table[enable_addr][0]) || !mreq;
 
 initial
 begin
