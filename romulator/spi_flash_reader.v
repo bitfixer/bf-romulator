@@ -31,7 +31,9 @@ module spi_flash_reader(
 
     input clk,
     output reg read_complete,
-    input wire [4:0] flash_read_addr
+    input wire [4:0] flash_read_addr,
+
+    output reg table_we
 );
 
 reg spi_clk_input;
@@ -93,6 +95,17 @@ reg ram_cs = 0;
 reg ram_we = 0;
 wire [7:0] ram_datain;
 wire [7:0] ram_dataout;
+
+reg table_read = 0;
+
+/*
+localparam ADDR_GRANULARITY_SIZE = 256;
+localparam ADDR_NUM_ENTRIES = 2**16 / ADDR_GRANULARITY_SIZE;
+localparam ADDR_ENTRY_BITS = $clog2(ADDR_NUM_ENTRIES); // number of bits to use for address granularity.
+localparam CONFIG_BITS = 5;
+localparam ENABLE_ADDR_BITS = ADDR_ENTRY_BITS + CONFIG_BITS + 1;
+reg [1:0] enable_table[0:(2**ENABLE_ADDR_BITS) - 1];
+*/
 
 assign spi_cs = spi_cs_reg;
 assign ram_datain = spi_recv_byte;
@@ -211,7 +224,21 @@ begin
         if (xfer_flash_blocks_to_read == 0)
         begin
             //xfer_state <= XFER_DATA_ECHO;
-            xfer_state <= XFER_DONE;
+            //xfer_state <= XFER_DONE;
+
+            if (table_read == 1)
+            begin
+                xfer_state <= XFER_DONE;
+            end
+            else 
+            begin
+                xfer_flash_blocks_to_read = 2;
+                rx_ready <= 1;
+                flash_address <= 24'h220000 + (flash_read_addr << 9);
+                table_read <= 1;
+                ram_address <= 0;
+                xfer_state <= XFER_FLASHREAD_BLOCK;
+            end
         end
         else 
         begin
@@ -300,8 +327,15 @@ begin
             // write to appropriate place in RAM
 
             // address, CS, WE to select RAM
-            ram_cs <= 1;
-            ram_we <= 1;
+            if (table_read == 1)
+            begin
+                table_we <= 1;
+            end
+            else 
+            begin
+                ram_cs <= 1;
+                ram_we <= 1;
+            end
             xfer_state <= XFER_RAM_WRITE_DONE;
         end
     end
@@ -310,6 +344,7 @@ begin
         // deselect RAM
         ram_cs <= 0;
         ram_we <= 0;
+        table_we <= 0;
         ram_address = ram_address + 1;
         xfer_state <= XFER_SEND_BYTES_WAIT;
     end

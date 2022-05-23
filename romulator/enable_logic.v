@@ -253,10 +253,24 @@ localparam CONFIG_BITS = 5;
 reg [CONFIG_BITS-1:0] configuration;
 wire [CONFIG_BITS-1:0] config_byte;
 
+wire table_we;
+
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
-ramenable enable(address, phi2, rwbar, cs_enable, cs_enable_bus, we, config_byte, clk);
+ramenable enable(
+    address,
+    phi2,
+    rwbar,
+    cs_enable,
+    cs_enable_bus,
+    we,
+    clk,
+    table_we,
+    ram_datain[1:0],
+    ram_address[8:0]);
+
 // create spi flash reader
 // this fills RAM with selected ROM images
+// also loads the enable table from flash
 spi_flash_reader flashReader(
     spi_clk_out,
     spi_miso,
@@ -274,7 +288,9 @@ spi_flash_reader flashReader(
     clk,
 
     read_complete,
-    configuration
+    configuration,
+
+    table_we
 );
 
 // write enable for video ram section
