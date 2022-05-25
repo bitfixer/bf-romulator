@@ -79,10 +79,13 @@ $(BIN_DIR)/console: $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.h $(
 	mkdir -p $(BIN_DIR)
 	g++ -o $(BIN_DIR)/console $(TOOLS_DIR)/console.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp -lwiringPi
 
-fetch_roms: $(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET)
+$(BIN_DIR)/fetch_roms: $(TOOLS_DIR)/fetch_roms.cpp
+	mkdir -p $(BIN_DIR)
+	g++ -o $(BIN_DIR)/fetch_roms $(TOOLS_DIR)/fetch_roms.cpp
+
+fetch_roms: $(BIN_DIR)/fetch_roms $(MEMORY_SET)
 	mkdir -p $(ROMS_DIR)
-	#cd $(BIN_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
-	cd $(ROMS_DIR); python ../$(TOOLS_DIR)/fetch_roms.py $(MEMORY_SET) $(BASEURL)
+	cd $(ROMS_DIR); ../$(BIN_DIR)/fetch_roms $(MEMORY_SET) $(BASEURL)
 
 $(BIN_DIR)/webserver: $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.h $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp $(SHARED_DIR)/timer.cpp
 	g++ -o $(BIN_DIR)/webserver $(TOOLS_DIR)/webserver.cpp $(TOOLS_DIR)/libbmp.cpp $(TOOLS_DIR)/libRomulatorVram.cpp $(TOOLS_DIR)/libRomulatorDebug.cpp $(SHARED_DIR)/timer.cpp -lwiringPi -lpng -lpthread
