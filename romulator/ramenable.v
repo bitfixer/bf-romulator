@@ -2,6 +2,7 @@ module ramenable(
     input [15:0] address,
     input phi2,
     input rwbar,
+    input mreq,
     output wire cs_ram,
     output wire cs_bus,
     output we,
@@ -48,12 +49,7 @@ end
 assign we = phi2 & (!rwbar);
 assign enable_addr = {rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
 
-assign cs_ram = phi2 & outval[1];
-assign cs_bus = phi2 & outval[0];
-
-initial
-begin
-    $readmemh("../bin/enable_table.txt", enable_table);
-end
+assign cs_ram = (phi2 & outval[1]) & mreq;
+assign cs_bus = (phi2 & outval[0]) || !mreq;
 
 endmodule

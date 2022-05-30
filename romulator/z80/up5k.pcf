@@ -30,16 +30,18 @@ set_io --warn-no-port address[13] 13
 set_io --warn-no-port address[14] 12
 set_io --warn-no-port address[15] 11
 
-set_io --warn-no-port phi2 4
-set_io --warn-no-port rwbar 3
+set_io --warn-no-port wr 4
+set_io --warn-no-port rd 3
 
 set_io --warn-no-port dataoutenable 6
 set_io --warn-no-port busenable 9
 
 set_io --warn-no-port diag_spi_cs 37
-set_io --warn-no-port rdy 10
-set_io --warn-no-port rst 36
+set_io --warn-no-port rwait 10
+set_io --warn-no-port m1 36
+
+set_io --warn-no-port bwait 38
 
 set_io --warn-no-port led_blue 39
-set_io --warn-no-port led_green 40
-set_io --warn-no-port led_red 41
+set_io --warn-no-port mreq 40
+set_io --warn-no-port ioreq 41
