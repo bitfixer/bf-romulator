@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // console.cpp - debug console for ROMulator
+#include "constants.h"
 #include "libRomulatorDebug.h"
 #include <wiringPi.h>
 #include <stdio.h>
@@ -90,9 +91,9 @@ char readCommand()
 
 void changeConfiguration(int configSetting)
 {
-    if (configSetting > 15)
+    if (configSetting > NUMMAPS-1)
     {
-        fprintf(stderr, "invalid setting: %d. Can be between 0 and 15\n", configSetting);
+        fprintf(stderr, "invalid setting: %d. Can be between 0 and %d\n", configSetting, NUMMAPS-1);
         exit(1);
     }
 
