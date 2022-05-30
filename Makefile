@@ -109,18 +109,18 @@ $(BIN_DIR)/memorymap_z80.bin: $(MEMORY_SET_Z80) $(BIN_DIR)/build_memory_map_set
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/build_memory_map_set -d $(ROMS_DIR)/ < $(MEMORY_SET_Z80) > $(BIN_DIR)/memorymap_z80.bin
 
-$(BIN_DIR)/enable_table.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE)
+$(BIN_DIR)/enable_table.bin: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE)
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/build_enable_table $(ENABLE_TABLE) $(BIN_DIR)/enable_table.bin > $(BIN_DIR)/enable_table.txt
 
-$(BIN_DIR)/enable_table_z80.txt: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE_Z80)
+$(BIN_DIR)/enable_table_z80.bin: $(BIN_DIR)/build_enable_table $(ENABLE_TABLE_Z80)
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/build_enable_table $(ENABLE_TABLE_Z80) $(BIN_DIR)/enable_table_z80.bin > $(BIN_DIR)/enable_table_z80.txt
 
 $(BIN_DIR)/crc32_table.txt: $(BIN_DIR)/crc32
 	$(BIN_DIR)/crc32 -t -x > $(BIN_DIR)/crc32_table.txt
 
-$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/6502/*.v $(BIN_DIR)/enable_table.txt $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
+$(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/6502/*.v $(BIN_DIR)/enable_table.bin $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
 	mkdir -p $(BIN_DIR)
 	cd $(ROMULATOR_DIR); rm -f input*.v; rm -f *.pcf
 	cp $(ROMULATOR_DIR)/6502/* $(ROMULATOR_DIR)
@@ -129,7 +129,7 @@ $(BIN_DIR)/hardware.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/6502/*.v $(BIN_DI
 	rm $(ROMULATOR_DIR)/hardware.*
 	rm $(ROMULATOR_DIR)/input6502.v; rm $(ROMULATOR_DIR)/up5k.pcf
 
-$(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/z80/*.v $(BIN_DIR)/enable_table_z80.txt $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
+$(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/z80/*.v $(BIN_DIR)/enable_table_z80.bin $(BIN_DIR)/crc32_table.txt $(BIN_DIR)/vram_test.txt
 	mkdir -p $(BIN_DIR)
 	cd $(ROMULATOR_DIR); rm -f input*.v; rm -f *.pcf
 	cp $(ROMULATOR_DIR)/z80/* $(ROMULATOR_DIR)
@@ -141,11 +141,11 @@ $(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/z80/*.v $(BIN
 .PHONY: romulator
 romulator: $(BIN_DIR)/romulator.bin
 
-$(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin $(BIN_DIR)/enable_table.txt
+$(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin $(BIN_DIR)/enable_table.bin
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/makerom $(BIN_DIR)/hardware.bin $(BIN_DIR)/memorymap.bin $(BIN_DIR)/enable_table.bin > $(BIN_DIR)/romulator.bin
 
-$(BIN_DIR)/romulator_z80.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware_z80.bin $(BIN_DIR)/memorymap_z80.bin $(BIN_DIR)/enable_table_z80.txt
+$(BIN_DIR)/romulator_z80.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware_z80.bin $(BIN_DIR)/memorymap_z80.bin $(BIN_DIR)/enable_table_z80.bin
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/makerom $(BIN_DIR)/hardware_z80.bin $(BIN_DIR)/memorymap_z80.bin $(BIN_DIR)/enable_table_z80.bin > $(BIN_DIR)/romulator_z80.bin
 
