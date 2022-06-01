@@ -13,36 +13,14 @@ The following images show the assembly of the standalone programming/debugging k
 </table>
 
 The standalone programmer for the ROMulator consists of a D1 Mini board and an interface board to connect the D1 Mini to the ROMulator's 10-pin header.
-First step is to install the build tools on your Win/Mac/Linux machine. You will build new firmware images here. For Mac and Linux the install is fairly straightforward and just requires running a script. On Windows, however, some build dependencies are not natively supported, and requires installing a Linux distro using WSL (windows subsystem for linux). 
-Instructions for each OS:
 
-## Windows
+# Creating firmware images
 
-Use the Microsoft Store to install a linux distribution with apt as a package manager. Either Ubuntu or Debian recommended.\
-After installation, your windows filesystem is accessible in /mnt, i.e. C: is at /mnt/c/, etc.\
-Create a directory for your installation somewhere easily accessible to both linux and windows, i.e. /mnt/c/home/Users/username/romulator. Change to this directory and follow the instructions for Linux at this point.
-
-## Linux
-
-Create a directory for your install.\
-Then fetch and run the linux setup script from linux command line in this directory with (one line)\
-```wget https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_linux.sh; ./setup_linux.sh```\
-You will need to enter your password as some commands in the setup script require sudo.
-
-## Mac (10.15 or higher)
-
-If not installed already, install homebrew using instructions here.:\
-[homebrew installation](https://brew.sh)\
-Create a directory for your romulator installation.\
-Then open Terminal, change to the install directory, and run this (one line):\
-```curl https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_mac.sh > setup_mac.sh; chmod 755 setup_mac.sh; ./setup_mac.sh```\
-You will need to enter your password at some point during the installation.
-
-# Programming
-
-To build firmware, in a terminal run\
-```make romulator```\
-from the bf-romulator directory. The firmware file will be bin/romulator.bin.
+To create new firmware files for your ROMulator, you can use a web-based tool to create them without needing any installation.\
+Create or modify existing memory set and enable table files to include your desired settings. Then get any ROM binary files which are not also referenced in the ROMulator's default firmware. Put your enable table and memory set files (need to start with 'enable_table' and 'memory_set' and have a .csv extension) along with these ROM files into a zip file with no subdirectories.\
+Then go to the [ROMulator Build](http://bitfixer.com/romulator-build) page.\
+Here you can upload your zip file, and you will get back a file named 'romulator.bin' which you can directly program onto the device as described below.\
+If you want to change fundamental behavior of the ROMulator by modifying verilog files and not just changing ROMs and enable tables, see the [advanced](#advanced) section below.
 
 # Setting up the standalone programmer
 
@@ -94,3 +72,37 @@ You will need to find the id of the serial port on the D1 Mini. This id varies b
 On Windows, it often shows up as COM6 or COM7, generally the first com port over COM2 is the one. If the terminal shows a name associated with each com port, it will be the one with a name like 'usb-to-serial' something.
 
 Once connected with the right baud rate, hit the reset button on the D1 Mini. A menu should show up in the terminal. To program, type 'p' for the programming menu and then 'p' again to program firmware. You will be prompted to send the file using XMODEM, then go ahead and using the menu on your terminal program, select bin/romulator.bin and start the transfer. This will upload the file to the device and program the romulator.
+
+## Advanced
+
+If you are planning to do more than changing ROMs in memory sets and the enable tables, like changing verilog files to modify the basic functionality of the ROMulator, then you will need to set up the build system on a Win/Mac/Linux machine.\
+First step is to install the build tools on your Win/Mac/Linux machine. You will build new firmware images here. For Mac and Linux the install is fairly straightforward and just requires running a script. On Windows, however, some build dependencies are not natively supported, and requires installing a Linux distro using WSL (windows subsystem for linux). 
+Instructions for each OS:
+
+## Windows
+
+Use the Microsoft Store to install a linux distribution with apt as a package manager. Either Ubuntu or Debian recommended.\
+After installation, your windows filesystem is accessible in /mnt, i.e. C: is at /mnt/c/, etc.\
+Create a directory for your installation somewhere easily accessible to both linux and windows, i.e. /mnt/c/home/Users/username/romulator. Change to this directory and follow the instructions for Linux at this point.
+
+## Linux
+
+Create a directory for your install.\
+Then fetch and run the linux setup script from linux command line in this directory with (one line)\
+```wget https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_linux.sh; ./setup_linux.sh```\
+You will need to enter your password as some commands in the setup script require sudo.
+
+## Mac (10.15 or higher)
+
+If not installed already, install homebrew using instructions here.:\
+[homebrew installation](https://brew.sh)\
+Create a directory for your romulator installation.\
+Then open Terminal, change to the install directory, and run this (one line):\
+```curl https://raw.githubusercontent.com/bitfixer/bf-romulator/master/setup_mac.sh > setup_mac.sh; chmod 755 setup_mac.sh; ./setup_mac.sh```\
+You will need to enter your password at some point during the installation.
+
+# Programming
+
+To build firmware, in a terminal run\
+```make romulator```\
+from the bf-romulator directory. The firmware file will be bin/romulator.bin.
