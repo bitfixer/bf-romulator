@@ -319,7 +319,9 @@ if (isset($_POST["submit"])) {
 Upload a .zip file containing:<br>
 Memory Set: a file named memory_set*.csv containing references to ROM files.<br>
 Enable Table: a file called enable_table*.csv containing the enable table specs for your build.<br>
-All ROM files referenced in the build.<br>
+All ROM files referenced in the build which are not referenced in the default firmware.<br>
+You do not need to include ROM files used in the default firmware, but if you include a file with the same<br>
+name, the one in your zip file will take priority.<br>
 You will receive a file called "romulator.bin" which you can directly program onto the device.<br>
 <form action="index.php" method="post" enctype="multipart/form-data">
 Choose file to upload:
