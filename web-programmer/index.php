@@ -41,7 +41,17 @@ function parse_memory_set($fname, $dirname) {
         $index = $parts[0];
         // get address
         $address = base_convert($parts[2], 16, 10);
-        $rom_fname = sprintf("%s/%s", $dirname, $parts[1]);
+        // get rom name from config line.
+        // if directory information is in the rom name, remove it.
+        // this is not used in the web version, only roms in the root directory.
+        $rom_name_parts = explode('/', $parts[1]);
+        $rom_name = $rom_name_parts[sizeof($rom_name_parts)-1]; 
+        
+        $rom_fname = sprintf("%s/%s", $dirname, $rom_name);
+        if (!file_exists($rom_fname))
+        {
+            $rom_fname = sprintf("roms/%s", $rom_name);
+        }
         if (file_exists($rom_fname))
         {
             $rom_contents = file_get_contents($rom_fname);
