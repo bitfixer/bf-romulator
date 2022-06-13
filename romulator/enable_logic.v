@@ -207,10 +207,8 @@ assign wdataout = (halt) ? 8'h00 : ram_dataout;
 //assign dataoutenable = !cs;
 //assign busenable = cs;
 
-//assign dataoutenable = !cs;
-//assign busenable = !cs_bus;
-assign dataoutenable = 1;
-assign busenable = 0;
+assign dataoutenable = !cs;
+assign busenable = !cs_bus;
 
 // ram bus connection logic
 // before read_complete, address/data/control connected to flash reader
