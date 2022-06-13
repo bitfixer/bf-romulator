@@ -247,8 +247,8 @@ wire echo_cs;
 //assign rdy = !halt && read_complete;
 //assign led_blue = read_complete && rdy;
 wire cpu_rdy = !halt && read_complete;
-//assign rdy = standalone_enabled ? cpu_rdy : cpu_rdy && rdyin;
-assign rdy = cpu_rdy;
+assign rdy = standalone_bit ? cpu_rdy : cpu_rdy && rdyin;
+//assign rdy = cpu_rdy;
 assign led_blue = cpu_rdy;
 
 // number of bits in configuration
@@ -257,6 +257,7 @@ localparam CONFIG_BITS = 5;
 reg [CONFIG_BITS-1:0] configuration;
 reg standalone_enabled;
 wire [CONFIG_BITS-1:0] config_byte;
+wire standalone_bit;
 
 wire table_we;
 
@@ -378,7 +379,10 @@ diagnostics diag(
   vram_read_clock,
 
   config_byte,
-  vram_size
+  vram_size,
+
+  standalone_enabled,
+  standalone_bit
 );
 
 initial

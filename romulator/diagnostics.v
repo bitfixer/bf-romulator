@@ -40,7 +40,10 @@ module diagnostics(
      output reg vram_read_clock,
 
      output reg [4:0] config_byte,
-     input      [10:0] vram_size
+     input      [10:0] vram_size,
+
+     input      standalone_enabled,
+     output reg standalone_bit
 );
 
 // module states
@@ -119,6 +122,7 @@ begin
     STARTUP:
     begin
       config_byte <= configuration;
+      standalone_bit <= standalone_enabled;
       state <= RUNNING;
     end
     RUNNING:
