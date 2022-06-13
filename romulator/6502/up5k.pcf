@@ -38,6 +38,9 @@ set_io --warn-no-port busenable 9
 
 set_io --warn-no-port diag_spi_cs 37
 set_io --warn-no-port rdy 10
+set_io --warn-no-port rdyin 38
 set_io --warn-no-port rst 36
 
 set_io --warn-no-port led_blue 39
+set_io --warn-no-port clock_out 40
+set_io --warn-no-port reset_out 41

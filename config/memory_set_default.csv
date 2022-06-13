@@ -1,7 +1,7 @@
-0,basic-2-c000.901465-01.bin,0xc000
-0,basic-2-d000.901465-02.bin,0xd000
-0,edit-2-b.901474-01.bin,0xe000
-0,kernal-2.901465-03.bin,0xf000
+#0,basic-2-c000.901465-01.bin,0xc000
+#0,basic-2-d000.901465-02.bin,0xd000
+#0,edit-2-b.901474-01.bin,0xe000
+#0,kernal-2.901465-03.bin,0xf000
 
 1,basic-4-b000.901465-23.bin,0xb000
 1,basic-4-c000.901465-20.bin,0xc000
@@ -83,5 +83,8 @@
 15,../bin/ramtest.bin,0xf000
 
 # PETTEST repeated
-16,PETTESTE2KV04.bin,0xe000
-16,kernal-4.901465-22.bin,0xf000
+#16,PETTESTE2KV04.bin,0xe000
+#16,kernal-4.901465-22.bin,0xf000
+
+# standalone 6502 computer
+16,../bin/boot_standalone.bin,0xf000

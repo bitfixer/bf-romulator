@@ -16,7 +16,7 @@
 
 module enable_logic(
   inout spi_clk, 
-  input wire spi_miso, 
+  input wire spi_miso,
   output spi_out, 
   output spi_cs,
 
@@ -32,7 +32,9 @@ module enable_logic(
   input rst,
 
   output wire led_blue,
-  input wire mreq
+  input wire mreq,
+  output clockout,
+  output resetout
   );
 
 integer i;
@@ -205,8 +207,10 @@ assign wdataout = (halt) ? 8'h00 : ram_dataout;
 //assign dataoutenable = !cs;
 //assign busenable = cs;
 
-assign dataoutenable = !cs;
-assign busenable = !cs_bus;
+//assign dataoutenable = !cs;
+//assign busenable = !cs_bus;
+assign dataoutenable = 1;
+assign busenable = 0;
 
 // ram bus connection logic
 // before read_complete, address/data/control connected to flash reader
@@ -245,13 +249,15 @@ wire echo_cs;
 //assign rdy = !halt && read_complete;
 //assign led_blue = read_complete && rdy;
 wire cpu_rdy = !halt && read_complete;
-assign rdy = cpu_rdy && rdyin;
+//assign rdy = standalone_enabled ? cpu_rdy : cpu_rdy && rdyin;
+assign rdy = cpu_rdy;
 assign led_blue = cpu_rdy;
 
 // number of bits in configuration
 localparam CONFIG_BITS = 5;
 
 reg [CONFIG_BITS-1:0] configuration;
+reg standalone_enabled;
 wire [CONFIG_BITS-1:0] config_byte;
 
 wire table_we;
@@ -333,6 +339,22 @@ videoRam
 wire reset;
 assign reset = 1;
 
+// clock and reset for standalone operation
+
+// cpu reset signal, used for standalone mode (if available)
+reset_signal #(48000000)
+resetSignal(
+    .fpga_clk(clk),
+    .reset_out(resetout),
+);
+
+// cpu clock signal, used for standalone mode (if available)
+clockgen #(24)
+clockGen(
+    .fpga_clk(clk),
+    .clk_out(clockout),
+);
+
 // connect diagnostics module for halting cpu and reading ram
 // diagnostics also has the register for config_byte which is used to select
 // which memory configuration to use.
@@ -364,6 +386,7 @@ diagnostics diag(
 initial
 begin
   configuration <= ~wdatain[CONFIG_BITS-1:0];
+  standalone_enabled <= ~wdatain[7];
   $readmemh("../bin/vram_start_addr.txt", vram_start);
   $readmemh("../bin/vram_end_addr.txt", vram_end);
 end

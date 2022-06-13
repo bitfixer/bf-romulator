@@ -101,7 +101,7 @@ webserver: $(BIN_DIR)/webserver
 
 # FPGA
 
-$(BIN_DIR)/memorymap.bin: $(MEMORY_SET) $(BIN_DIR)/build_memory_map_set $(BIN_DIR)/random_test.bin $(BIN_DIR)/testrom.out $(BIN_DIR)/testrom_appleii.out $(BIN_DIR)/testromv2.out $(BIN_DIR)/ramtest.bin $(BIN_DIR)/nop.bin $(BIN_DIR)/ieee_test.bin
+$(BIN_DIR)/memorymap.bin: $(MEMORY_SET) $(BIN_DIR)/build_memory_map_set $(BIN_DIR)/random_test.bin $(BIN_DIR)/testrom.out $(BIN_DIR)/testrom_appleii.out $(BIN_DIR)/testromv2.out $(BIN_DIR)/ramtest.bin $(BIN_DIR)/boot_standalone.bin $(BIN_DIR)/nop.bin $(BIN_DIR)/ieee_test.bin
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/build_memory_map_set -d $(ROMS_DIR)/ < $(MEMORY_SET) > $(BIN_DIR)/memorymap.bin
 
@@ -140,6 +140,9 @@ $(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/z80/*.v $(BIN
 
 .PHONY: romulator
 romulator: $(BIN_DIR)/romulator.bin
+
+.PHONY: romulator_z80
+romulator_z80: $(BIN_DIR)/romulator_z80.bin
 
 $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware_6502.bin $(BIN_DIR)/memorymap.bin $(BIN_DIR)/enable_table.bin
 	mkdir -p $(BIN_DIR)
@@ -213,6 +216,9 @@ $(BIN_DIR)/testrom_appleii.out: testrom/testrom_appleii.s testrom/testrom_applei
 
 $(BIN_DIR)/ramtest.bin: testrom/ramtest.c testrom/preinit.s testrom/ramtest.cfg
 	cd testrom; make ramtest.bin; cp ramtest.bin ../$(BIN_DIR)/ramtest.bin; rm ramtest.bin
+
+$(BIN_DIR)/boot_standalone.bin: testrom/boot_standalone.c testrom/preinit.s testrom/boot_standalone.cfg
+	cd testrom; make boot_standalone.bin; cp boot_standalone.bin ../$(BIN_DIR)/boot_standalone.bin; rm boot_standalone.bin
 
 $(BIN_DIR)/ieee_test.bin: testrom/ieee_test.c testrom/preinit.s testrom/ieee_test.cfg
 	cd testrom; make ieee_test.bin; cp ieee_test.bin ../$(BIN_DIR)/ieee_test.bin; rm ieee_test.bin

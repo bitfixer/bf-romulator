@@ -12,9 +12,12 @@ module input6502(
   output busenable,
   inout diag_spi_cs,
   output rdy,
+  input rdyin,
   input rst,
 
-  output wire led_blue
+  output wire led_blue,
+  output clock_out,
+  output reset_out
 );
 
 reg mreq = 1;
@@ -33,11 +36,13 @@ enable_logic romulator(
   busenable,
   diag_spi_cs,
   rdy,
-  1'b1,
+  rdyin,
   rst,
 
   led_blue,
-  mreq
+  mreq,
+  clock_out,
+  reset_out
 );
 
 endmodule
