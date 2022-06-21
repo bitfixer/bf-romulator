@@ -1,2 +1,19 @@
 # digital group ZE cassette ROM
-0,dgrom.bin,0x0000
+1,dgrom.bin,0x0000
+
+# timex sinclair 2068
+2,TS2068_U16.bin,0x0000
+
+# timex sinclair 2068
+3,TS2068_U16_top_mod.bin,0x2000
+
+4,TS2068_U16.bin,0x0000
+4,TS2068_U20.bin,0x8000
+
+5,trs80model1_v1.2.rom,0x0000
+
+6,trs80model1_v1.3.rom,0x0000
+
+7,trs80model1_v1.2.rom,0x0000
+
+8,trs80model1_v1.3.rom,0x0000

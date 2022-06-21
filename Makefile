@@ -36,6 +36,9 @@ REMOTE := raspberrypi.local
 DBG := 27
 RST := 6
 CS := 10
+MISO := 13
+SCK := 14
+MOSI := 12
 
 # Programmer
 
@@ -173,6 +176,9 @@ debug:
 	gpio write $(DBG) 1
 	gpio mode $(RST) in
 	gpio mode $(CS) in
+	gpio mode $(MOSI) in
+	gpio mode $(MISO) in
+	gpio mode $(SCK) in
 
 program: init reset $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi < $(BIN_DIR)/romulator.bin

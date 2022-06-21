@@ -9,7 +9,9 @@ module ramenable(
     input fpga_clk,
     input wire table_we,
     input wire [1:0] table_val,
-    input wire [8:0] table_write_addr);
+    input wire [8:0] table_write_addr,
+    input wire ram_disable,
+    input wire rom_disable);
 
 // table of ram and bus enable signals, 64 entries per table
 // this is selected by the configuration byte
@@ -34,6 +36,10 @@ reg [1:0] enable_table[0:(2**ENABLE_ADDR_BITS) - 1];
 wire[ENABLE_ADDR_BITS-1:0] enable_addr;
 reg [1:0] outval;
 
+wire [ENABLE_ADDR_BITS-1:0] write_enable_addr;
+wire [ENABLE_ADDR_BITS-1:0] read_enable_addr;
+reg disable_region = 0;
+
 always @(posedge fpga_clk)
 begin
     if (table_we == 1)
@@ -43,13 +49,27 @@ begin
     else 
     begin
         outval <= enable_table[enable_addr];
+        if (rom_disable && enable_table[write_enable_addr][1] == 0 && enable_table[read_enable_addr][1] == 1)
+        begin
+            disable_region <= 1;
+        end
+        else if  (ram_disable && enable_table[write_enable_addr][1] == 1 && enable_table[read_enable_addr][1] == 1)
+        begin
+            disable_region <= 1;
+        end
+        else
+        begin
+            disable_region <= 0;
+        end
     end
 end
 
 assign we = phi2 & (!rwbar);
 assign enable_addr = {rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
+assign write_enable_addr = {1'b0, address[15:15 - ADDR_ENTRY_BITS + 1]};
+assign read_enable_addr = {0'b0, address[15:15 - ADDR_ENTRY_BITS + 1]};
 
-assign cs_ram = (phi2 & outval[1]) & mreq;
-assign cs_bus = (phi2 & outval[0]) || !mreq;
+assign cs_ram = (phi2 & outval[1]) & mreq && !disable_region;
+assign cs_bus = ((phi2 & outval[0]) || !mreq) || disable_region;
 
 endmodule

@@ -254,6 +254,12 @@ localparam CONFIG_BITS = 5;
 reg [CONFIG_BITS-1:0] configuration;
 wire [CONFIG_BITS-1:0] config_byte;
 
+reg ram_disable_in;
+wire ram_disable_out;
+
+reg rom_disable_in;
+wire rom_disable_out;
+
 wire table_we;
 
 sram64k RAM(ram_address, ram_dataout, ram_datain, ram_cs, ram_we, clk);
@@ -268,7 +274,9 @@ ramenable enable(
     clk,
     table_we,
     ram_datain[1:0],
-    ram_address[8:0]);
+    ram_address[8:0],
+    ram_disable_out,
+    rom_disable_out);
 
 // create spi flash reader
 // this fills RAM with selected ROM images
@@ -358,12 +366,20 @@ diagnostics diag(
   vram_read_clock,
 
   config_byte,
-  vram_size
+  vram_size,
+
+  ram_disable_in,
+  ram_disable_out,
+
+  rom_disable_in,
+  rom_disable_out
 );
 
 initial
 begin
   configuration <= ~wdatain[CONFIG_BITS-1:0];
+  ram_disable_in <= ~wdatain[5];
+  rom_disable_in <= ~wdatain[6];
   $readmemh("../bin/vram_start_addr.txt", vram_start);
   $readmemh("../bin/vram_end_addr.txt", vram_end);
 end

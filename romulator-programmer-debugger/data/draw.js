@@ -3,13 +3,17 @@ window.onload = function() {
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-var bitmapWidth = 320;
-var bitmapHeight = 200;
+//var bitmapWidth = 320;
+//var bitmapHeight = 200;
+var bitmapWidth = 512;
+var bitmapHeight = 128;
 var charWidth = 8;
 var charHeight = 8;
 
-var rows = 25;
-var columns = 40;
+//var rows = 25;
+//var columns = 40;
+var rows = 16;
+var columns = 64;
 var currentVramSize = 1024;
 
 var imagedata = ctx.createImageData(canvas.width, canvas.height);
@@ -63,7 +67,8 @@ function createImage()
                     bitmapHeight = rows * charHeight;
 
                     scale = canvas.width / bitmapWidth;
-                    yxRatio = columns / 40;
+                    //yxRatio = columns / 40;
+                    yxRatio = 1;
 
                     bitmapArray = new Uint8Array(bitmapWidth * bitmapHeight);
                 }
