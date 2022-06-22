@@ -68,7 +68,6 @@ function romulatorVramToBitmap(
 
             if (character > 127) // high bit set
             {
-                console.log
                 inverse = true;
             }
 

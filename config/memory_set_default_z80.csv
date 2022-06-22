@@ -1,2 +1,8 @@
 # digital group ZE cassette ROM
-0,dgrom.bin,0x0000
+1,dgrom.bin,0x0000
+
+# trs-80 model 1 1.2
+2,trs80model1_v1.2.rom,0x0000
+
+# trs-80 model 1 1.3
+3,trs80model1_v1.3.rom,0x0000

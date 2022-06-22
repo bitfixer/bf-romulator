@@ -40,7 +40,13 @@ module diagnostics(
      output reg vram_read_clock,
 
      output reg [4:0] config_byte,
-     input      [10:0] vram_size
+     input      [10:0] vram_size,
+
+     input      ram_disable_in,
+     output reg ram_disable_out,
+
+     input      rom_disable_in,
+     output reg rom_disable_out
 );
 
 // module states
@@ -119,6 +125,8 @@ begin
     STARTUP:
     begin
       config_byte <= configuration;
+      ram_disable_out <= ram_disable_in;
+      rom_disable_out <= rom_disable_in;
       state <= RUNNING;
     end
     RUNNING:
