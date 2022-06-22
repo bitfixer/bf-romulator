@@ -35,10 +35,14 @@ localparam ENABLE_ADDR_BITS = ADDR_ENTRY_BITS + 1;
 reg [1:0] enable_table[0:(2**ENABLE_ADDR_BITS) - 1];
 wire[ENABLE_ADDR_BITS-1:0] enable_addr;
 reg [1:0] outval;
+reg read_enable;
+reg write_enable;
 
 wire [ENABLE_ADDR_BITS-1:0] write_enable_addr;
 wire [ENABLE_ADDR_BITS-1:0] read_enable_addr;
-reg disable_region = 0;
+wire disable_region;
+wire is_rom;
+wire is_ram;
 
 always @(posedge fpga_clk)
 begin
@@ -49,15 +53,20 @@ begin
     else 
     begin
         outval <= enable_table[enable_addr];
+        read_enable <= enable_table[read_enable_addr][1];
+        write_enable <= enable_table[write_enable_addr][1];
     end
 end
 
 assign we = phi2 & (!rwbar);
 assign enable_addr = {rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
 assign write_enable_addr = {1'b0, address[15:15 - ADDR_ENTRY_BITS + 1]};
-assign read_enable_addr = {0'b0, address[15:15 - ADDR_ENTRY_BITS + 1]};
+assign read_enable_addr = {1'b1, address[15:15 - ADDR_ENTRY_BITS + 1]};
+assign is_rom = !write_enable & read_enable;
+assign is_ram = write_enable & read_enable;
+assign disable_region = (ram_disable & is_ram) | (rom_disable & is_rom);
 
-assign cs_ram = (phi2 & outval[1]) & mreq;
-assign cs_bus = (phi2 & outval[0]) || !mreq;
+assign cs_ram = (phi2 & outval[1]) & mreq & !disable_region;
+assign cs_bus = ((phi2 & outval[0]) | !mreq) | disable_region;
 
 endmodule
