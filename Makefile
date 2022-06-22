@@ -171,12 +171,12 @@ init:
 	gpio mode $(CS) out
 
 # enter debug mode
-# set the chip select line high to allow romulator to start
-# set the reset line to an input to prevent holding romulator in reset
+# set all connected io to inputs
+# this prevents debug chip select from being asserted
+# and preventing the romulator from starting
 .PHONY: debug
 debug:
-	gpio mode $(DBG) out
-	gpio write $(DBG) 1
+	gpio mode $(DBG) in
 	gpio mode $(RST) in
 	gpio mode $(CS) in
 	gpio mode $(MOSI) in
