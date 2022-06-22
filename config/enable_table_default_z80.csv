@@ -1,48 +1,21 @@
 # all passthrough
 0,0x0000,0xFFFF,"passthrough"
 
-# digital group
+# digital group z80 system with cassette ROM
 1,0x0000,0x00FF,"readonly"
 1,0x0100,0xFFFF,"readwrite"
 
-# timex sinclair 2068
-2,0x0000,0x3FFF,"readonly"
-2,0x4000,0xFFFF,"passthrough"
+# trs-80 model 1, v1.2 rom
+2,0x0000,0x2FFF,"readonly"
+2,0x3000,0x3DFF,"passthrough"
+2,0x3C00,0x3FFF,"writethrough"
+2,0x4000,0xFFFF,"readwrite"
+2,0x3c00,0x3FFF,"vram",characters-2.901447-10.bin
 
-# timex sinclair 2068
-3,0x0000,0x1FFF,"passthrough"
-3,0x2000,0x3FFF,"readonly"
-3,0x4000,0xFFFF,"passthrough"
+# trs-80 model 1, v 1.3 rom
+3,0x0000,0x2FFF,"readonly"
+3,0x3000,0x3DFF,"passthrough"
+3,0x3C00,0x3FFF,"writethrough"
+3,0x4000,0xFFFF,"readwrite"
+3,0x3c00,0x3FFF,"vram",characters-2.901447-10.bin
 
-4,0x0000,0x3FFF,"readonly"
-4,0x4000,0xFFFF,"passthrough"
-
-# trs-80 model 1, 16k, v1.2 rom
-5,0x0000,0x2FFF,"readonly"
-5,0x3000,0x3DFF,"passthrough"
-5,0x3C00,0x3FFF,"writethrough"
-5,0x4000,0x7FFF,"readwrite"
-5,0x8000,0xFFFF,"passthrough"
-5,0x3c00,0x3FFF,"vram",characters-2.901447-10.bin
-
-# trs-80 model 1, 16k, v 1.3 rom
-6,0x0000,0x2FFF,"readonly"
-6,0x3000,0x3DFF,"passthrough"
-6,0x3C00,0x3FFF,"writethrough"
-6,0x4000,0x7FFF,"readwrite"
-6,0x8000,0xFFFF,"passthrough"
-6,0x3c00,0x3FFF,"vram",characters-2.901447-10.bin
-
-# trs-80 model 1, 48k, v1.2 rom
-7,0x0000,0x2FFF,"readonly"
-7,0x3000,0x3DFF,"passthrough"
-7,0x3C00,0x3FFF,"writethrough"
-7,0x4000,0xFFFF,"readwrite"
-7,0x3c00,0x3FFF,"vram",characters-2.901447-10.bin
-
-# trs-80 model 1, 48k, v 1.3 rom
-8,0x0000,0x2FFF,"readonly"
-8,0x3000,0x3DFF,"passthrough"
-8,0x3C00,0x3FFF,"writethrough"
-8,0x4000,0xFFFF,"readwrite"
-8,0x3c00,0x3FFF,"vram",characters-2.901447-10.bin

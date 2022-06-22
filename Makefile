@@ -144,6 +144,9 @@ $(BIN_DIR)/hardware_z80.bin: $(ROMULATOR_DIR)/*.v $(ROMULATOR_DIR)/z80/*.v $(BIN
 .PHONY: romulator
 romulator: $(BIN_DIR)/romulator.bin
 
+.PHONE: romulator_z80
+romulator_z80: $(BIN_DIR)/romulator_z80.bin
+
 $(BIN_DIR)/romulator.bin: $(BIN_DIR)/makerom $(BIN_DIR)/hardware_6502.bin $(BIN_DIR)/memorymap.bin $(BIN_DIR)/enable_table.bin
 	mkdir -p $(BIN_DIR)
 	$(BIN_DIR)/makerom $(BIN_DIR)/hardware_6502.bin $(BIN_DIR)/memorymap.bin $(BIN_DIR)/enable_table.bin > $(BIN_DIR)/romulator.bin
@@ -182,6 +185,9 @@ debug:
 
 program: init reset $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi < $(BIN_DIR)/romulator.bin
+
+program_z80: init reset $(BIN_DIR)/romulator_z80.bin $(BIN_DIR)/programmer_spi
+	$(BIN_DIR)/programmer_spi < $(BIN_DIR)/romulator_z80.bin
 
 readback: init $(BIN_DIR)/romulator.bin $(BIN_DIR)/programmer_spi
 	$(BIN_DIR)/programmer_spi -r $(shell stat --printf="%s" $(BIN_DIR)/romulator.bin) > readback.bin

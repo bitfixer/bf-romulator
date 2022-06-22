@@ -49,18 +49,6 @@ begin
     else 
     begin
         outval <= enable_table[enable_addr];
-        if (rom_disable && enable_table[write_enable_addr][1] == 0 && enable_table[read_enable_addr][1] == 1)
-        begin
-            disable_region <= 1;
-        end
-        else if  (ram_disable && enable_table[write_enable_addr][1] == 1 && enable_table[read_enable_addr][1] == 1)
-        begin
-            disable_region <= 1;
-        end
-        else
-        begin
-            disable_region <= 0;
-        end
     end
 end
 
@@ -69,7 +57,7 @@ assign enable_addr = {rwbar, address[15:15 - ADDR_ENTRY_BITS + 1]};
 assign write_enable_addr = {1'b0, address[15:15 - ADDR_ENTRY_BITS + 1]};
 assign read_enable_addr = {0'b0, address[15:15 - ADDR_ENTRY_BITS + 1]};
 
-assign cs_ram = (phi2 & outval[1]) & mreq && !disable_region;
-assign cs_bus = ((phi2 & outval[0]) || !mreq) || disable_region;
+assign cs_ram = (phi2 & outval[1]) & mreq;
+assign cs_bus = (phi2 & outval[0]) || !mreq;
 
 endmodule
