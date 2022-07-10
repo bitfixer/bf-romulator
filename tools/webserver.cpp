@@ -438,15 +438,35 @@ void getVram(uint8_t* vram, int len, int pos)
 void getMonoBitmap(int width, int height, int pos)
 {
     uint8_t vram[1024];
+    static uint8_t last_configByte = 0;
+    #ifdef TEST
+    uint8_t configByte = 1;
+    #else
+    uint8_t configByte = romulatorReadConfig();
+    #endif
 
     unsigned int startTime = Tools::Timer::millis();
     getVram(vram, 1024, pos);
     unsigned int readVramTime = Tools::Timer::millis();
 
-    if (characterRom == NULL)
+    if (characterRom == NULL || configByte != last_configByte)
     {
+        char *charRom = characterRomName;
         // read character rom from file
-        FILE* fp = fopen(characterRomName, "rb");
+        if (strlen(charRom) == 0) {
+            // look up the character rom for this configuration
+            fprintf(stderr, "got rom request, config byte %d\n", configByte);
+            if (characterRoms == NULL || characterRoms[configByte] == NULL) {
+                fprintf(stderr, "No character rom for config %d!\n", configByte);
+                return;
+            }
+            charRom = characterRoms[configByte];
+        }
+        FILE* fp = fopen(charRom, "rb");
+        if (fp == NULL) {
+            perror("Can't open character rom");
+            return;
+        }
         fseek(fp, 0, SEEK_END);
         int size = (int)ftell(fp);
         fseek(fp, 0, SEEK_SET);
@@ -454,15 +474,18 @@ void getMonoBitmap(int width, int height, int pos)
         characterRom = (uint8_t*)malloc(size);
         fread(characterRom, 1, size, fp);
         fclose(fp);
+        last_configByte = configByte;
     }
 
     romulatorVramToBitmap(vram, characterRom, 25, 40, 8, 8, bitmap);
     unsigned int convertBitmap = Tools::Timer::millis();
 
+    #ifdef TEST
     fprintf(stderr, "mono total %d read %d convert %d\n",
         convertBitmap - startTime,
         readVramTime - startTime,
         convertBitmap - readVramTime);
+    #endif
 }
 
 void getRGBBitmap(int width, int height, int pos)
@@ -720,7 +743,9 @@ void respond(int n, int tmp, int* cc)
                         unsigned int sendTime = sentDataMillis - readDataMillis;
                         unsigned int totalTime = sentDataMillis - startMillis;
 
+                        #ifdef TEST
                         fprintf(stderr, "png time %d, read %d send %d\n", totalTime, dataReadTime, sendTime);
+                        #endif
                     }
                     else
                     {
