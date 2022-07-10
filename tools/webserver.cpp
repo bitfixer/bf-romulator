@@ -422,6 +422,7 @@ void convertMonoToRGBBitmap(uint8_t* monoBitmap, uint8_t* rgbBitmap, int width, 
 
 void getVram(uint8_t* vram, int len, int pos)
 {
+    static uint8_t last_good_vram[1024] = { 0 };
     #ifdef TEST
     // fill screen with characters
     uint8_t v = pos % 256;
@@ -431,7 +432,12 @@ void getVram(uint8_t* vram, int len, int pos)
     }
     #else
     // get vram from romulator
-    romulatorReadVram(vram, len, 1001, 5);
+    if(romulatorReadVram(vram, len, 1001, 5)) {
+        memcpy(last_good_vram, vram, sizeof(last_good_vram));
+    } else {
+        fprintf(stderr, "Using last good vram image\n");
+        memcpy(vram, last_good_vram, sizeof(last_good_vram));
+    }
     #endif
 }
 
