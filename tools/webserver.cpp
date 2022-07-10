@@ -324,6 +324,7 @@ int main(int argc, char** argv)
 void startServer(char *port)
 {
     struct addrinfo hints, *res, *p;
+    int opt;
     
     // getaddrinfo for host
     memset (&hints, 0, sizeof(hints));
@@ -340,6 +341,12 @@ void startServer(char *port)
     {
         listenfd = socket (p->ai_family, p->ai_socktype, 0);
         if (listenfd == -1) continue;
+        opt = 1;
+        if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+        {
+            perror ("setsockopt(SO_REUSEADDR)");
+            exit(1);
+        }
         if (bind(listenfd, p->ai_addr, p->ai_addrlen) == 0) break;
     }
     if (p==NULL)
