@@ -21,7 +21,7 @@ function parse_memory_set($fname, $dirname) {
     $linenum = 0;
     foreach (file($fname) as $line) {
         $linenum = $linenum + 1;
-        if (strlen($line) < 2) {
+        if (strlen($line) < 3) {
             continue;
         }
 
@@ -133,7 +133,7 @@ function parse_enable_table($fname, $dirname) {
     $linenum = 0;
     foreach (file($fname) as $line) {
         $linenum = $linenum + 1;
-        if (strlen($line) < 2) {
+        if (strlen($line) < 3) {
             continue;
         }
 
