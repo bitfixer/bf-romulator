@@ -3,7 +3,12 @@
 function deleteDirectory($path) {
     $files = array_diff(scandir($path), array('.', '..'));
     foreach ($files as $file) {
-        unlink("$path/$file");
+        $ff = sprintf("%s/%s", $path, $file);
+        if (is_dir($ff)) {
+            deleteDirectory($ff);
+        } else {
+            unlink($ff);
+        }
     }
     return rmdir($path);
 }
@@ -21,7 +26,7 @@ function parse_memory_set($fname, $dirname) {
     $linenum = 0;
     foreach (file($fname) as $line) {
         $linenum = $linenum + 1;
-        if (strlen($line) < 3) {
+        if (strlen($line) <= 3) {
             continue;
         }
 
@@ -133,7 +138,7 @@ function parse_enable_table($fname, $dirname) {
     $linenum = 0;
     foreach (file($fname) as $line) {
         $linenum = $linenum + 1;
-        if (strlen($line) < 3) {
+        if (strlen($line) <= 3) {
             continue;
         }
 

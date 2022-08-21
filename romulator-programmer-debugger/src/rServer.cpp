@@ -54,12 +54,15 @@ void handleFileUpload()
     HTTPUpload& upload = server.upload();
     if(upload.status == UPLOAD_FILE_START)
     {
+        /*
         String filename = upload.filename;
         Serial.printf("upload filename: %s\n", filename.c_str());
         if (!filename.startsWith("/")) 
         {
             filename = "/"+filename;
         }
+        */
+        String filename = "/romulator.bin";
         Serial.print("handleFileUpload Name: "); Serial.println(filename);
         fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
         filename = String();
@@ -78,7 +81,7 @@ void handleFileUpload()
             fsUploadFile.close();                               // Close the file again
             Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
             // start programming from uploaded file
-            _programmer.beginProgrammingFromFile((char*)upload.filename.c_str());
+            _programmer.beginProgrammingFromFile("/romulator.bin");
             server.send(200, "text/html", "done uploading!");
         } 
         else 

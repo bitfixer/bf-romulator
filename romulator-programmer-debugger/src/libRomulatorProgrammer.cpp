@@ -134,6 +134,14 @@ void RomulatorProgrammer::beginProgrammingFromFile(char* filename)
         fname = "/"+fname;
     }
     _fp = LittleFS.open(fname, "r");
+    // test
+    uint8_t block[256];
+    size_t br = _fp.readBytes((char*)block, 256);
+    Serial.printf("tried reading, got %d\n", br);
+    _fp.close();
+
+    _fp = LittleFS.open(fname, "r");
+
     if (_fp)
     {
         beginProgramming(_fp.size());
@@ -182,7 +190,7 @@ void RomulatorProgrammer::beginProgramming(int totalSize)
 
     if (totalSize == 0)
     {
-        totalSize = 1179648;
+        totalSize = 2244608;
     }
 
     Serial.printf("writing %.2fkB..", double(totalSize) / 1024);
