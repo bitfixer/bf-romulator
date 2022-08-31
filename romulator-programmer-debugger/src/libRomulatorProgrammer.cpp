@@ -170,8 +170,9 @@ bool RomulatorProgrammer::updateProgrammingFromFile()
         endProgramming();
         _programmingFromFile = false;
         _fp.close();
-
         _fp = File();
+
+        LittleFS.remove("/romulator.bin");
         return false;
     }
 

@@ -54,14 +54,7 @@ void handleFileUpload()
     HTTPUpload& upload = server.upload();
     if(upload.status == UPLOAD_FILE_START)
     {
-        /*
-        String filename = upload.filename;
-        Serial.printf("upload filename: %s\n", filename.c_str());
-        if (!filename.startsWith("/")) 
-        {
-            filename = "/"+filename;
-        }
-        */
+        // use fixed filename for upload
         String filename = "/romulator.bin";
         Serial.print("handleFileUpload Name: "); Serial.println(filename);
         fsUploadFile = LittleFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
