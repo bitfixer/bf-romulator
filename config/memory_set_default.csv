@@ -85,3 +85,10 @@
 # PETTEST repeated
 16,PETTESTE2KV04.bin,0xe000
 16,kernal-4.901465-22.bin,0xf000
+
+# PET 8032 50Hz
+17,basic-4-b000.901465-23.bin,0xb000
+17,basic-4-c000.901465-20.bin,0xc000
+17,basic-4-d000.901465-21.bin,0xd000
+17,edit-4-80-b-50Hz.901474-04-0283.bin,0xe000
+17,kernal-4.901465-22.bin,0xf000
