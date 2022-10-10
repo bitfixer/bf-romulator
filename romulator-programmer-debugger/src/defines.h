@@ -18,8 +18,9 @@
 #define  LED_OFF        1
 
 typedef struct wifiSettings {
-    char ssid[30];
-    char password[30];
+    char magic[6];
+    char ssid[33];
+    char password[65];
 } WiFiSettings;
 
 #endif

@@ -30,6 +30,7 @@ void handlePortal() {
         if (server.method() == HTTP_POST) {
             strncpy(user_wifi.ssid,     server.arg("ssid").c_str(),     sizeof(user_wifi.ssid) );
             strncpy(user_wifi.password, server.arg("password").c_str(), sizeof(user_wifi.password) );
+            strcpy(user_wifi.magic, "BFROM");
             user_wifi.ssid[server.arg("ssid").length()] = user_wifi.password[server.arg("password").length()] = '\0';
             EEPROM.put(0, user_wifi);
             EEPROM.commit();
@@ -292,13 +293,28 @@ void handleSetConfig()
     }
 }
 
+void validateWifiSettings(WiFiSettings* settings)
+{
+    // verify we have valid wifi settings
+    if (settings->magic[5] != 0)
+    {
+        memset(settings, 0, sizeof(WiFiSettings));
+    }
+
+    if (strcmp("BFROM", settings->magic) != 0)
+    {
+        memset(settings, 0, sizeof(WiFiSettings));
+    }
+}
+
 void startServer()
 {
     EEPROM.get(0, user_wifi);
 
     delay(1000);
     WiFi.mode(WIFI_STA);
-    //WiFi.setHostname("romulator");
+    validateWifiSettings(&user_wifi);
+
     Serial.printf("connecting %s %s\n", user_wifi.ssid, user_wifi.password);
     WiFi.begin(user_wifi.ssid, user_wifi.password);
 
