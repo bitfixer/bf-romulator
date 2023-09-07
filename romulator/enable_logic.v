@@ -82,7 +82,10 @@ wire wdataout_enable;
 assign wdataout_enable = read_complete & rwbar;
 
 // set up internal clock
-SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
+// SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
+// lower to 24 MHz to meet build requirements
+// TODO: fix underlying issue to allow 48 MHz
+SB_HFOSC #(.CLKHF_DIV ("0b01")) inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
 
 // set up bidirectional data bus. Data pins switch direction based on wdataout_enable signal.
 SB_IO #(
