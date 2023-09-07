@@ -84,10 +84,8 @@ reg clk_half;
 assign wdataout_enable = read_complete & rwbar;
 
 // set up internal clock
+// 48 MHz
 SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
-// lower to 24 MHz to meet build requirements
-// TODO: fix underlying issue to allow 48 MHz
-//SB_HFOSC #(.CLKHF_DIV ("0b01")) inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
 
 // set up bidirectional data bus. Data pins switch direction based on wdataout_enable signal.
 SB_IO #(
@@ -346,15 +344,17 @@ videoRam
 wire reset;
 assign reset = 1;
 
-always @(posedge fpga_clk)
+reg [1:0] dcount;
+
+// create frequency divided version of fpga clock to run
+// diagnostics module.
+// Needed to meet timing requirements
+always @(posedge clk)
 begin
-    if (clk_half == 1'b0)
+    dcount <= dcount + 1;
+    if (dcount == 3)
     begin
-        clk_half <= 1'b1;
-    end
-    else 
-    begin
-        clk_half <= 1'b0;   
+        clk_half <= !clk_half;
     end
 end
 
@@ -398,6 +398,7 @@ begin
   ram_disable_in <= ~wdatain[5];
   rom_disable_in <= ~wdatain[6];
   clk_half <= 0;
+  dcount <= 0;
   $readmemh("../bin/vram_start_addr.txt", vram_start);
   $readmemh("../bin/vram_end_addr.txt", vram_end);
 end
