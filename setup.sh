@@ -6,7 +6,7 @@ apt-get -y install wget
 apt-get -y install imagemagick
 sudo -u pi git clone https://github.com/WiringPi/WiringPi
 cd WiringPi; ./build; cd ..
-pip3 install -U apio==0.5.4
+pip3 install -U apio==0.8.1
 sudo -u pi apio install -a
 sudo -u pi git clone https://github.com/bitfixer/bf-romulator.git
 cd bf-romulator; git submodule init; git submodule update; cd ..
