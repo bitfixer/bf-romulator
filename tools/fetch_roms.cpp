@@ -21,7 +21,6 @@ int main(int argc, char** argv)
     char* csvfile = argv[1];
     char* baseurl = argv[2];
     char line[256];
-    char rom_prefix[256];
     char romname[1024];
     char cmd[2048];
 
@@ -44,7 +43,7 @@ int main(int argc, char** argv)
         
         // first field is set index
         int index = atoi(token);
-        sprintf(romname, "%s%s", rom_prefix, strtok(NULL, ","));
+        sprintf(romname, "%s", strtok(NULL, ","));
 
         token = strtok(NULL, ",");
         uint32_t address;
