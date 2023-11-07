@@ -1,5 +1,5 @@
 # bf-romulator
-Romulator - RAM/ROM replacement and debug for 6502 CPU systems
+Romulator - RAM/ROM replacement and debug for 6502 and Z80 CPU systems
 
 romulator - verilog code to implement ROMulator RAM/ROM replacement
 
@@ -9,7 +9,9 @@ tools - C++ tools for building firmware images for ROMulator
 
 ## About
 
-The ROMulator is a RAM/ROM replacement device for 6502 systems, with programmable memory maps and debug functionality which allows you to halt a running CPU and read from or write to memory. See https://bitfixer.com/romulator for more information.
+The ROMulator is a RAM/ROM replacement device for 6502 and Z80 systems, with programmable memory maps and debug functionality which allows you to halt a running CPU and read from or write to memory. See https://bitfixer.com/romulator for more information.
+
+This Readme mostly covers the 6502 version for now, more documentation coming soon for Z80.
 
 ## Installation
 
