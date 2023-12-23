@@ -39,6 +39,7 @@ void ice_reset()
 {
     pinMode(PI_ICE_CRESET,      OUTPUT);
     digitalWrite(PI_ICE_CRESET, LOW);
+    delayMicroseconds(1000);
 }
 
 void reset_inout()
