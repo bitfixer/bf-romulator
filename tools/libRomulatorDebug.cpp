@@ -306,6 +306,8 @@ bool romulatorReadVram(uint8_t* vram, int size, int valid_bytes, int retries)
                 retries++;
                 fprintf(stderr, "error byte %d retries %d\n", byte, retries);
                 xfer(0x22);
+                // FIXME: retry doesn't seem to work, fail read for now...
+                read_success = false;
             }
             else
             {

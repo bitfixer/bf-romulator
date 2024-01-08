@@ -324,6 +324,7 @@ int main(int argc, char** argv)
 void startServer(char *port)
 {
     struct addrinfo hints, *res, *p;
+    int opt;
     
     // getaddrinfo for host
     memset (&hints, 0, sizeof(hints));
@@ -340,6 +341,12 @@ void startServer(char *port)
     {
         listenfd = socket (p->ai_family, p->ai_socktype, 0);
         if (listenfd == -1) continue;
+        opt = 1;
+        if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+        {
+            perror ("setsockopt(SO_REUSEADDR)");
+            exit(1);
+        }
         if (bind(listenfd, p->ai_addr, p->ai_addrlen) == 0) break;
     }
     if (p==NULL)
@@ -415,6 +422,7 @@ void convertMonoToRGBBitmap(uint8_t* monoBitmap, uint8_t* rgbBitmap, int width, 
 
 void getVram(uint8_t* vram, int len, int pos)
 {
+    static uint8_t last_good_vram[1024] = { 0 };
     #ifdef TEST
     // fill screen with characters
     uint8_t v = pos % 256;
@@ -424,22 +432,47 @@ void getVram(uint8_t* vram, int len, int pos)
     }
     #else
     // get vram from romulator
-    romulatorReadVram(vram, len, 1001, 5);
+    if(romulatorReadVram(vram, len, 1001, 5)) {
+        memcpy(last_good_vram, vram, sizeof(last_good_vram));
+    } else {
+        fprintf(stderr, "Using last good vram image\n");
+        memcpy(vram, last_good_vram, sizeof(last_good_vram));
+    }
     #endif
 }
 
 void getMonoBitmap(int width, int height, int pos)
 {
     uint8_t vram[1024];
+    static uint8_t last_configByte = 0;
+    #ifdef TEST
+    uint8_t configByte = 1;
+    #else
+    uint8_t configByte = romulatorReadConfig();
+    #endif
 
     unsigned int startTime = Tools::Timer::millis();
     getVram(vram, 1024, pos);
     unsigned int readVramTime = Tools::Timer::millis();
 
-    if (characterRom == NULL)
+    if (characterRom == NULL || configByte != last_configByte)
     {
+        char *charRom = characterRomName;
         // read character rom from file
-        FILE* fp = fopen(characterRomName, "rb");
+        if (strlen(charRom) == 0) {
+            // look up the character rom for this configuration
+            fprintf(stderr, "got rom request, config byte %d\n", configByte);
+            if (characterRoms == NULL || characterRoms[configByte] == NULL) {
+                fprintf(stderr, "No character rom for config %d!\n", configByte);
+                return;
+            }
+            charRom = characterRoms[configByte];
+        }
+        FILE* fp = fopen(charRom, "rb");
+        if (fp == NULL) {
+            perror("Can't open character rom");
+            return;
+        }
         fseek(fp, 0, SEEK_END);
         int size = (int)ftell(fp);
         fseek(fp, 0, SEEK_SET);
@@ -447,15 +480,18 @@ void getMonoBitmap(int width, int height, int pos)
         characterRom = (uint8_t*)malloc(size);
         fread(characterRom, 1, size, fp);
         fclose(fp);
+        last_configByte = configByte;
     }
 
     romulatorVramToBitmap(vram, characterRom, 25, 40, 8, 8, bitmap);
     unsigned int convertBitmap = Tools::Timer::millis();
 
+    #ifdef TEST
     fprintf(stderr, "mono total %d read %d convert %d\n",
         convertBitmap - startTime,
         readVramTime - startTime,
         convertBitmap - readVramTime);
+    #endif
 }
 
 void getRGBBitmap(int width, int height, int pos)
@@ -713,7 +749,9 @@ void respond(int n, int tmp, int* cc)
                         unsigned int sendTime = sentDataMillis - readDataMillis;
                         unsigned int totalTime = sentDataMillis - startMillis;
 
+                        #ifdef TEST
                         fprintf(stderr, "png time %d, read %d send %d\n", totalTime, dataReadTime, sendTime);
+                        #endif
                     }
                     else
                     {
