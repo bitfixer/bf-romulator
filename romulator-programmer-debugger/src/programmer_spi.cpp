@@ -586,6 +586,19 @@ void do_command(unsigned char opt)
     }
 }
 
+void print_filesystem() {
+    Dir rootdir = LittleFS.openDir("/");
+    while (rootdir.next()) {
+        if (rootdir.isFile()) {
+            Serial.printf("%s\n", rootdir.fileName().c_str());
+        } else {
+            Serial.printf("no file\n");
+        }
+    }
+    Serial.printf("done fs\n");
+}
+    
+
 void setup() {
     EEPROM.begin(sizeof(WiFiSettings));
     romulatorSetInput();
@@ -594,6 +607,9 @@ void setup() {
     digitalWrite(LED_PIN, 0);
     
     LittleFS.begin();
+    // display directory for confirmation filesystem has been uploaded
+    print_filesystem();
+
     _cpuHalted = false;
     _mode = MENU;
 
