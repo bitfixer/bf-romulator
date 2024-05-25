@@ -183,6 +183,7 @@ bool RomulatorProgrammer::updateProgrammingFromFile()
 
 void RomulatorProgrammer::beginProgramming(int totalSize)
 {
+    romulatorResetDevice();
     initSPI();
     iceReset();
     delayMicroseconds(100);

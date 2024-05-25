@@ -424,11 +424,13 @@ void debug_command(unsigned char opt)
     }
 }
 
-void programFirmware()
+void programFirmware(bool download)
 {
     // receive file
-    Serial.printf("send firmware file (romulator.bin) with xmodem.\r\n");
-    xmodemRecvFile("/romulator.bin");
+    if (download) {
+        Serial.printf("send firmware file (romulator.bin) with xmodem.\r\n");
+        xmodemRecvFile("/romulator.bin");
+    }
 
    // first try to open data file
     File fp = LittleFS.open("/romulator.bin", "r");
@@ -455,6 +457,7 @@ void programming_command(unsigned char opt)
 {
     bool program = true;
     bool reset = false;
+    bool download = true;
     int size = 0;
     
     switch (opt)
@@ -474,14 +477,17 @@ void programming_command(unsigned char opt)
         case 'm':
             _mode = MENU;
             return;
+        case 'f':
+            program = true;
+            download = false;
         default:
             break;
-    } 
+    }
 
     if (program)
     {
         Serial.printf("program\r\n");
-        programFirmware();
+        programFirmware(download);
     }
     else if (reset)
     {
