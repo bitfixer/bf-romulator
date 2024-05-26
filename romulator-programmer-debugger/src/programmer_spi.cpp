@@ -31,6 +31,7 @@
 #include <SPI.h>
 #include <LittleFS.h>
 #include "xmodem.h"
+#include "zm.h"
 #include <EEPROM.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -424,12 +425,17 @@ void debug_command(unsigned char opt)
     }
 }
 
-void programFirmware(bool download)
+void programFirmware(bool download, bool xmodem)
 {
     // receive file
     if (download) {
-        Serial.printf("send firmware file (romulator.bin) with xmodem.\r\n");
-        xmodemRecvFile("/romulator.bin");
+        if (xmodem) {
+            Serial.printf("send firmware file (romulator.bin) with xmodem.\r\n");
+            xmodemRecvFile("/romulator.bin");
+        } else {
+            Serial.printf("send firmware file (romulator.bin) with zmodem.\r\n");
+            zmodemRecvFile("/romulator.bin");
+        }
     }
 
    // first try to open data file
@@ -458,6 +464,7 @@ void programming_command(unsigned char opt)
     bool program = true;
     bool reset = false;
     bool download = true;
+    bool xmodem = true;
     int size = 0;
     
     switch (opt)
@@ -477,9 +484,16 @@ void programming_command(unsigned char opt)
         case 'm':
             _mode = MENU;
             return;
-        case 'f':
+        case 'f': {
             program = true;
             download = false;
+            break;
+        }
+        case 'z': {
+            program = true;
+            xmodem = false;
+            break;
+        }
         default:
             break;
     }
@@ -487,7 +501,7 @@ void programming_command(unsigned char opt)
     if (program)
     {
         Serial.printf("program\r\n");
-        programFirmware(download);
+        programFirmware(download, xmodem);
     }
     else if (reset)
     {
