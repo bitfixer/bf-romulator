@@ -43,6 +43,10 @@ typedef enum mode
     DEBUG
 } Mode;
 
+typedef struct _settings {
+    uint32_t baudrate;
+} Settings;
+
 Mode _mode;
 bool _cpuHalted;
 RomulatorProgrammer _programmer;
@@ -280,6 +284,7 @@ void display_menu() {
         Serial.printf("d for debug mode\r\n");
         Serial.printf("c to clear wifi settings\r\n");
         Serial.printf("w to display wifi settings\r\n");
+        Serial.printf("b to change baud rate\r\n");
     }
     else if (_mode == PROGRAMMING)
     {
@@ -549,6 +554,26 @@ void displayWifiSettings()
     }
 }
 
+void change_baud_rate() {
+    Settings s;
+    EEPROM.get(sizeof(WiFiSettings), s);
+
+    Serial.printf("current baud rate: %" PRIu32 "\r\n", s.baudrate);
+    if (s.baudrate == 115200) {
+        s.baudrate = 460800;
+    } else if (s.baudrate == 460800) {
+        s.baudrate = 1152000;
+    } else if (s.baudrate == 1152000) {
+        s.baudrate = 115200;
+    }
+
+    Serial.printf("new baud rate: %" PRIu32 "\r\n", s.baudrate);
+    EEPROM.put(sizeof(WiFiSettings), s);
+    EEPROM.commit();
+
+    Serial.printf("reset for new baud rate.\r\n");
+}
+
 void menu_command(unsigned char opt)
 {
     switch (opt)
@@ -570,6 +595,9 @@ void menu_command(unsigned char opt)
             break;
         case 'y':
             test_xmodem_send();
+            break;
+        case 'b':
+            change_baud_rate();
             break;
         default:
             break;
@@ -603,12 +631,23 @@ void print_filesystem() {
     }
     Serial.printf("done fs\n");
 }
-    
 
 void setup() {
-    EEPROM.begin(sizeof(WiFiSettings));
+    EEPROM.begin(sizeof(WiFiSettings) + sizeof(Settings));
     romulatorSetInput();
-    Serial.begin(115200);
+
+    // get serial baud rate
+    Settings s;
+    EEPROM.get(sizeof(WiFiSettings), s);
+    // validate
+    if (s.baudrate != 115200 && s.baudrate != 460800 && s.baudrate != 1152000) {
+        // save default
+        s.baudrate = 115200;
+        EEPROM.put(sizeof(WiFiSettings), s);
+        EEPROM.commit();
+    }
+
+    Serial.begin(s.baudrate);
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, 0);
     
